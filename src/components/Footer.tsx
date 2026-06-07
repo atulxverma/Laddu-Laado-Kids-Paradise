@@ -39,7 +39,7 @@ export default function Footer() {
             <div className="h-8 w-8 bg-black rounded-full flex items-center justify-center">
               <span className="text-white text-xs font-black italic">L</span>
             </div>
-            <span className="font-bold text-sm">Laddu Laado</span>
+            <span className="font-bold text-sm">laddoo Laado</span>
           </div>
           <p className="text-xs text-gray-500 leading-relaxed">
             We have clothes that suits your style and which you&apos;re proud to
@@ -84,7 +84,7 @@ export default function Footer() {
       <div className="border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-3">
           <p className="text-xs text-gray-400">
-            Laddu Laado © 2026. All Rights Reserved.
+            laddoo Laado © 2026. All Rights Reserved.
           </p>
           <div className="flex items-center gap-2">
             {["VISA", "MC", "PayPal", "Apple Pay", "G Pay"].map((pay) => (

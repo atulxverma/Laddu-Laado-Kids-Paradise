@@ -136,7 +136,7 @@ export async function createOrder(data: {
         .join("");
 
       await resend.emails.send({
-        from: "Laddu Laado <onboarding@resend.dev>",
+        from: "laddoo Laado <onboarding@resend.dev>",
         to: adminEmail,
         subject: `✨ New Premium Order Received [#${orderIdShort}]`,
         html: `
@@ -145,7 +145,7 @@ export async function createOrder(data: {
               
               <!-- BRAND HEADER -->
               <div style="background-color: #000000; padding: 35px; text-align: center;">
-                <h1 style="color: #ffffff; margin: 0; font-size: 20px; letter-spacing: 6px; font-weight: 900; text-transform: uppercase;">LADDU LAADO</h1>
+                <h1 style="color: #ffffff; margin: 0; font-size: 20px; letter-spacing: 6px; font-weight: 900; text-transform: uppercase;">laddoo LAADO</h1>
               </div>
 
               <!-- MAIN MESSAGE -->
@@ -206,7 +206,7 @@ export async function createOrder(data: {
 
               <!-- FOOTER -->
               <div style="background-color: #f9fafb; padding: 35px; text-align: center; border-top: 1px solid #f3f4f6;">
-                <p style="margin: 0; font-size: 11px; color: #9ca3af; font-weight: 700; letter-spacing: 1px;">LADDU LAADO OFFICIAL ENGINE</p>
+                <p style="margin: 0; font-size: 11px; color: #9ca3af; font-weight: 700; letter-spacing: 1px;">laddoo LAADO OFFICIAL ENGINE</p>
                 <p style="margin: 8px 0 0 0; font-size: 10px; color: #d1d5db;">© 2026 Premium Fashion Store. All rights reserved.</p>
               </div>
 

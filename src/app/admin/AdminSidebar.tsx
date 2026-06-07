@@ -36,7 +36,7 @@ export default function AdminSidebar() {
           </div>
           <div>
             <p className="text-sm font-black text-black tracking-tight">
-              LADDU LAADO
+              laddoo LAADO
             </p>
             <p className="text-[9px] text-gray-400 uppercase tracking-widest">
               Admin

@@ -18,6 +18,6 @@ export const useWishlist = create<WishlistStore>()(
         return { items: [...state.items, product] }
       }),
     }),
-    { name: "laddu-laado-wishlist" }
+    { name: "laddoo-laado-wishlist" }
   )
 )

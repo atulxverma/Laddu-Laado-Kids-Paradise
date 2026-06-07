@@ -82,7 +82,7 @@ export default function Navbar() {
                   <span className="text-white text-sm font-black italic">L</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-bold text-lg tracking-tighter leading-none uppercase italic">Laddu Laado</span>
+                  <span className="font-bold text-lg tracking-tighter leading-none uppercase italic">laddoo Laado</span>
                   <span className="text-[7px] font-black text-gray-300 uppercase tracking-[0.3em] leading-none mt-1">Premium Kids Wear</span>
                 </div>
               </Link>

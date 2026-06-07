@@ -64,6 +64,6 @@ export const useCart = create<CartStore>()(
 
       clearCart: () => set({ items: [] }),
     }),
-    { name: "laddu-laado-cart" }
+    { name: "laddoo-laado-cart" }
   )
 )
