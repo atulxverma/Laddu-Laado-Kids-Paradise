@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-inter), sans-serif;
+  --font-serif: var(--font-playfair), serif;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    @apply bg-white text-black antialiased;
+    font-family: var(--font-sans);
+  }
+
+  select {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  }
+
+  select option {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  select:focus {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    outline: none;
+  }
+
+  /* Chrome autofill fix */
+  select:-webkit-autofill {
+    -webkit-text-fill-color: #000000 !important;
+    background-color: #ffffff !important;
+  }
+}
+
+@utility no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
