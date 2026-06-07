@@ -6,7 +6,7 @@ import { useCart } from "@/hooks/use-cart"
 import { useWishlist } from "@/hooks/use-wishlist"
 import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { SignInButton, SignedIn, SignedOut, UserButton, useUser } from "@clerk/nextjs"
+import { SignInButton, UserButton, useUser } from "@clerk/nextjs"
 import SearchModal from "@/components/SearchModal"
 
 const categories = ["Clothing", "Footwear", "Accessories", "Essentials"]
@@ -23,7 +23,7 @@ const genderFilters = [
 ]
 
 export default function Navbar() {
-  const { user } = useUser()
+  const { user, isSignedIn } = useUser()
   const cartItems = useCart((state) => state.items)
   const { items: wishlistItems } = useWishlist()
   
@@ -137,7 +137,7 @@ export default function Navbar() {
               <div className="flex items-center gap-3 border-l border-gray-100 pl-4">
                 {mounted && (
                   <>
-                    <SignedIn>
+                    {isSignedIn ? (
                       <div className="flex items-center gap-4">
                         {isAdmin && (
                           <Link 
@@ -162,14 +162,13 @@ export default function Navbar() {
                           </UserButton.MenuItems>
                         </UserButton>
                       </div>
-                    </SignedIn>
-                    <SignedOut>
+                    ) : (
                       <SignInButton mode="modal">
                         <button className="text-[10px] font-black uppercase tracking-widest bg-black text-white px-5 py-2.5 rounded-full hover:opacity-80 transition-all shadow-sm">
                           Login
                         </button>
                       </SignInButton>
-                    </SignedOut>
+                    )}
                   </>
                 )}
               </div>
@@ -189,7 +188,7 @@ export default function Navbar() {
 
               <div className="h-4 w-[1px] bg-gray-100" />
 
-              {/* Gender Filters (Shifted here from Top Nav) */}
+              {/* Gender Filters */}
               <div className="flex items-center gap-8">
                 {genderFilters.map((filter) => (
                   <Link
@@ -291,7 +290,7 @@ export default function Navbar() {
                 {/* Account Actions for Mobile */}
                 <div className="space-y-4">
                   <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">My Account</p>
-                  <SignedIn>
+                  {isSignedIn ? (
                     <div className="grid grid-cols-1 gap-2">
                       <Link 
                         href="/orders" 
@@ -308,14 +307,13 @@ export default function Navbar() {
                         <Heart size={20} className="text-gray-400" /> Favorites
                       </Link>
                     </div>
-                  </SignedIn>
-                  <SignedOut>
+                  ) : (
                     <SignInButton mode="modal">
                       <button onClick={() => setMenuOpen(false)} className="w-full bg-black text-white py-4 rounded-2xl font-bold text-sm">
                         Login / Register
                       </button>
                     </SignInButton>
-                  </SignedOut>
+                  )}
                 </div>
 
                 {/* Shop by Collections */}
@@ -370,16 +368,14 @@ export default function Navbar() {
                   </Link>
                 )}
                 
-                {mounted && (
-                  <SignedIn>
-                    <div className="flex items-center gap-3 bg-white p-3 rounded-xl border border-gray-200 shadow-sm">
-                      <UserButton afterSignOutUrl="/" />
-                      <div className="flex flex-col">
-                        <span className="text-xs font-bold text-gray-700 truncate max-w-[120px]">{user.fullName}</span>
-                        <span className="text-[10px] text-gray-400">Manage Account</span>
-                      </div>
+                {mounted && isSignedIn && user && (
+                  <div className="flex items-center gap-3 bg-white p-3 rounded-xl border border-gray-200 shadow-sm">
+                    <UserButton afterSignOutUrl="/" />
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-gray-700 truncate max-w-[120px]">{user.fullName}</span>
+                      <span className="text-[10px] text-gray-400">Manage Account</span>
                     </div>
-                  </SignedIn>
+                  </div>
                 )}
               </div>
             </motion.div>
