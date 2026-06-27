@@ -3,11 +3,11 @@ import OrderStatusButton from "./OrderStatusButton"
 import { Smartphone, MapPin } from "lucide-react"
 
 export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
 export default async function OrdersPage() {
   let orders = [];
   
-  // Safe try-catch block taaki build-time database evaluation break na ho
   try {
     orders = await db.order.findMany({
       include: {

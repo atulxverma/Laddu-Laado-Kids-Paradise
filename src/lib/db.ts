@@ -1,11 +1,11 @@
 import { PrismaClient } from "@prisma/client";
 
 const prismaClientSingleton = () => {
-  // Prisma 7 ke liye explicit definition safe rehti hai agar schema mein url defined na ho
   return new PrismaClient({
     datasources: {
       db: {
-        url: process.env.DATABASE_URL,
+        // Safe string fallback boundary for build safety phase validation
+        url: process.env.DATABASE_URL || "postgresql://mock:mock@localhost:5432/mock?schema=public",
       },
     },
   });
