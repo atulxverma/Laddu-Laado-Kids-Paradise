@@ -8,7 +8,7 @@ import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs"
 import SearchModal from "@/components/SearchModal"
-import { syncCartWithDb, getDbCart } from "@/lib/actions" // 👈 Ye functions actions.ts mein hone chahiye
+import { syncCartWithDb, getDbCart } from "@/lib/actions"
 
 const categories = ["Clothing", "Footwear", "Accessories", "Essentials"]
 
@@ -36,7 +36,6 @@ export default function Navbar() {
   const cartCount = cart.items.reduce((t, i) => t + i.quantity, 0)
   const isAdmin = user?.primaryEmailAddress?.emailAddress === process.env.NEXT_PUBLIC_ADMIN_EMAIL
 
-  // --- 🔥 LOGIC 1: ACCOUNT SWAP PROTECTION ---
   useEffect(() => {
     if (isLoaded && isSignedIn && user?.id) {
       const lastKnownUser = localStorage.getItem("laddu-laado-auth-session")
@@ -49,7 +48,6 @@ export default function Navbar() {
     }
   }, [user?.id, isLoaded, isSignedIn])
 
-  // --- 🔥 LOGIC 2: DATABASE SYNC (RESTORE ON LOGIN) ---
   useEffect(() => {
     if (isLoaded && isSignedIn && user?.id) {
       const loadData = async () => {
@@ -74,12 +72,11 @@ export default function Navbar() {
     }
   }, [isSignedIn, isLoaded])
 
-  // --- 🔥 LOGIC 3: AUTO-SAVE TO CLOUD ---
   useEffect(() => {
     if (isSignedIn && user?.id && cart.items.length >= 0) {
       const timer = setTimeout(() => {
         syncCartWithDb(user.id, cart.items)
-      }, 2000) // 2 sec debounce taaki server pe load na pade
+      }, 2000)
       return () => clearTimeout(timer)
     }
   }, [cart.items, isSignedIn, user?.id])
@@ -91,7 +88,6 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
-  // SEARCH SHORTCUT (Ctrl + K)
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
@@ -110,7 +106,7 @@ export default function Navbar() {
           scrolled ? "shadow-md py-1" : "py-0"
         }`}
       >
-        {/* --- TOP BAR --- */}
+        {/* TOP BAR */}
         <div className="border-b border-gray-100">
           <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
             
@@ -123,18 +119,21 @@ export default function Navbar() {
                 {menuOpen ? <X size={22} /> : <Menu size={22} />}
               </button>
 
-              <Link href="/" className="flex items-center gap-2 group">
-                <div className="h-9 w-9 bg-black rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-black/10">
-                  <span className="text-white text-sm font-black italic">L</span>
+              <Link href="/" className="flex items-center gap-3 group">
+                <div className="h-11 w-11 relative rounded-full overflow-hidden shadow-lg border border-gray-100 group-hover:scale-110 transition-transform duration-500 bg-white">
+                  <img 
+                    src="/logo.jpeg" 
+                    alt="Laddu Laado Logo" 
+                    className="h-full w-full object-cover"
+                  />
                 </div>
                 <div className="flex flex-col text-black">
-                  <span className="font-black text-lg tracking-tighter leading-none uppercase italic">laddu Laado</span>
-                  <span className="text-[7px] font-black text-gray-400 uppercase tracking-[0.3em] leading-none mt-1">Premium Kids Wear</span>
+                  <span className="font-black text-xl tracking-tighter leading-none uppercase italic">laddu Laado</span>
+                  <span className="text-[7px] font-black text-gray-300 uppercase tracking-[0.3em] leading-none mt-1.5">Premium Kids Wear</span>
                 </div>
               </Link>
             </div>
 
-            {/* CENTER: Nav Links */}
             <nav className="hidden md:flex items-center gap-10">
               {navLinks.map((link) => (
                 <Link
@@ -148,7 +147,6 @@ export default function Navbar() {
               ))}
             </nav>
 
-            {/* RIGHT: Actions */}
             <div className="flex items-center gap-2 md:gap-4">
               
               <button 
@@ -161,7 +159,7 @@ export default function Navbar() {
               <Link href="/wishlist" className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-all">
                 <Heart size={20} />
                 {mounted && wishlist.items.length > 0 && (
-                  <span className="absolute top-1.5 right-1.5 h-3.5 w-3.5 bg-red-500 text-white text-[8px] font-black rounded-full flex items-center justify-center border border-white">
+                  <span className="absolute top-1.5 right-1.5 h-3.5 w-3.5 bg-red-500 text-white text-[8px] font-black rounded-full flex items-center justify-center border border-white shadow-sm">
                     {wishlist.items.length}
                   </span>
                 )}
@@ -170,7 +168,7 @@ export default function Navbar() {
               <Link href="/cart" className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-all mr-2">
                 <ShoppingBag size={20} />
                 {mounted && cartCount > 0 && (
-                  <span className="absolute top-1.5 right-1.5 h-3.5 w-3.5 bg-black text-white text-[8px] font-black rounded-full flex items-center justify-center border border-white">
+                  <span className="absolute top-1.5 right-1.5 h-3.5 w-3.5 bg-black text-white text-[8px] font-black rounded-full flex items-center justify-center border border-white shadow-sm">
                     {cartCount}
                   </span>
                 )}
@@ -184,7 +182,7 @@ export default function Navbar() {
                         {isAdmin && (
                           <Link 
                             href="/admin/dashboard" 
-                            className="hidden lg:flex items-center gap-2 bg-amber-50 text-amber-700 px-3 py-1.5 rounded-full text-[9px] font-black uppercase border border-amber-100 hover:bg-amber-100 transition-all"
+                            className="hidden lg:flex items-center gap-2 bg-amber-50 text-amber-700 px-3 py-1.5 rounded-full text-[9px] font-black uppercase border border-amber-100 hover:bg-amber-100 transition-all shadow-sm"
                           >
                             <LayoutDashboard size={12} /> Panel
                           </Link>
@@ -207,7 +205,7 @@ export default function Navbar() {
                     ) : (
                       <SignInButton mode="modal">
                         <button className="text-[10px] font-black uppercase tracking-widest bg-black text-white px-6 py-2.5 rounded-full hover:opacity-80 transition-all shadow-md active:scale-95">
-                          Join Family
+                          Login
                         </button>
                       </SignInButton>
                     )}
@@ -218,7 +216,6 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* --- BOTTOM BAR --- */}
         <div className="border-b border-gray-100 bg-white/80 backdrop-blur-md hidden md:block">
           <div className="max-w-7xl mx-auto px-4 h-12 flex items-center justify-between">
             
@@ -234,7 +231,7 @@ export default function Navbar() {
                   <Link
                     key={filter.label}
                     href={filter.href}
-                    className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-black transition-all"
+                    className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-black transition-all hover:scale-105"
                   >
                     {filter.label}
                   </Link>
@@ -242,16 +239,15 @@ export default function Navbar() {
               </div>
             </div>
 
-            {/* Desktop Search */}
             <div className="flex-1 flex justify-center px-10">
               <button
                 onClick={() => setSearchOpen(true)}
-                className="flex items-center gap-3 w-full max-w-sm bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 hover:border-gray-300 hover:bg-gray-100 transition-all group"
+                className="flex items-center gap-3 w-full max-w-sm bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 hover:border-gray-300 hover:bg-gray-100 transition-all group shadow-inner"
               >
                 <Search size={14} className="text-gray-400 shrink-0" />
-                <span className="text-xs text-gray-400 font-medium italic">Discover luxury...</span>
+                <span className="text-xs text-gray-400 font-medium italic">Discover premium drops...</span>
                 <div className="ml-auto flex items-center gap-1">
-                  <span className="text-[9px] text-gray-300 bg-white border border-gray-100 px-1.5 py-0.5 rounded font-mono">
+                  <span className="text-[9px] text-gray-300 bg-white border border-gray-100 px-1.5 py-0.5 rounded font-mono shadow-sm">
                     CTRL K
                   </span>
                 </div>
@@ -263,7 +259,7 @@ export default function Navbar() {
                 <Link
                   key={cat}
                   href={`/shop?category=${cat.toLowerCase()}`}
-                  className="text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border border-gray-100 text-gray-400 hover:bg-black hover:text-white transition-all shadow-sm"
+                  className="text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border border-gray-100 text-gray-400 hover:bg-black hover:text-white hover:border-black transition-all shadow-sm"
                 >
                   {cat}
                 </Link>
@@ -276,7 +272,6 @@ export default function Navbar() {
 
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
 
-      {/* --- MOBILE DRAWER MENU --- */}
       <AnimatePresence>
         {menuOpen && (
           <>
@@ -295,22 +290,25 @@ export default function Navbar() {
               className="fixed top-0 left-0 bottom-0 z-[70] w-[300px] bg-white shadow-2xl flex flex-col md:hidden"
             >
               <div className="p-6 border-b border-gray-50 flex items-center justify-between bg-gray-50/50">
-                <div className="flex items-center gap-2">
-                  <div className="h-7 w-7 bg-black rounded-full flex items-center justify-center shadow-md">
-                    <span className="text-white text-[10px] font-black italic">L</span>
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 bg-black rounded-full overflow-hidden shadow-lg border border-gray-100">
+                    <img 
+                      src="/logo.jpeg" 
+                      alt="Logo" 
+                      className="h-full w-full object-cover" 
+                    />
                   </div>
-                  <span className="font-black text-sm tracking-widest italic">NAVIGATION</span>
+                  <span className="font-black text-sm tracking-widest italic text-black">NAVIGATION</span>
                 </div>
                 <button 
                   onClick={() => setMenuOpen(false)}
-                  className="h-10 w-10 bg-white rounded-full shadow-sm flex items-center justify-center active:scale-90"
+                  className="h-10 w-10 bg-white rounded-full shadow-sm flex items-center justify-center active:scale-90 transition-transform"
                 >
                   <X size={20} />
                 </button>
               </div>
 
               <div className="flex-1 overflow-y-auto p-6 space-y-8 no-scrollbar">
-                
                 <div className="space-y-2">
                   <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Quick Search</p>
                   <button
@@ -318,12 +316,12 @@ export default function Navbar() {
                     className="w-full flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-gray-400 shadow-inner"
                   >
                     <Search size={20} />
-                    <span className="text-sm font-bold text-gray-400">Search items...</span>
+                    <span className="text-sm font-bold">Search items...</span>
                   </button>
                 </div>
 
                 <div className="space-y-4">
-                  <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Account Details</p>
+                  <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Account & Personal</p>
                   {isSignedIn ? (
                     <div className="grid grid-cols-1 gap-2">
                       <Link 
@@ -343,15 +341,15 @@ export default function Navbar() {
                     </div>
                   ) : (
                     <SignInButton mode="modal">
-                      <button onClick={() => setMenuOpen(false)} className="w-full bg-black text-white py-4 rounded-2xl font-black uppercase text-xs shadow-lg active:scale-95">
-                        Join Laddu Laado
+                      <button onClick={() => setMenuOpen(false)} className="w-full bg-black text-white py-4 rounded-2xl font-black uppercase text-xs shadow-lg active:scale-95 transition-all">
+                        Login / Register
                       </button>
                     </SignInButton>
                   )}
                 </div>
 
                 <div className="space-y-4">
-                  <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Premium Collections</p>
+                  <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Shop Collection</p>
                   <div className="flex flex-col gap-2">
                     {genderFilters.map((filter) => (
                       <Link
@@ -361,7 +359,7 @@ export default function Navbar() {
                         className="flex items-center justify-between text-2xl font-black italic border-b border-gray-50 pb-2 group"
                       >
                         {filter.label}
-                        <span className="text-gray-200 group-hover:text-black transition-colors transform group-hover:translate-x-1">→</span>
+                        <span className="text-gray-200 group-hover:text-black transition-colors transform group-hover:translate-x-1 duration-300">→</span>
                       </Link>
                     ))}
                   </div>
@@ -369,7 +367,7 @@ export default function Navbar() {
 
                 <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
                    {categories.map(cat => (
-                     <Link key={cat} href={`/shop?category=${cat.toLowerCase()}`} onClick={() => setMenuOpen(false)} className="shrink-0 px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-full text-[10px] font-black uppercase shadow-sm">{cat}</Link>
+                     <Link key={cat} href={`/shop?category=${cat.toLowerCase()}`} onClick={() => setMenuOpen(false)} className="shrink-0 px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-full text-[10px] font-black uppercase shadow-sm font-bold">{cat}</Link>
                    ))}
                 </div>
 
@@ -379,7 +377,7 @@ export default function Navbar() {
                       key={link.href}
                       href={link.href}
                       onClick={() => setMenuOpen(false)}
-                      className="block text-sm font-bold text-gray-500 uppercase tracking-widest hover:text-black"
+                      className="block text-sm font-bold text-gray-500 uppercase tracking-widest hover:text-black transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -387,23 +385,23 @@ export default function Navbar() {
                 </div>
               </div>
 
-              <div className="mt-auto p-6 border-t border-gray-100 bg-gray-50/50 space-y-4 text-black">
+              <div className="mt-auto p-6 border-t border-gray-100 bg-gray-50/50 space-y-4">
                 {mounted && isAdmin && (
                   <Link 
                     href="/admin/dashboard" 
                     onClick={() => setMenuOpen(false)}
-                    className="flex items-center justify-center gap-3 w-full bg-amber-600 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-amber-200 active:scale-95"
+                    className="flex items-center justify-center gap-3 w-full bg-amber-600 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-amber-200 active:scale-95 transition-all"
                   >
-                    <LayoutDashboard size={16} /> Admin Panel
+                    <LayoutDashboard size={16} /> Admin Dashboard
                   </Link>
                 )}
                 
                 {mounted && isSignedIn && user && (
                   <div className="flex items-center gap-3 bg-white p-3 rounded-xl border border-gray-200 shadow-md">
                     <UserButton afterSignOutUrl="/" />
-                    <div className="flex flex-col overflow-hidden">
-                      <span className="text-xs font-black text-gray-700 truncate">{user.fullName}</span>
-                      <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-tighter leading-none mt-1">Logged In</span>
+                    <div className="flex flex-col overflow-hidden text-black">
+                      <span className="text-xs font-black truncate">{user.fullName}</span>
+                      <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-tighter">Active Profile</span>
                     </div>
                   </div>
                 )}

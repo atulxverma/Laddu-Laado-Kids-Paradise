@@ -44,22 +44,26 @@ export default function Footer() {
   return (
     <footer className="border-t border-gray-100 bg-white mt-8">
       <div className="max-w-7xl mx-auto px-4 py-12 grid grid-cols-2 md:grid-cols-5 gap-8">
-        {/* Brand Section */}
+        {/* Brand Section with Circular Logo */}
         <div className="col-span-2 md:col-span-1">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="h-8 w-8 bg-black rounded-full flex items-center justify-center">
-              <span className="text-white text-xs font-black italic">L</span>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="h-12 w-12 rounded-full overflow-hidden shadow-md border border-gray-50 bg-white">
+              <img 
+                src="/logo.jpeg" 
+                alt="Laddu Laado Logo" 
+                className="h-full w-full object-cover"
+              />
             </div>
-            <span className="font-bold text-sm">Laddu Laado</span>
+            <span className="font-black text-lg italic text-black uppercase tracking-tighter">Laddu Laado</span>
           </div>
-          <p className="text-xs text-gray-500 leading-relaxed">
+          <p className="text-xs text-gray-500 leading-relaxed font-medium">
             Premium kids wear handcrafted with love. We bring elegance to your little ones' wardrobe.
           </p>
-          <div className="flex items-center gap-3 mt-4">
+          <div className="flex items-center gap-3 mt-6">
             {["𝕏", "f", "📷", "⭕"].map((icon) => (
               <button
                 key={icon}
-                className="h-8 w-8 rounded-full border border-gray-100 flex items-center justify-center text-xs text-gray-500 hover:bg-black hover:text-white transition-all"
+                className="h-8 w-8 rounded-full border border-gray-100 flex items-center justify-center text-xs text-gray-500 hover:bg-black hover:text-white transition-all shadow-sm"
               >
                 {icon}
               </button>
@@ -98,7 +102,7 @@ export default function Footer() {
             {["VISA", "MC", "PayPal", "Apple Pay", "G Pay"].map((pay) => (
               <span
                 key={pay}
-                className="text-[8px] font-black border border-gray-200 px-2 py-0.5 rounded text-gray-400"
+                className="text-[8px] font-black border border-gray-200 px-2 py-0.5 rounded text-gray-400 shadow-sm bg-white"
               >
                 {pay}
               </span>
