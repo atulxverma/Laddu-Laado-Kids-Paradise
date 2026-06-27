@@ -5,46 +5,54 @@ import { Smartphone, MapPin } from "lucide-react"
 export const dynamic = "force-dynamic";
 
 export default async function OrdersPage() {
-  const orders = await db.order.findMany({
-    include: {
-      orderItems: {
-        include: {
-          // ✅ Fixed: added images to product include
-          product: { include: { images: true } }
+  let orders = [];
+  
+  // Safe try-catch block taaki build-time database evaluation break na ho
+  try {
+    orders = await db.order.findMany({
+      include: {
+        orderItems: {
+          include: {
+            product: { include: { images: true } }
+          }
         }
-      }
-    },
-    orderBy: { createdAt: "desc" }
-  })
+      },
+      orderBy: { createdAt: "desc" }
+    }) || [];
+  } catch (error) {
+    console.error("Prisma compilation safety caught error during build time deployment evaluation: ", error);
+    orders = [];
+  }
 
   return (
     <div className="p-6 md:p-10 space-y-10 bg-[#fafafa] min-h-screen">
       <div className="pt-8 md:pt-0">
         <h1 className="text-3xl font-black italic tracking-tighter uppercase">Order Management</h1>
         <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-1">
-          Processing {orders.length} total shipments
+          Processing {orders?.length || 0} total shipments
         </p>
       </div>
 
       <div className="space-y-6">
-        {orders.map((order) => (
+        {orders?.map((order) => (
           <div key={order.id} className="bg-white border border-gray-100 rounded-[2rem] overflow-hidden shadow-sm">
             <div className="p-6 border-b border-gray-50 flex flex-wrap justify-between items-center gap-4 bg-gray-50/30">
               <div className="flex gap-8">
                 <div>
                   <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Order ID</p>
-                  <p className="text-xs font-bold font-mono uppercase">#{order.id.slice(-8)}</p>
+                  {/* Safe check for order.id fallback slice */}
+                  <p className="text-xs font-bold font-mono uppercase">#{order?.id ? order.id.slice(-8) : "N/A"}</p>
                 </div>
                 <div>
                   <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Revenue</p>
-                  <p className="text-xs font-black">₹{order.total.toLocaleString()}</p>
+                  <p className="text-xs font-black">₹{order?.total ? order.total.toLocaleString() : 0}</p>
                 </div>
                 <div>
                   <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Date</p>
                   <p className="text-xs font-bold">
-                    {new Date(order.createdAt).toLocaleDateString("en-IN", {
+                    {order?.createdAt ? new Date(order.createdAt).toLocaleDateString("en-IN", {
                       day: "numeric", month: "short", year: "numeric"
-                    })}
+                    }) : "N/A"}
                   </p>
                 </div>
               </div>
@@ -56,10 +64,10 @@ export default async function OrdersPage() {
                 <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Customer Details</p>
                 <div className="space-y-2">
                   <p className="flex items-center gap-2 text-sm font-bold text-black">
-                    <Smartphone size={14} className="text-gray-400" /> {order.phone}
+                    <Smartphone size={14} className="text-gray-400" /> {order?.phone || "N/A"}
                   </p>
                   <p className="flex items-start gap-2 text-sm text-gray-500 font-medium leading-relaxed">
-                    <MapPin size={14} className="text-gray-400 mt-1 shrink-0" /> {order.address}
+                    <MapPin size={14} className="text-gray-400 mt-1 shrink-0" /> {order?.address || "No Address"}
                   </p>
                 </div>
               </div>
@@ -67,17 +75,17 @@ export default async function OrdersPage() {
               <div className="space-y-4">
                 <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Line Items</p>
                 <div className="space-y-3">
-                  {order.orderItems.map((item) => (
+                  {order?.orderItems?.map((item) => (
                     <div key={item.id} className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
                       <div className="h-10 w-8 rounded-md overflow-hidden bg-gray-200 shrink-0">
-                        {item.product.images[0]?.url && (
+                        {item?.product?.images?.[0]?.url && (
                           <img src={item.product.images[0].url} className="h-full w-full object-cover" alt="" />
                         )}
                       </div>
                       <div>
-                        <p className="text-[11px] font-bold text-black uppercase">{item.product.name}</p>
+                        <p className="text-[11px] font-bold text-black uppercase">{item?.product?.name || "Product"}</p>
                         <p className="text-[9px] text-gray-400 font-black uppercase">
-                          Size: {item.size || "N/A"} · Qty: {item.quantity}
+                          Size: {item?.size || "N/A"} · Qty: {item?.quantity || 0}
                         </p>
                       </div>
                     </div>
