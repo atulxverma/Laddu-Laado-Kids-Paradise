@@ -299,18 +299,21 @@ export async function deleteBanner(id: string) {
 
 export async function syncCartWithDb(clerkId: string, items: any[]) {
   try {
-    await db.cartItem.deleteMany({ where: { clerkId } });
+    await db.cartItem.deleteMany({ where: { clerkId } }); 
+    
     if (items.length > 0) {
       await db.cartItem.createMany({
         data: items.map(i => ({
           clerkId,
-          productId: i.id,
+          productId: i.id, 
           quantity: i.quantity,
           size: i.size
         }))
       });
     }
-  } catch (e) { console.error("DB_SYNC_FAIL", e) }
+  } catch (e) {
+    console.error("DB_SYNC_FAIL", e);
+  }
 }
 
 export async function getDbCart(clerkId: string) {

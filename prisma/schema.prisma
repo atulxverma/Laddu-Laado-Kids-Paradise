@@ -15,25 +15,25 @@ model Category {
 }
 
 model Product {
-  id          String      @id @default(auto()) @map("_id") @db.ObjectId
-  name        String
-  description String
-  price       Float
-  isFeatured  Boolean     @default(false)
-  isArchived  Boolean     @default(false)
-  size        String
-  color       String
-  images      Image[]
-  categoryId  String      @db.ObjectId
-  category    Category    @relation(fields: [categoryId], references: [id])
-  orderItems  OrderItem[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  gender      String      @default("Unisex")
-  ageGroup    String      @default("2-4Y")
-  reviews Review[]
-  stock       Int         @default(10)
-  cartItems CartItem[]
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  description   String
+  price         Float
+  isFeatured    Boolean        @default(false)
+  isArchived    Boolean        @default(false)
+  size          String
+  color         String
+  images        Image[]
+  categoryId    String         @db.ObjectId
+  category      Category       @relation(fields: [categoryId], references: [id])
+  orderItems    OrderItem[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  gender        String         @default("Unisex")
+  ageGroup      String         @default("2-4Y")
+  reviews       Review[]
+  stock         Int            @default(10)
+  cartItems     CartItem[]
   wishlistItems WishlistItem[]
 }
 
@@ -68,13 +68,13 @@ model OrderItem {
 }
 
 model Review {
-  id        String   @id @default(cuid()) @map("_id") 
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   rating    Int      
   comment   String
   clerkId   String   
   userName  String   
   userImage String?  
-  productId String
+  productId String   @db.ObjectId
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
 
@@ -82,36 +82,34 @@ model Review {
 }
 
 model Banner {
-  id        String   @id @default(cuid()) @map("_id")
-  label     String   // e.g., "New Arrival"
-  title     String   // e.g., "Summer Collection"
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  label     String   
+  title     String   
   subtitle  String?
   imageUrl  String
   link      String   @default("/shop")
   active    Boolean  @default(true)
-  type      String   @default("HERO") // HERO, SIDE_1, SIDE_2
+  type      String   @default("HERO") 
 }
 
 model Newsletter {
-  id    String @id @default(cuid()) @map("_id")
-  email String @unique
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String   @unique
   createdAt DateTime @default(now())
 }
 
 model CartItem {
-  id        String  @id @default(cuid()) @map("_id")
-  clerkId   String  // User se link karne ke liye
-  productId String
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  clerkId   String  
+  productId String  @db.ObjectId
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   quantity  Int     @default(1)
   size      String
 }
 
 model WishlistItem {
-  id        String  @id @default(cuid()) @map("_id")
-  clerkId   String
-  productId String
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  clerkId   String  
+  productId String  @db.ObjectId
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
-
-

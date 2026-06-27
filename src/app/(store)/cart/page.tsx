@@ -17,7 +17,6 @@ export default function CartPage() {
   return (
     <main className="bg-white pb-20 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-xs text-gray-400 mb-6">
           <Link href="/" className="hover:text-black flex items-center gap-1 transition-colors">
             <ArrowLeft size={13} /> Home
@@ -37,25 +36,18 @@ export default function CartPage() {
           <div className="py-32 text-center">
             <ShoppingBag size={48} className="text-gray-200 mx-auto mb-4" />
             <p className="text-gray-400 mb-6 text-sm">Your cart is empty</p>
-            <Link
-              href="/"
-              className="text-sm font-bold bg-black text-white px-6 py-3 rounded-full hover:opacity-80 transition-opacity"
-            >
+            <Link href="/" className="text-sm font-bold bg-black text-white px-6 py-3 rounded-full hover:opacity-80 transition-opacity">
               Continue Shopping
             </Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8">
-            {/* LEFT: Items */}
             <div>
               <div className="flex items-center justify-between pb-4 border-b border-gray-100">
                 <span className="text-xs text-gray-400 font-medium uppercase tracking-widest">
                   {items.length} Items
                 </span>
-                <button
-                  onClick={clearCart}
-                  className="text-xs text-red-500 font-medium hover:opacity-70 transition-opacity"
-                >
+                <button onClick={clearCart} className="text-xs text-red-500 font-medium hover:opacity-70 transition-opacity">
                   Clear All
                 </button>
               </div>
@@ -69,14 +61,9 @@ export default function CartPage() {
                     exit={{ opacity: 0, x: -40 }}
                     className="flex items-center gap-4 py-5 border-b border-gray-100"
                   >
-                    {/* Image */}
                     <div className="h-24 w-20 rounded-xl overflow-hidden bg-gray-100 shrink-0">
                       {item.image ? (
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="w-full h-full object-cover"
-                        />
+                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
                           <ShoppingBag size={20} className="text-gray-300" />
@@ -84,17 +71,14 @@ export default function CartPage() {
                       )}
                     </div>
 
-                    {/* Info */}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-sm truncate">{item.name}</h3>
-                      <p className="text-sm font-bold mt-1">
-                        ₹{item.price.toLocaleString("en-IN")}
-                      </p>
+                      <p className="text-sm font-bold mt-1">₹{item.price.toLocaleString("en-IN")}</p>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full">
                           Size: {item.size}
                         </span>
-                        {item.color && (
+                        {item.color && item.color !== "Standard" && (
                           <span className="text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full">
                             {item.color}
                           </span>
@@ -102,26 +86,24 @@ export default function CartPage() {
                       </div>
                     </div>
 
-                    {/* Actions */}
                     <div className="flex flex-col items-end gap-3">
+                      {/* ✅ Fixed: now passing both id and size */}
                       <button
-                        onClick={() => removeItem(item.id)}
+                        onClick={() => removeItem(item.id, item.size)}
                         className="text-gray-300 hover:text-red-500 transition-colors"
                       >
                         <Trash2 size={15} />
                       </button>
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => decreaseQuantity(item.id)}
+                          onClick={() => decreaseQuantity(item.id, item.size)}
                           className="h-7 w-7 rounded-full border border-gray-200 text-sm flex items-center justify-center hover:bg-black hover:text-white hover:border-black transition-all"
                         >
                           −
                         </button>
-                        <span className="text-sm font-bold w-5 text-center">
-                          {item.quantity}
-                        </span>
+                        <span className="text-sm font-bold w-5 text-center">{item.quantity}</span>
                         <button
-                          onClick={() => increaseQuantity(item.id)}
+                          onClick={() => increaseQuantity(item.id, item.size)}
                           className="h-7 w-7 rounded-full border border-gray-200 text-sm flex items-center justify-center hover:bg-black hover:text-white hover:border-black transition-all"
                         >
                           +
@@ -133,19 +115,14 @@ export default function CartPage() {
               </AnimatePresence>
             </div>
 
-            {/* RIGHT: Summary */}
             <div className="h-fit border border-gray-100 rounded-2xl p-6 space-y-5 sticky top-28">
               <h2 className="font-bold text-lg">Order Summary</h2>
 
               <div className="space-y-2">
                 {items.map((item) => (
                   <div key={`${item.id}-${item.size}`} className="flex justify-between text-xs text-gray-500">
-                    <span className="truncate mr-2">
-                      {item.name} × {item.quantity}
-                    </span>
-                    <span className="shrink-0 font-medium">
-                      ₹{(item.price * item.quantity).toLocaleString("en-IN")}
-                    </span>
+                    <span className="truncate mr-2">{item.name} × {item.quantity}</span>
+                    <span className="shrink-0 font-medium">₹{(item.price * item.quantity).toLocaleString("en-IN")}</span>
                   </div>
                 ))}
               </div>

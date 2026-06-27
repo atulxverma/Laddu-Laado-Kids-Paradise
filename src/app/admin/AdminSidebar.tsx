@@ -4,14 +4,8 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
 import {
-  LayoutDashboard,
-  ShoppingBag,
-  Layers,
-  ClipboardList,
-  Store,
-  Menu,
-  X,
-  Image as ImageIcon
+  LayoutDashboard, ShoppingBag, Layers,
+  ClipboardList, Store, Menu, X, Image as ImageIcon
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { UserButton } from "@clerk/nextjs"
@@ -24,21 +18,21 @@ const navItems = [
   { label: "Orders", href: "/admin/orders", icon: ClipboardList },
 ]
 
-export default function AdminSidebar() {
-  const pathname = usePathname()
-  const [mobileOpen, setMobileOpen] = useState(false)
-
-  const SidebarContent = () => (
+// ✅ OUTSIDE the main component — fixes "Cannot create components during render"
+function SidebarContent({
+  pathname,
+  onClose,
+}: {
+  pathname: string
+  onClose: () => void
+}) {
+  return (
     <div className="flex flex-col h-full p-5 gap-8">
-      {/* Brand with Circular Logo */}
+      {/* Brand */}
       <div className="flex items-center justify-between px-2 pt-2">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-full overflow-hidden shadow-md border border-gray-100 bg-white">
-            <img 
-              src="/logo.jpeg" 
-              alt="Admin Logo" 
-              className="h-full w-full object-cover" 
-            />
+            <img src="/logo.jpeg" alt="Logo" className="h-full w-full object-cover" />
           </div>
           <div>
             <p className="text-sm font-black text-black tracking-tight uppercase italic leading-none">
@@ -49,10 +43,7 @@ export default function AdminSidebar() {
             </p>
           </div>
         </div>
-        <button
-          className="md:hidden p-1"
-          onClick={() => setMobileOpen(false)}
-        >
+        <button className="md:hidden p-1" onClick={onClose}>
           <X size={18} className="text-gray-500" />
         </button>
       </div>
@@ -65,7 +56,7 @@ export default function AdminSidebar() {
             <Link
               key={item.href}
               href={item.href}
-              onClick={() => setMobileOpen(false)}
+              onClick={onClose}
               className="relative group"
             >
               <AnimatePresence>
@@ -92,15 +83,15 @@ export default function AdminSidebar() {
         })}
       </nav>
 
-      {/* Footer Actions */}
+      {/* Footer */}
       <div className="space-y-3">
         <Link
           href="/"
-          className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-500 hover:text-black hover:bg-gray-100 transition-all border border-transparent hover:border-gray-100 shadow-sm"
+          className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-500 hover:text-black hover:bg-gray-100 transition-all"
         >
           <Store size={16} /> View Store
         </Link>
-        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 border border-gray-100 shadow-inner">
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 border border-gray-100">
           <UserButton afterSignOutUrl="/" />
           <div>
             <p className="text-[10px] text-gray-400 uppercase font-black">Status</p>
@@ -110,12 +101,17 @@ export default function AdminSidebar() {
       </div>
     </div>
   )
+}
+
+export default function AdminSidebar() {
+  const pathname = usePathname()
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   return (
     <>
-      {/* Mobile Toggle Button */}
+      {/* Mobile Toggle */}
       <button
-        className="md:hidden fixed top-4 left-4 z-50 h-10 w-10 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform"
+        className="md:hidden fixed top-4 left-4 z-50 h-10 w-10 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-lg"
         onClick={() => setMobileOpen(true)}
       >
         <Menu size={20} className="text-gray-600" />
@@ -123,7 +119,7 @@ export default function AdminSidebar() {
 
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-64 shrink-0 h-screen sticky top-0 bg-white border-r border-gray-100 flex-col shadow-sm">
-        <SidebarContent />
+        <SidebarContent pathname={pathname} onClose={() => {}} />
       </aside>
 
       {/* Mobile Sidebar */}
@@ -134,7 +130,7 @@ export default function AdminSidebar() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setMenuOpen(false)}
+              onClick={() => setMobileOpen(false)}
               className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm md:hidden"
             />
             <motion.aside
@@ -144,7 +140,7 @@ export default function AdminSidebar() {
               transition={{ type: "spring", damping: 28, stiffness: 300 }}
               className="fixed top-0 left-0 bottom-0 z-50 w-64 bg-white border-r border-gray-100 md:hidden shadow-2xl"
             >
-              <SidebarContent />
+              <SidebarContent pathname={pathname} onClose={() => setMobileOpen(false)} />
             </motion.aside>
           </>
         )}
