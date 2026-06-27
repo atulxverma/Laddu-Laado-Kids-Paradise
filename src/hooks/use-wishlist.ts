@@ -4,6 +4,7 @@ import { persist } from "zustand/middleware"
 interface WishlistStore {
   items: any[]
   toggleItem: (product: any) => void
+  clearWishlist: () => void // 👈 Required for cleaning
 }
 
 export const useWishlist = create<WishlistStore>()(
@@ -17,7 +18,8 @@ export const useWishlist = create<WishlistStore>()(
         }
         return { items: [...state.items, product] }
       }),
+      clearWishlist: () => set({ items: [] }),
     }),
-    { name: "laddoo-laado-wishlist" }
+    { name: "laddu-laado-wishlist" }
   )
 )

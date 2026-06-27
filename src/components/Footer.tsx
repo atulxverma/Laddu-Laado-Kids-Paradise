@@ -3,28 +3,39 @@ import Link from "next/link"
 const footerCols = [
   {
     title: "Company",
-    links: ["About", "Features", "Works", "Career"],
+    links: [
+      { name: "About", href: "/about" },
+      { name: "Features", href: "/#features" },
+      { name: "Works", href: "/#works" },
+      { name: "Career", href: "/#career" },
+    ],
   },
   {
     title: "Help",
     links: [
-      "Customer Support",
-      "Delivery Details",
-      "Terms & Conditions",
-      "Privacy Policy",
+      { name: "Customer Support", href: "/faqs" },
+      { name: "Delivery Details", href: "/faqs" },
+      { name: "Terms & Conditions", href: "/legal/terms-conditions" },
+      { name: "Privacy Policy", href: "/legal/privacy-policy" },
+      { name: "Refund Policy", href: "/legal/refund-policy" },
     ],
   },
   {
     title: "FAQ",
-    links: ["Account", "Manage Deliveries", "Orders", "Payments"],
+    links: [
+      { name: "Account", href: "/orders" },
+      { name: "Manage Deliveries", href: "/orders" },
+      { name: "Orders", href: "/orders" },
+      { name: "Payments", href: "/faqs" },
+    ],
   },
   {
     title: "Resources",
     links: [
-      "Free eBooks",
-      "Development Tutorial",
-      "How to Blog",
-      "Youtube Playlist",
+      { name: "Free eBooks", href: "/#" },
+      { name: "Development Tutorial", href: "/#" },
+      { name: "How to Blog", href: "/#" },
+      { name: "Youtube Playlist", href: "/#" },
     ],
   },
 ]
@@ -33,24 +44,22 @@ export default function Footer() {
   return (
     <footer className="border-t border-gray-100 bg-white mt-8">
       <div className="max-w-7xl mx-auto px-4 py-12 grid grid-cols-2 md:grid-cols-5 gap-8">
-        {/* Brand */}
+        {/* Brand Section */}
         <div className="col-span-2 md:col-span-1">
           <div className="flex items-center gap-2 mb-4">
             <div className="h-8 w-8 bg-black rounded-full flex items-center justify-center">
               <span className="text-white text-xs font-black italic">L</span>
             </div>
-            <span className="font-bold text-sm">laddoo Laado</span>
+            <span className="font-bold text-sm">Laddu Laado</span>
           </div>
           <p className="text-xs text-gray-500 leading-relaxed">
-            We have clothes that suits your style and which you&apos;re proud to
-            wear. From women to men.
+            Premium kids wear handcrafted with love. We bring elegance to your little ones' wardrobe.
           </p>
-          {/* Social Icons */}
           <div className="flex items-center gap-3 mt-4">
             {["𝕏", "f", "📷", "⭕"].map((icon) => (
               <button
                 key={icon}
-                className="h-8 w-8 rounded-full border border-gray-200 flex items-center justify-center text-xs text-gray-500 hover:bg-black hover:text-white hover:border-black transition-all"
+                className="h-8 w-8 rounded-full border border-gray-100 flex items-center justify-center text-xs text-gray-500 hover:bg-black hover:text-white transition-all"
               >
                 {icon}
               </button>
@@ -58,20 +67,20 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Links */}
+        {/* Dynamic Links Columns */}
         {footerCols.map((col) => (
           <div key={col.title}>
-            <h4 className="text-xs font-bold uppercase tracking-widest mb-4">
+            <h4 className="text-xs font-black uppercase tracking-widest mb-4 text-black">
               {col.title}
             </h4>
             <ul className="space-y-3">
               {col.links.map((link) => (
-                <li key={link}>
+                <li key={link.name}>
                   <Link
-                    href="#"
-                    className="text-xs text-gray-500 hover:text-black transition-colors"
+                    href={link.href}
+                    className="text-xs text-gray-500 hover:text-black transition-colors font-medium"
                   >
-                    {link}
+                    {link.name}
                   </Link>
                 </li>
               ))}
@@ -80,17 +89,16 @@ export default function Footer() {
         ))}
       </div>
 
-      {/* Bottom Bar */}
       <div className="border-t border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-3">
-          <p className="text-xs text-gray-400">
-            laddoo Laado © 2026. All Rights Reserved.
+        <div className="max-w-7xl mx-auto px-4 py-6 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+            Laddu Laado © 2026. All Rights Reserved.
           </p>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 opacity-50 grayscale hover:opacity-100 transition-all">
             {["VISA", "MC", "PayPal", "Apple Pay", "G Pay"].map((pay) => (
               <span
                 key={pay}
-                className="text-[10px] font-bold border border-gray-200 px-2 py-1 rounded text-gray-500"
+                className="text-[8px] font-black border border-gray-200 px-2 py-0.5 rounded text-gray-400"
               >
                 {pay}
               </span>

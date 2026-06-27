@@ -95,7 +95,7 @@ export default function CheckoutPage() {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: res.amount,
         currency: "INR",
-        name: "laddoo LAADO",
+        name: "laddu LAADO",
         description: "Premium Couture Order",
         order_id: res.orderId,
         handler: async function (response: any) {
@@ -125,13 +125,22 @@ export default function CheckoutPage() {
     } catch (err) { setLoading(false) }
   }
 
-  if (isSuccess) return (
-    <main className="bg-white min-h-screen flex flex-col items-center justify-center p-4 text-center">
-      <CheckCircle2 size={70} className="text-emerald-500 mb-6" />
-      <h1 className="text-3xl font-black italic">ORDER PLACED SUCCESSFULLY</h1>
-      <p className="text-gray-400 text-sm mt-2">Preparing your luxury selection. Redirecting...</p>
-    </main>
-  )
+if (isSuccess) return (
+  <main className="bg-white min-h-screen flex flex-col items-center justify-center p-4 text-center">
+    <div className="space-y-6">
+      <div className="h-20 w-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto border border-gray-100">
+        <CheckCircle2 size={40} className="text-black" />
+      </div>
+      <h1 className="text-4xl font-black italic tracking-tighter uppercase">Order Confirmed</h1>
+      <p className="text-gray-500 text-sm max-w-xs mx-auto font-medium">
+        Thank you for your purchase. We have received your order and are preparing it for shipment.
+      </p>
+      <div className="pt-10">
+         <p className="text-[9px] font-black text-gray-300 uppercase tracking-[0.3em]">Redirecting to your orders...</p>
+      </div>
+    </div>
+  </main>
+)
 
   if (isLoaded && items.length === 0) return (
     <main className="bg-white min-h-screen flex flex-col items-center justify-center gap-4">

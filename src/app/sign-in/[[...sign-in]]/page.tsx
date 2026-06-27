@@ -9,7 +9,7 @@ export default function SignInPage() {
             <span className="text-white font-black italic text-lg">L</span>
           </div>
           <h1 className="text-2xl font-bold text-black">Welcome back</h1>
-          <p className="text-sm text-gray-400 mt-1">Sign in to your laddoo Laado account</p>
+          <p className="text-sm text-gray-400 mt-1">Sign in to your laddu Laado account</p>
         </div>
         <SignIn
           appearance={{

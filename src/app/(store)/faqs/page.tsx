@@ -65,7 +65,7 @@ export default function FAQsPage() {
           <h3 className="font-bold text-lg text-black mb-2">Still have questions?</h3>
           <p className="text-sm text-gray-500 mb-6">Our support team is here to help you 7 days a week.</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <a href="mailto:support@laddoolaado.com" className="bg-black text-white px-6 py-3 rounded-full text-sm font-bold hover:opacity-80 transition-opacity">Email Us</a>
+            <a href="mailto:support@laddulaado.com" className="bg-black text-white px-6 py-3 rounded-full text-sm font-bold hover:opacity-80 transition-opacity">Email Us</a>
             <Link href="/shop" className="border border-gray-200 text-black px-6 py-3 rounded-full text-sm font-bold hover:bg-gray-50 transition-colors">Browse Shop</Link>
           </div>
         </motion.div>

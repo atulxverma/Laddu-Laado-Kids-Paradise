@@ -9,7 +9,7 @@ export default function SignUpPage() {
             <span className="text-white font-black italic text-lg">L</span>
           </div>
           <h1 className="text-2xl font-bold text-black">Create account</h1>
-          <p className="text-sm text-gray-400 mt-1">Join laddoo Laado today</p>
+          <p className="text-sm text-gray-400 mt-1">Join laddu Laado today</p>
         </div>
         <SignUp
           appearance={{

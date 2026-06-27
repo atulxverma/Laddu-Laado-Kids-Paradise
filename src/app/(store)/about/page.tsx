@@ -80,7 +80,7 @@ export default function AboutPage() {
               variants={fadeUp}
               className="text-gray-500 text-base md:text-lg max-w-xl leading-relaxed"
             >
-              laddoo Laado is more than a clothing brand — it&apos;s a celebration
+              laddu Laado is more than a clothing brand — it&apos;s a celebration
               of individuality, culture, and modern elegance.
             </motion.p>
 
@@ -149,7 +149,7 @@ export default function AboutPage() {
               <span className="italic font-serif">timeless style</span>
             </h2>
             <p className="text-gray-500 leading-relaxed">
-              Founded in 2024, laddoo Laado started as a small dream — to bring
+              Founded in 2024, laddu Laado started as a small dream — to bring
               premium, culturally-inspired fashion to everyday people. We blend
               traditional craftsmanship with modern design to create pieces that
               are both beautiful and meaningful.

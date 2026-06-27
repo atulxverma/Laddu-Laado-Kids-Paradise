@@ -3,8 +3,9 @@ import { notFound } from "next/navigation"
 import ProductGallery from "@/components/ProductGallery"
 import AddToCartButton from "@/components/AddToCartButton"
 import ProductCard from "@/components/ProductCard"
+import ReviewForm from "@/components/ReviewForm"
 import Link from "next/link"
-import { ChevronLeft, Clock, Package, Tag, Calendar } from "lucide-react"
+import { ChevronLeft, Clock, Package, Tag, Calendar, Star, ShieldCheck } from "lucide-react"
 
 export default async function ProductPage({
   params,
@@ -13,94 +14,126 @@ export default async function ProductPage({
 }) {
   const { productId } = await params
 
+  // 1. Fetch Product with Reviews
   const product = await db.product.findUnique({
     where: { id: productId },
-    include: { category: true, images: true },
+    include: { 
+      category: true, 
+      images: true,
+      reviews: { orderBy: { createdAt: "desc" } }
+    },
   })
 
   if (!product) notFound()
 
+  // 2. Fetch Related
   const related = await db.product.findMany({
     where: { categoryId: product.categoryId, NOT: { id: product.id } },
     include: { category: true, images: true },
     take: 4,
   })
 
-  const sizes = ["S", "M", "L", "XL", "XXL"]
+  // 3. Dynamic Stats Logic
+  const reviews = product.reviews || []
+  const totalReviews = reviews.length
+  const avgRating = totalReviews > 0 
+    ? (reviews.reduce((acc, r) => acc + r.rating, 0) / totalReviews).toFixed(1)
+    : "0.0"
+
+  // 4. Dynamic Delivery Logic (Today + 3 to 5 days)
+  const deliveryStart = new Date();
+  deliveryStart.setDate(deliveryStart.getDate() + 3);
+  const deliveryEnd = new Date();
+  deliveryEnd.setDate(deliveryEnd.getDate() + 5);
+  const deliveryStr = `${deliveryStart.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} - ${deliveryEnd.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`;
 
   return (
-    <main className="bg-white pb-20">
+    <main className="bg-white pb-20 pt-10">
       <div className="max-w-7xl mx-auto px-4">
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-xs text-gray-400 py-4">
-          <Link href="/" className="hover:text-black transition-colors flex items-center gap-1">
-            <ChevronLeft size={13} /> Home
+        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 py-6">
+          <Link href="/" className="hover:text-black flex items-center gap-1 transition-colors">
+            <ChevronLeft size={12} /> Home
           </Link>
-          <span>›</span>
-          <span>Product details</span>
+          <span className="opacity-30">/</span>
+          <span>{product.category?.name}</span>
         </div>
 
         {/* Main Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
           <ProductGallery images={product.images} />
 
-          <div className="flex flex-col gap-5">
-            <div>
-              <p className="text-xs text-gray-400 mb-1">{product.category?.name}</p>
-              <h1 className="text-3xl font-bold leading-tight">{product.name}</h1>
-              <p className="text-2xl font-bold mt-2">
-                ₹{product.price.toLocaleString("en-IN")}
-              </p>
-              <div className="flex items-center gap-1 mt-2">
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <span key={s} className="text-yellow-400 text-sm">★</span>
-                ))}
-                <span className="text-xs text-gray-400 ml-1">4.5/5 (50 Reviews)</span>
+          <div className="flex flex-col gap-8">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase bg-gray-100 px-3 py-1 rounded-full text-gray-500 tracking-widest">
+                  {product.category?.name}
+                </span>
+                <span className="text-[10px] font-black uppercase text-emerald-500">In Stock</span>
+              </div>
+              
+              <h1 className="text-5xl font-black italic tracking-tighter uppercase leading-[0.9]">
+                {product.name}
+              </h1>
+              
+              <div className="flex items-center gap-4">
+                <p className="text-4xl font-black tracking-tighter">₹{product.price.toLocaleString("en-IN")}</p>
+                <div className="h-8 w-[1px] bg-gray-100" />
+                <div className="flex items-center gap-2">
+                   <div className="flex">
+                    {[1, 2, 3, 4, 5].map(s => (
+                      <Star key={s} size={12} className={s <= Math.round(Number(avgRating)) ? "fill-yellow-400 text-yellow-400" : "text-gray-200"} />
+                    ))}
+                   </div>
+                   <span className="text-[10px] font-black text-gray-400 uppercase">{avgRating} ({totalReviews} Reviews)</span>
+                </div>
               </div>
             </div>
 
-            {/* Delivery Timer */}
-            <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 px-4 py-3 rounded-xl">
-              <Clock size={13} className="text-black" />
-              Order within <span className="font-bold text-black mx-1">02:30:25</span> to get next day delivery
+            {/* Premium Delivery Widget */}
+            <div className="bg-black text-white p-6 rounded-[2rem] flex items-center justify-between shadow-2xl">
+              <div className="flex items-center gap-4">
+                <div className="h-10 w-10 bg-white/10 rounded-full flex items-center justify-center">
+                  <Clock size={18} />
+                </div>
+                <div>
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Express Shipping</p>
+                  <p className="text-sm font-bold tracking-tight">Arrives by {deliveryStr}</p>
+                </div>
+              </div>
+              <ShieldCheck size={24} className="text-emerald-400 opacity-50" />
             </div>
 
-            {/* Add to Cart — size selector inside */}
-            <AddToCartButton product={product} sizes={sizes} />
+            {/* Add to Cart Component (Handles Sizes) */}
+            <AddToCartButton product={product} />
 
-            {/* Description */}
-            <div className="border-t border-gray-100 pt-4">
-              <details open>
-                <summary className="flex items-center justify-between cursor-pointer text-sm font-bold py-2 list-none">
-                  <span>Description & Fit</span>
-                  <span className="text-gray-400 text-xs">▲</span>
+            {/* Accordions */}
+            <div className="border-t border-gray-100 pt-4 space-y-2">
+              <details open className="group">
+                <summary className="flex items-center justify-between cursor-pointer text-[11px] font-black uppercase tracking-[0.2em] py-5 list-none">
+                  Description & Fit <span className="group-open:rotate-180 transition-transform">▼</span>
                 </summary>
-                <p className="text-sm text-gray-500 leading-relaxed mt-3">
-                  {product.description ||
-                    "Premium handcrafted clothing designed for everyday elegance. Made with the finest materials for maximum comfort and style."}
+                <p className="text-sm text-gray-500 leading-relaxed pb-8 whitespace-pre-wrap font-medium">
+                  {product.description || "Premium handcrafted clothing designed for your little ones."}
                 </p>
               </details>
-            </div>
 
-            {/* Shipping */}
-            <div className="border-t border-gray-100 pt-4">
-              <details>
-                <summary className="flex items-center justify-between cursor-pointer text-sm font-bold py-2 list-none">
-                  <span>Shipping</span>
-                  <span className="text-gray-400 text-xs">▼</span>
+              <details className="group border-t border-gray-100">
+                <summary className="flex items-center justify-between cursor-pointer text-[11px] font-black uppercase tracking-[0.2em] py-5 list-none">
+                  Premium Quality Guarantee <span className="group-open:rotate-180 transition-transform">▼</span>
                 </summary>
-                <div className="grid grid-cols-2 gap-3 mt-3">
+                <div className="grid grid-cols-2 gap-3 pb-8">
                   {[
-                    { icon: Tag, label: "Discount", value: "Disc 50%" },
-                    { icon: Package, label: "Package", value: "Regular Package" },
-                    { icon: Clock, label: "Delivery Time", value: "3-4 Working Days" },
-                    { icon: Calendar, label: "Estimation Arrive", value: "10-12 Oct 2024" },
+                    { icon: Tag, label: "Eco-Friendly", value: "Organic Cotton" },
+                    { icon: Package, label: "Packaging", value: "Luxury Box" },
+                    { icon: Clock, label: "Support", value: "24/7 Priority" },
+                    { icon: Calendar, label: "Exchange", value: "7-Day Easy" },
                   ].map((item) => (
-                    <div key={item.label} className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl">
-                      <item.icon size={14} className="text-gray-400 shrink-0" />
+                    <div key={item.label} className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl">
+                      <item.icon size={14} className="text-gray-400" />
                       <div>
-                        <p className="text-[10px] text-gray-400">{item.label}</p>
-                        <p className="text-xs font-bold">{item.value}</p>
+                        <p className="text-[8px] font-black text-gray-400 uppercase">{item.label}</p>
+                        <p className="text-[10px] font-bold text-black">{item.value}</p>
                       </div>
                     </div>
                   ))}
@@ -110,62 +143,63 @@ export default async function ProductPage({
           </div>
         </div>
 
-        {/* Rating & Reviews */}
-        <section className="mt-16">
-          <h2 className="text-xl font-bold mb-6">Rating & Reviews</h2>
-          <div className="flex flex-col md:flex-row gap-8">
-            <div className="flex flex-col items-center justify-center min-w-[140px]">
-              <span className="text-7xl font-black leading-none">4.5</span>
-              <span className="text-sm text-gray-400">/ 5</span>
-              <div className="flex gap-1 mt-2">
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <span key={s} className="text-yellow-400 text-lg">★</span>
-                ))}
-              </div>
-              <span className="text-xs text-gray-400 mt-1">(50 New Reviews)</span>
-            </div>
-
-            <div className="flex-1 space-y-2">
-              {[
-                { star: 5, pct: 75 },
-                { star: 4, pct: 55 },
-                { star: 3, pct: 30 },
-                { star: 2, pct: 15 },
-                { star: 1, pct: 8 },
-              ].map((r) => (
-                <div key={r.star} className="flex items-center gap-3">
-                  <span className="text-xs text-gray-500 w-4">{r.star}</span>
-                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-yellow-400 rounded-full" style={{ width: `${r.pct}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex-1 border border-gray-100 rounded-2xl p-5 max-w-sm">
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <p className="font-bold text-sm">Alex Mathio</p>
-                  <div className="flex gap-0.5 mt-1">
-                    {[1, 2, 3, 4, 5].map((s) => (
-                      <span key={s} className="text-yellow-400 text-xs">★</span>
+        {/* --- DYNAMIC REVIEWS SECTION --- */}
+        <section className="mt-40 border-t border-gray-100 pt-24">
+          <div className="flex flex-col lg:flex-row gap-20">
+            <div className="lg:w-1/3 space-y-10">
+              <h2 className="text-5xl font-black italic tracking-tighter uppercase leading-[0.8]">What Souls <br/> <span className="text-gray-300">Are Saying</span></h2>
+              <div className="flex items-end gap-5">
+                <span className="text-8xl font-black tracking-tighter leading-none">{avgRating}</span>
+                <div className="pb-2">
+                  <div className="flex gap-1 mb-2">
+                    {[1, 2, 3, 4, 5].map(s => (
+                      <Star key={s} size={18} className={s <= Math.round(Number(avgRating)) ? "fill-yellow-400 text-yellow-400" : "text-gray-200"} />
                     ))}
                   </div>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{totalReviews} Verified Stories</p>
                 </div>
-                <span className="text-xs text-gray-400">13 Oct 2024</span>
               </div>
-              <p className="text-xs text-gray-500 leading-relaxed">
-                Premium quality clothing that fits perfectly and looks amazing. Highly recommend!
-              </p>
+              <ReviewForm productId={product.id} />
+            </div>
+
+            <div className="flex-1 space-y-6">
+              {reviews.length === 0 ? (
+                <div className="h-full flex items-center justify-center py-20 bg-gray-50 rounded-[3rem] border-2 border-dashed border-gray-200">
+                  <p className="text-gray-400 font-bold uppercase tracking-widest text-xs italic">Be the first to tell a story...</p>
+                </div>
+              ) : (
+                reviews.map((review) => (
+                  <div key={review.id} className="bg-white border border-gray-100 rounded-[2.5rem] p-10 space-y-6 hover:shadow-2xl transition-all duration-500">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <img src={review.userImage || "https://avatar.vercel.sh/user"} className="h-12 w-12 rounded-full border-2 border-white shadow-lg" alt="" />
+                        <div>
+                          <p className="font-black text-sm uppercase tracking-tight">{review.userName}</p>
+                          <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">{new Date(review.createdAt).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 4, 5].map(s => (
+                          <Star key={s} size={10} className={s <= review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-100"} />
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-gray-600 text-sm leading-relaxed font-medium italic">&ldquo;{review.comment}&rdquo;</p>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </section>
 
-        {/* Related Products */}
+        {/* RELATED */}
         {related.length > 0 && (
-          <section className="mt-16 mb-8">
-            <h2 className="text-3xl font-bold text-center mb-10">You might also like</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+          <section className="mt-40 mb-10">
+            <div className="flex items-center justify-between mb-12">
+              <h2 className="text-3xl font-black italic tracking-tighter uppercase">More to Love</h2>
+              <Link href="/shop" className="text-[10px] font-black border-b-2 border-black pb-1 uppercase tracking-widest">Explore All</Link>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
               {related.map((p) => (
                 <ProductCard key={p.id} product={p} />
               ))}

@@ -8,7 +8,6 @@ import Razorpay from "razorpay";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Razorpay Config
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID!,
   key_secret: process.env.RAZORPAY_KEY_SECRET!,
@@ -18,25 +17,22 @@ const razorpay = new Razorpay({
 async function checkAdmin() {
   const user = await currentUser();
   const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-
   if (!user || user.primaryEmailAddress?.emailAddress !== adminEmail) {
     throw new Error("Unauthorized: Access Denied");
   }
 }
 
-// --- RAZORPAY ACTION (Ye missing tha!) ---
+// --- RAZORPAY ACTION ---
 export async function initiateRazorpayPayment(amount: number) {
   try {
     const options = {
-      amount: Math.round(amount * 100), // convert to paise
+      amount: Math.round(amount * 100),
       currency: "INR",
       receipt: `receipt_${Date.now()}`,
     };
-
     const order = await razorpay.orders.create(options);
     return { success: true, orderId: order.id, amount: order.amount };
   } catch (error) {
-    console.error("RAZORPAY_INIT_ERROR", error);
     return { success: false, error: "Failed to initiate payment" };
   }
 }
@@ -45,36 +41,161 @@ export async function initiateRazorpayPayment(amount: number) {
 export async function createProduct(data: any) {
   try {
     await checkAdmin();
-    const { name, description, price, categoryId, images, size, color } = data;
+    const {
+      name,
+      description,
+      price,
+      categoryId,
+      images,
+      size,
+      color,
+      stock,
+      gender,
+      ageGroup,
+    } = data;
 
-    if (!name || !price || !categoryId || !images || images.length === 0) {
-      return { error: "Missing fields" };
-    }
+    if (!name) return { error: "Product Name is required" };
+    if (!price || isNaN(parseFloat(price)))
+      return { error: "Valid Price is required" };
+    if (!categoryId) return { error: "Please select a Category" };
+    if (!images || images.length === 0)
+      return { error: "Please upload at least one image" };
+    if (!stock || isNaN(parseInt(stock)))
+      return { error: "Stock quantity is required" };
 
     await db.product.create({
       data: {
         name,
         description: description || "",
         price: parseFloat(price),
+        stock: parseInt(stock),
         categoryId,
         size: size || "Standard",
         color: color || "Standard",
+        gender: gender || "Unisex",
+        ageGroup: ageGroup || "2-4Y",
         images: { create: images.map((url: string) => ({ url })) },
       },
     });
 
     revalidatePath("/admin/products");
     revalidatePath("/");
+    revalidatePath("/shop");
     return { success: true };
   } catch (error: any) {
-    return { error: error.message };
+    return { error: "Database Error: " + error.message };
   }
 }
 
-// --- CATEGORY ACTIONS ---
+// --- ORDER ACTIONS (With Dual Premium Emails) ---
+export async function createOrder(data: {
+  clerkId: string;
+  phone: string;
+  address: string;
+  total: number;
+  items: any[];
+}) {
+  try {
+    // 🔥 Sabse pehle user fetch karo taaki mail bhej sakein
+    const user = await currentUser();
+
+    const order = await db.$transaction(async (tx) => {
+      for (const item of data.items) {
+        const product = await tx.product.findUnique({ where: { id: item.id } });
+        if (!product || product.stock < item.quantity) {
+          throw new Error(`Item ${item.name} is currently out of stock.`);
+        }
+      }
+
+      const newOrder = await tx.order.create({
+        data: {
+          clerkId: data.clerkId,
+          phone: data.phone,
+          address: data.address,
+          total: data.total,
+          isPaid: true,
+          status: "Confirmed",
+          orderItems: {
+            create: data.items.map((item: any) => ({
+              productId: item.id,
+              quantity: item.quantity,
+              size: item.size,
+            })),
+          },
+        },
+      });
+
+      for (const item of data.items) {
+        await tx.product.update({
+          where: { id: item.id },
+          data: { stock: { decrement: item.quantity } },
+        });
+      }
+
+      return newOrder;
+    });
+
+    // --- EMAILS LOGIC ---
+    const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+    const orderIdShort = order.id.slice(-6).toUpperCase();
+
+    if (process.env.RESEND_API_KEY) {
+      // 1. ADMIN ALERT
+      if (adminEmail) {
+        await resend.emails.send({
+          from: "Laddu Laado <onboarding@resend.dev>",
+          to: adminEmail,
+          subject: `✨ New Order [#${orderIdShort}] Received`,
+          html: `<div style="font-family:sans-serif; padding:20px; border:1px solid #eee; border-radius:20px;">
+                  <h2>New Premium Order!</h2>
+                  <p><strong>Revenue:</strong> ₹${data.total.toLocaleString("en-IN")}</p>
+                  <p><strong>Customer:</strong> ${user?.fullName} (${data.phone})</p>
+                  <p><strong>Address:</strong> ${data.address}</p>
+                  <a href="${process.env.NEXT_PUBLIC_APP_URL}/admin/orders">View Dashboard</a>
+                </div>`,
+        });
+      }
+
+      // 2. CUSTOMER CONFIRMATION
+      if (user?.primaryEmailAddress?.emailAddress) {
+        await resend.emails.send({
+          from: "Laddu Laado <onboarding@resend.dev>",
+          to: user.primaryEmailAddress.emailAddress,
+          subject: "Your Laddu Laado Order is Confirmed! ✨",
+          html: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 30px; border: 1px solid #f0f0f0; border-radius: 24px;">
+              <h1 style="text-align: center; font-style: italic;">LADDU LAADO</h1>
+              <h2 style="text-align: center; margin-bottom: 30px;">Order Confirmed!</h2>
+              <p>Hi ${user.fullName},</p>
+              <p>Thank you for choosing Laddu Laado. Your premium selection is being prepared for shipment.</p>
+              <div style="background: #fafafa; padding: 20px; border-radius: 15px; margin: 20px 0;">
+                 <p><strong>Order ID:</strong> #${orderIdShort}</p>
+                 <p style="font-size: 18px;"><strong>Total Amount:</strong> ₹${data.total.toLocaleString("en-IN")}</p>
+              </div>
+              <p style="text-align: center; margin-top: 30px;">
+                <a href="${process.env.NEXT_PUBLIC_APP_URL}/orders" style="background:#000; color:#fff; padding:15px 30px; border-radius:50px; text-decoration:none; font-weight:bold;">TRACK MY ORDER</a>
+              </p>
+            </div>
+          `,
+        });
+      }
+    }
+
+    revalidatePath("/admin/orders");
+    revalidatePath("/admin/products");
+    revalidatePath("/orders");
+    return { success: true, orderId: order.id };
+  } catch (error: any) {
+    console.error("ORDER_ERROR", error);
+    return { error: error.message || "Failed to place order." };
+  }
+}
+
+// --- OTHER ACTIONS ---
 export async function createCategory(name: string) {
   try {
     await checkAdmin();
+    if (!name) return { error: "Category name is required" };
     await db.category.create({ data: { name } });
     revalidatePath("/admin/categories");
     return { success: true };
@@ -83,154 +204,16 @@ export async function createCategory(name: string) {
   }
 }
 
-// --- ORDER ACTIONS ---
-export async function createOrder(data: {
-  clerkId: string
-  phone: string
-  address: string
-  total: number
-  items: any[]
-}) {
-  try {
-    const order = await db.order.create({
-      data: {
-        clerkId: data.clerkId,
-        phone: data.phone,
-        address: data.address,
-        total: data.total,
-        isPaid: true,
-        status: "Confirmed",
-        orderItems: {
-          create: data.items.map((item: any) => ({
-            productId: item.id,
-            quantity: item.quantity,
-            size: item.size, // 👈 Cart se selected size yahan save hoga
-          })),
-        },
-      },
-    });
-
-    // 🔥 OWNER EMAIL ALERT (PREMIUM ENGLISH EDITION)
-    const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-    if (adminEmail && process.env.RESEND_API_KEY) {
-      const orderIdShort = order.id.slice(-6).toUpperCase();
-
-      // BUILD PRODUCT LIST HTML
-      const itemsHtml = data.items
-        .map(
-          (item) => `
-        <div style="display: flex; align-items: center; padding: 16px 0; border-bottom: 1px solid #f0f0f0;">
-          <div style="width: 80px; height: 100px; border-radius: 12px; overflow: hidden; background-color: #f5f5f5; margin-right: 20px;">
-            <img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: cover;" />
-          </div>
-          <div style="flex: 1;">
-            <h4 style="margin: 0; font-size: 15px; color: #111; font-weight: 700;">${item.name}</h4>
-            <p style="margin: 6px 0 0 0; font-size: 11px; color: #999; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">
-              Size: ${item.size} | Qty: ${item.quantity}
-            </p>
-            <p style="margin: 6px 0 0 0; font-size: 14px; font-weight: 800; color: #000;">₹${item.price.toLocaleString("en-IN")}</p>
-          </div>
-        </div>
-      `,
-        )
-        .join("");
-
-      await resend.emails.send({
-        from: "laddoo Laado <onboarding@resend.dev>",
-        to: adminEmail,
-        subject: `✨ New Premium Order Received [#${orderIdShort}]`,
-        html: `
-          <div style="font-family: 'Inter', -apple-system, sans-serif; background-color: #f3f4f6; padding: 50px 10px;">
-            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 30px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.08); border: 1px solid #eeeeee;">
-              
-              <!-- BRAND HEADER -->
-              <div style="background-color: #000000; padding: 35px; text-align: center;">
-                <h1 style="color: #ffffff; margin: 0; font-size: 20px; letter-spacing: 6px; font-weight: 900; text-transform: uppercase;">laddoo LAADO</h1>
-              </div>
-
-              <!-- MAIN MESSAGE -->
-              <div style="padding: 45px 35px; text-align: center;">
-                <div style="margin-bottom: 25px;">
-                  <img src="https://cdn-icons-png.flaticon.com/512/1162/1162456.png" width="50" height="50" alt="box" />
-                </div>
-                <h2 style="font-size: 28px; font-weight: 900; color: #000; margin: 0; letter-spacing: -0.5px;">GREAT CHOICE MADE!</h2>
-                <p style="color: #6b7280; font-size: 16px; margin-top: 15px; line-height: 1.6; font-weight: 400;">
-                  A new premium soul just picked their favorite pieces from your collection. 
-                  It's time to prepare the package and spread the elegance.
-                </p>
-              </div>
-
-              <!-- ORDER LIST CONTAINER -->
-              <div style="padding: 0 35px;">
-                <div style="border-top: 2px solid #f3f4f6; padding-top: 10px;">
-                  <p style="font-size: 10px; font-weight: 800; color: #9ca3af; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px;">Cart Summary</p>
-                  ${itemsHtml}
-                </div>
-              </div>
-
-              <!-- FINANCIAL SUMMARY -->
-              <div style="padding: 30px; background-color: #f9fafb; margin: 25px 35px; border-radius: 24px; border: 1px solid #f3f4f6;">
-                <table style="width: 100%;">
-                  <tr>
-                    <td style="font-size: 14px; color: #6b7280; padding-bottom: 12px;">Total Value</td>
-                    <td style="font-size: 14px; font-weight: 700; text-align: right; padding-bottom: 12px; color: #111;">₹${data.total.toLocaleString("en-IN")}</td>
-                  </tr>
-                  <tr>
-                    <td style="font-size: 14px; color: #6b7280; padding-bottom: 12px;">Standard Shipping</td>
-                    <td style="font-size: 14px; font-weight: 800; color: #10b981; text-align: right; padding-bottom: 12px;">FREE</td>
-                  </tr>
-                  <tr>
-                    <td style="font-size: 16px; font-weight: 900; color: #000; padding-top: 12px; border-top: 1px solid #e5e7eb;">TOTAL REVENUE</td>
-                    <td style="font-size: 22px; font-weight: 900; color: #000; text-align: right; padding-top: 12px; border-top: 1px solid #e5e7eb;">₹${data.total.toLocaleString("en-IN")}</td>
-                  </tr>
-                </table>
-              </div>
-
-              <!-- SHIPPING & CONTACT -->
-              <div style="padding: 0 35px 45px 35px;">
-                <div style="background-color: #000; color: #fff; border-radius: 24px; padding: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">
-                  <p style="margin: 0 0 12px 0; font-size: 10px; font-weight: 800; color: #4b5563; text-transform: uppercase; letter-spacing: 2px;">Shipping Address</p>
-                  <p style="margin: 0; font-size: 14px; font-weight: 500; line-height: 1.7; color: #e5e7eb;">${data.address}</p>
-                  <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #1f2937; display: flex; align-items: center;">
-                    <span style="font-size: 14px; font-weight: 800; color: #fff;">📞 ${data.phone}</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- VIEW DETAILS BUTTON -->
-              <div style="text-align: center; padding-bottom: 60px;">
-                <a href="${process.env.NEXT_PUBLIC_APP_URL}/admin/orders" style="background-color: #000000; color: #ffffff; padding: 22px 45px; border-radius: 100px; text-decoration: none; font-size: 13px; font-weight: 800; letter-spacing: 2px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); display: inline-block;">
-                  VIEW ORDER DETAILS →
-                </a>
-              </div>
-
-              <!-- FOOTER -->
-              <div style="background-color: #f9fafb; padding: 35px; text-align: center; border-top: 1px solid #f3f4f6;">
-                <p style="margin: 0; font-size: 11px; color: #9ca3af; font-weight: 700; letter-spacing: 1px;">laddoo LAADO OFFICIAL ENGINE</p>
-                <p style="margin: 8px 0 0 0; font-size: 10px; color: #d1d5db;">© 2026 Premium Fashion Store. All rights reserved.</p>
-              </div>
-
-            </div>
-          </div>
-        `,
-      });
-    }
-
-    revalidatePath("/admin/orders");
-    return { success: true, orderId: order.id };
-  } catch (error: any) {
-    return { error: "Failed to place order" };
-  }
-}
-
 export async function deleteProduct(id: string) {
   try {
     await checkAdmin();
     await db.product.delete({ where: { id } });
     revalidatePath("/admin/products");
+    revalidatePath("/shop");
+    revalidatePath("/");
     return { success: true };
-  } catch (error: any) {
-    return { error: "Failed to delete" };
+  } catch (error) {
+    return { error: "Failed to delete product" };
   }
 }
 
@@ -241,6 +224,100 @@ export async function updateOrderStatus(orderId: string, status: string) {
     revalidatePath("/admin/orders");
     return { success: true };
   } catch (error: any) {
-    return { error: "Failed to update" };
+    return { error: "Failed to update status" };
   }
+}
+
+export async function createReview(data: {
+  productId: string;
+  rating: number;
+  comment: string;
+  clerkId: string;
+  userName: string;
+  userImage: string;
+}) {
+  try {
+    await db.review.create({ data });
+    revalidatePath(`/product/${data.productId}`);
+    return { success: true };
+  } catch (error) {
+    return { error: "Review failed" };
+  }
+}
+
+export async function subscribeNewsletter(email: string) {
+  try {
+    await db.newsletter.create({ data: { email } });
+    return { success: true };
+  } catch (error) {
+    return { error: "Already subscribed or invalid email" };
+  }
+}
+
+export async function upsertBanner(data: any) {
+  try {
+    await checkAdmin();
+    await db.banner.upsert({
+      where: { id: data.type },
+      update: { imageUrl: data.imageUrl, title: data.title, label: data.label },
+      create: {
+        id: data.type,
+        type: data.type,
+        imageUrl: data.imageUrl,
+        title: data.title,
+        label: data.label,
+      },
+    });
+    revalidatePath("/");
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
+export async function deleteCategory(id: string) {
+  try {
+    await checkAdmin();
+    await db.category.delete({ where: { id } });
+    revalidatePath("/admin/categories");
+    return { success: true };
+  } catch (error) {
+    return { error: "Cannot delete category with products." };
+  }
+}
+
+export async function deleteBanner(id: string) {
+  try {
+    await checkAdmin();
+    await db.banner.delete({ where: { id } });
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    return { error: "Failed to delete banner" };
+  }
+}
+
+export async function syncCartWithDb(clerkId: string, items: any[]) {
+  try {
+    await db.cartItem.deleteMany({ where: { clerkId } });
+    if (items.length > 0) {
+      await db.cartItem.createMany({
+        data: items.map(i => ({
+          clerkId,
+          productId: i.id,
+          quantity: i.quantity,
+          size: i.size
+        }))
+      });
+    }
+  } catch (e) { console.error("DB_SYNC_FAIL", e) }
+}
+
+export async function getDbCart(clerkId: string) {
+  try {
+    return await db.cartItem.findMany({
+      where: { clerkId },
+      include: { product: { include: { images: true } } }
+    });
+  } catch (e) { return [] }
 }

@@ -15,16 +15,19 @@ interface CartItem {
 interface CartStore {
   items: CartItem[]
   addItem: (item: Omit<CartItem, "quantity">) => void
-  removeItem: (id: string) => void
-  increaseQuantity: (id: string) => void
-  decreaseQuantity: (id: string) => void
+  removeItem: (id: string, size: string) => void
+  increaseQuantity: (id: string, size: string) => void
+  decreaseQuantity: (id: string, size: string) => void
   clearCart: () => void
+  setItems: (items: CartItem[]) => void // 👈 Naya method
 }
 
 export const useCart = create<CartStore>()(
   persist(
     (set) => ({
       items: [],
+
+      setItems: (items) => set({ items }), // DB se data load karne ke liye
 
       addItem: (item) =>
         set((state) => {
@@ -43,27 +46,27 @@ export const useCart = create<CartStore>()(
           return { items: [...state.items, { ...item, quantity: 1 }] }
         }),
 
-      removeItem: (id) =>
+      removeItem: (id, size) =>
         set((state) => ({
-          items: state.items.filter((i) => i.id !== id),
+          items: state.items.filter((i) => !(i.id === id && i.size === size)),
         })),
 
-      increaseQuantity: (id) =>
+      increaseQuantity: (id, size) =>
         set((state) => ({
           items: state.items.map((i) =>
-            i.id === id ? { ...i, quantity: i.quantity + 1 } : i
+            i.id === id && i.size === size ? { ...i, quantity: i.quantity + 1 } : i
           ),
         })),
 
-      decreaseQuantity: (id) =>
+      decreaseQuantity: (id, size) =>
         set((state) => ({
           items: state.items
-            .map((i) => (i.id === id ? { ...i, quantity: i.quantity - 1 } : i))
+            .map((i) => (i.id === id && i.size === size ? { ...i, quantity: i.quantity - 1 } : i))
             .filter((i) => i.quantity > 0),
         })),
 
       clearCart: () => set({ items: [] }),
     }),
-    { name: "laddoo-laado-cart" }
+    { name: "laddu-laado-cart" }
   )
 )

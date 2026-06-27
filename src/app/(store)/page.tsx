@@ -1,172 +1,143 @@
 import { db } from "@/lib/db"
 import Link from "next/link"
 import ProductCard from "@/components/ProductCard"
+import NewsletterForm from "@/components/NewsletterForm"
 
 export default async function HomePage() {
-  const products = await db.product.findMany({
-    include: { category: true, images: true },
-    orderBy: { createdAt: "desc" },
-    take: 8,
-  })
+  // 1. Parallel Data Fetching
+  const [products, categories, banners, reviews] = await Promise.all([
+    db.product.findMany({ 
+      include: { category: true, images: true }, 
+      take: 8, 
+      orderBy: { createdAt: "desc" } 
+    }),
+    db.category.findMany({ take: 4 }),
+    db.banner.findMany({ where: { active: true } }),
+    db.review.findMany({ take: 6, orderBy: { createdAt: "desc" } })
+  ])
 
-  const categories = await db.category.findMany({ take: 4 })
+  // Fallback data agar DB khali ho
+  const heroBanner = banners.find(b => b.type === "HERO") || {
+    imageUrl: "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=2148",
+    title: "Summer Arrival of Outfit",
+    label: "New Collection"
+  }
+
+  const promo1 = banners.find(b => b.type === "SIDE_1") || {
+    imageUrl: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=960",
+    title: "Where dreams meet couture"
+  }
+
+  const promo2 = banners.find(b => b.type === "SIDE_2") || {
+    imageUrl: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?q=80&w=960",
+    title: "Enchanting styles for girls"
+  }
 
   return (
     <div className="bg-white">
-      {/* HERO */}
+      {/* ── DYNAMIC HERO ── */}
       <section className="max-w-7xl mx-auto px-4 py-4">
-        <div className="relative rounded-2xl overflow-hidden h-[380px] md:h-[500px] bg-gray-100">
-          <img
-            src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=2148"
-            alt="Hero"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black/25 flex flex-col items-center justify-center text-white text-center px-4">
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight max-w-2xl">
-              Summer Arrival of Outfit
+        <div className="relative rounded-[2.5rem] overflow-hidden h-[400px] md:h-[550px] bg-gray-100 shadow-2xl">
+          <img src={heroBanner.imageUrl} alt="Hero" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/20 flex flex-col items-center justify-center text-white text-center p-6">
+            <span className="bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-4 border border-white/20">
+              {heroBanner.label}
+            </span>
+            <h1 className="text-4xl md:text-7xl font-black italic tracking-tighter uppercase leading-none max-w-4xl drop-shadow-2xl">
+              {heroBanner.title}
             </h1>
-            <p className="mt-3 text-sm text-white/80 max-w-sm">
-              Discover quality fashion that reflects your style and makes everyday enjoyable.
-            </p>
-            <Link
-              href="/shop"
-              className="mt-6 inline-flex items-center gap-3 bg-white text-black px-6 py-3 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-all group"
-            >
-              Explore Product
-              <span className="h-6 w-6 bg-black text-white rounded-full flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all">
-                →
-              </span>
+            <Link href="/shop" className="mt-10 bg-white text-black px-10 py-5 rounded-full text-xs font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl">
+              Explore Collection →
             </Link>
           </div>
         </div>
       </section>
 
-      {/* PROMO BANNERS */}
-      <section className="max-w-7xl mx-auto px-4 pb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="relative rounded-2xl overflow-hidden h-48 bg-[#EDE8DF]">
-          <img
-            src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=960"
-            alt="Promo 1"
-            className="absolute right-0 top-0 h-full w-1/2 object-cover opacity-80"
-          />
-          <div className="absolute inset-0 p-6 flex flex-col justify-between">
-            <h3 className="text-xl font-bold max-w-[55%] leading-tight">
-              Where dreams meet couture
+      {/* ── DYNAMIC PROMO BANNERS ── */}
+      <section className="max-w-7xl mx-auto px-4 pb-10 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="relative rounded-[2rem] overflow-hidden h-56 bg-[#EDE8DF] group">
+          <img src={promo1.imageUrl} alt="Promo" className="absolute right-0 top-0 h-full w-1/2 object-cover opacity-80 group-hover:scale-110 transition-transform duration-700" />
+          <div className="absolute inset-0 p-10 flex flex-col justify-between items-start">
+            <h3 className="text-2xl font-black italic tracking-tighter uppercase max-w-[200px] leading-none text-black">
+              {promo1.title}
             </h3>
-            <Link
-              href="/shop"
-              className="inline-flex items-center gap-2 bg-white text-black text-xs font-bold px-4 py-2 rounded-full w-fit hover:bg-black hover:text-white transition-all"
-            >
+            <Link href="/shop" className="bg-black text-white text-[10px] font-black px-6 py-3 rounded-full uppercase tracking-widest hover:opacity-80 transition-all">
               Shop Now
             </Link>
           </div>
         </div>
 
-        <div className="relative rounded-2xl overflow-hidden h-48 bg-[#EAE4DA]">
-          <img
-            src="https://images.unsplash.com/photo-1469334031218-e382a71b716b?q=80&w=960"
-            alt="Promo 2"
-            className="absolute right-0 top-0 h-full w-1/2 object-cover opacity-80"
-          />
-          <div className="absolute inset-0 p-6 flex flex-col justify-between">
-            <h3 className="text-xl font-bold max-w-[55%] leading-tight">
-              Enchanting styles for every women
+        <div className="relative rounded-[2rem] overflow-hidden h-56 bg-[#EAE4DA] group">
+          <img src={promo2.imageUrl} alt="Promo" className="absolute right-0 top-0 h-full w-1/2 object-cover opacity-80 group-hover:scale-110 transition-transform duration-700" />
+          <div className="absolute inset-0 p-10 flex flex-col justify-between items-start">
+            <h3 className="text-2xl font-black italic tracking-tighter uppercase max-w-[200px] leading-none text-black">
+              {promo2.title}
             </h3>
-            <Link
-              href="/shop"
-              className="inline-flex items-center gap-2 bg-white text-black text-xs font-bold px-4 py-2 rounded-full w-fit hover:bg-black hover:text-white transition-all"
-            >
+            <Link href="/shop" className="bg-black text-white text-[10px] font-black px-6 py-3 rounded-full uppercase tracking-widest hover:opacity-80 transition-all">
               Shop Now
             </Link>
           </div>
         </div>
       </section>
 
-      {/* BROWSE BY CATEGORIES */}
-      <section className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold">Browse by categories</h2>
-        </div>
-        {categories.length === 0 ? (
-          <div className="text-center text-gray-400 text-sm py-12 border-2 border-dashed border-gray-100 rounded-2xl">
-            No categories yet. Add from admin panel.
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {categories.map((cat) => (
-              <Link key={cat.id} href={`/shop?category=${cat.name.toLowerCase()}`}>
-                <div className="relative rounded-xl overflow-hidden h-44 bg-gray-100 group cursor-pointer">
-                  <div className="absolute inset-0 bg-black/10 group-hover:bg-black/25 transition-all duration-300" />
-                  <div className="absolute bottom-3 left-3">
-                    <span className="bg-white text-black text-[10px] font-bold uppercase px-3 py-1 rounded-full">
-                      {cat.name}
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* POPULAR PRODUCTS */}
-      <section className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold">Popular products</h2>
-        </div>
-        {products.length === 0 ? (
-          <div className="text-center text-gray-400 text-sm py-12 border-2 border-dashed border-gray-100 rounded-2xl">
-            No products yet. Add from admin panel.
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* REVIEWS */}
+      {/* ── BROWSE BY CATEGORIES ── */}
       <section className="max-w-7xl mx-auto px-4 py-12">
-        <h2 className="text-xl font-bold mb-4">
-          Over 350+ Customer reviews from our client
-        </h2>
-        <div className="flex gap-3 mt-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className="h-14 w-14 rounded-full bg-gray-200 overflow-hidden border-2 border-white shadow-md"
-            >
-              <img
-                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=100&fit=crop&crop=face"
-                alt="reviewer"
-                className="w-full h-full object-cover"
-              />
-            </div>
+        <div className="flex items-center justify-between mb-10">
+          <h2 className="text-3xl font-black italic tracking-tighter uppercase">Browse Categories</h2>
+          <Link href="/shop" className="text-[10px] font-black border-b-2 border-black pb-1 tracking-widest">VIEW ALL</Link>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {categories.map((cat) => (
+            <Link key={cat.id} href={`/shop?category=${cat.name.toLowerCase()}`}>
+              <div className="relative rounded-3xl overflow-hidden h-52 bg-gray-100 group">
+                <div className="absolute inset-0 bg-black/5 group-hover:bg-black/20 transition-all duration-500" />
+                <div className="absolute bottom-4 left-4">
+                  <span className="bg-white text-black text-[10px] font-black uppercase px-4 py-2 rounded-xl shadow-lg">
+                    {cat.name}
+                  </span>
+                </div>
+              </div>
+            </Link>
           ))}
         </div>
       </section>
 
-      {/* NEWSLETTER */}
-      <section className="max-w-7xl mx-auto px-4 pb-12">
-        <div className="bg-[#6B7A5E] rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between gap-6">
-          <p className="text-white font-bold text-lg max-w-xs">
-            Stay up to date about our offers
-          </p>
-          <div className="flex flex-col gap-3 w-full max-w-sm">
-            <div className="flex items-center gap-3 bg-white rounded-full px-4 py-3">
-              <span className="text-gray-400 text-xs">✉</span>
-              <input
-                placeholder="Enter your email here"
-                className="text-xs outline-none flex-1 text-gray-600 placeholder:text-gray-400 bg-transparent"
-              />
-            </div>
-            <button className="bg-white text-black text-xs font-bold py-3 rounded-full hover:bg-black hover:text-white transition-all">
-              Subscribe to Newsletter
-            </button>
-          </div>
+      {/* ── POPULAR PRODUCTS ── */}
+      <section className="max-w-7xl mx-auto px-4 py-12">
+        <h2 className="text-3xl font-black italic tracking-tighter uppercase mb-10 text-center">New Drops</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
+          {products.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
         </div>
+      </section>
+
+      {/* ── DYNAMIC REVIEWS SECTION ── */}
+      <section className="max-w-7xl mx-auto px-4 py-24 bg-gray-50/50 rounded-[3rem] my-10">
+        <div className="text-center mb-12 space-y-4">
+          <h2 className="text-4xl font-black italic tracking-tighter uppercase leading-none">The Community</h2>
+          <p className="text-gray-400 text-sm font-medium uppercase tracking-[0.2em]">Verified stories from our customers</p>
+        </div>
+        
+        <div className="flex flex-wrap justify-center gap-4">
+          {reviews.length > 0 ? (
+            <div className="flex justify-center -space-x-4 mb-10">
+              {reviews.map((r, i) => (
+                <img key={i} src={r.userImage || "https://avatar.vercel.sh/user"} className="w-16 h-16 rounded-full border-4 border-white shadow-xl bg-gray-200 object-cover" alt="User" />
+              ))}
+              <div className="w-16 h-16 rounded-full border-4 border-white shadow-xl bg-black flex items-center justify-center text-white text-[10px] font-black">
+                {reviews.length}+
+              </div>
+            </div>
+          ) : (
+            <p className="text-gray-300 italic font-medium">Join our growing community...</p>
+          )}
+        </div>
+      </section>
+
+      {/* ── NEWSLETTER ── */}
+      <section className="max-w-7xl mx-auto px-4 pb-20">
+        <NewsletterForm />
       </section>
     </div>
   )

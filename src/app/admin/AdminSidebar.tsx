@@ -11,6 +11,7 @@ import {
   Store,
   Menu,
   X,
+  Image as ImageIcon
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { UserButton } from "@clerk/nextjs"
@@ -19,6 +20,7 @@ const navItems = [
   { label: "Overview", href: "/admin/dashboard", icon: LayoutDashboard },
   { label: "Inventory", href: "/admin/products", icon: ShoppingBag },
   { label: "Categories", href: "/admin/categories", icon: Layers },
+  { label: "Banners", href: "/admin/banners", icon: ImageIcon }, // 👈 Naya Link
   { label: "Orders", href: "/admin/orders", icon: ClipboardList },
 ]
 
@@ -36,7 +38,7 @@ export default function AdminSidebar() {
           </div>
           <div>
             <p className="text-sm font-black text-black tracking-tight">
-              laddoo LAADO
+              laddu LAADO
             </p>
             <p className="text-[9px] text-gray-400 uppercase tracking-widest">
               Admin
