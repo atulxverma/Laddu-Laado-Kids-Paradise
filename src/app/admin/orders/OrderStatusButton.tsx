@@ -22,14 +22,6 @@ const DOT_COLORS: Record<string, string> = {
   Cancelled: "bg-red-400",
 }
 
-const HOVER_STYLES: Record<string, string> = {
-  Pending: "hover:bg-amber-50",
-  Confirmed: "hover:bg-blue-50",
-  Shipped: "hover:bg-purple-50",
-  Delivered: "hover:bg-emerald-50",
-  Cancelled: "hover:bg-red-50",
-}
-
 export default function OrderStatusButton({
   orderId,
   currentStatus,
@@ -37,10 +29,17 @@ export default function OrderStatusButton({
   orderId: string
   currentStatus: string
 }) {
-  const [status, setStatus] = useState(currentStatus)
+  // ✅ Fixed: Fallback status to "Pending" if currentStatus comes undefined during build
+  const safeStatus = currentStatus || "Pending"
+  const [status, setStatus] = useState(safeStatus)
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+
+  // Sync state if server data changes later
+  useEffect(() => {
+    if (currentStatus) setStatus(currentStatus)
+  }, [currentStatus])
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -57,9 +56,13 @@ export default function OrderStatusButton({
     if (newStatus === status) return
     setLoading(true)
     const res = await updateOrderStatus(orderId, newStatus)
-    if (res.success) setStatus(newStatus)
+    if (res?.success) setStatus(newStatus)
     setLoading(false)
   }
+
+  // Fallback styling lookup to avoid undefined string injections
+  const currentStyle = STATUS_STYLES[status] || STATUS_STYLES["Pending"]
+  const currentDot = DOT_COLORS[status] || DOT_COLORS["Pending"]
 
   return (
     <div ref={ref} className="relative inline-block">
@@ -69,13 +72,13 @@ export default function OrderStatusButton({
         onClick={() => setOpen(!open)}
         disabled={loading}
         className={`
-    flex items-center gap-1 px-2.5 py-1 rounded-full
-    text-[9px] font-bold uppercase tracking-widest
-    transition-all select-none
-    ${STATUS_STYLES[status]}
-  `}
+          flex items-center gap-1 px-2.5 py-1 rounded-full
+          text-[9px] font-bold uppercase tracking-widest
+          transition-all select-none
+          ${currentStyle}
+        `}
       >
-        <span className={`h-1 w-1 rounded-full shrink-0 ${DOT_COLORS[status]}`} />
+        <span className={`h-1 w-1 rounded-full shrink-0 ${currentDot}`} />
         {loading ? "..." : status}
         <ChevronDown
           size={8}
@@ -88,17 +91,18 @@ export default function OrderStatusButton({
         <div className="absolute right-0 top-[calc(100%+4px)] z-[999] w-28 bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden">
           {STATUS_OPTIONS.map((option) => {
             const isSelected = status === option
+            const optionDot = DOT_COLORS[option] || "bg-gray-400"
             return (
               <button
                 key={option}
                 onClick={() => handleSelect(option)}
                 className={`
-            w-full flex items-center gap-1.5 px-2.5 py-1.5 text-left
-            text-[10px] font-medium text-black transition-colors
-            ${isSelected ? "bg-gray-50 font-bold" : "bg-white hover:bg-gray-50"}
-          `}
+                  w-full flex items-center gap-1.5 px-2.5 py-1.5 text-left
+                  text-[10px] font-medium text-black transition-colors
+                  ${isSelected ? "bg-gray-50 font-bold" : "bg-white hover:bg-gray-50"}
+                `}
               >
-                <span className={`h-1 w-1 rounded-full shrink-0 ${DOT_COLORS[option]}`} />
+                <span className={`h-1 w-1 rounded-full shrink-0 ${optionDot}`} />
                 {option}
                 {isSelected && (
                   <Check size={8} className="ml-auto text-black" />
