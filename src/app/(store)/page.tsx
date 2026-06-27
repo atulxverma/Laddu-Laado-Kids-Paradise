@@ -3,6 +3,8 @@ import Link from "next/link"
 import ProductCard from "@/components/ProductCard"
 import NewsletterForm from "@/components/NewsletterForm"
 
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   // 1. Parallel Data Fetching
   const [products, categories, banners, reviews] = await Promise.all([
