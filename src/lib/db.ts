@@ -1,7 +1,14 @@
 import { PrismaClient } from "@prisma/client";
 
 const prismaClientSingleton = () => {
-  return new PrismaClient();
+  // Prisma 7 ke liye explicit definition safe rehti hai agar schema mein url defined na ho
+  return new PrismaClient({
+    datasources: {
+      db: {
+        url: process.env.DATABASE_URL,
+      },
+    },
+  });
 };
 
 declare global {
