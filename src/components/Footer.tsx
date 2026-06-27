@@ -57,7 +57,7 @@ export default function Footer() {
             <span className="font-black text-lg italic text-black uppercase tracking-tighter">Laddu Laado</span>
           </div>
           <p className="text-xs text-gray-500 leading-relaxed font-medium">
-            Premium kids wear handcrafted with love. We bring elegance to your little ones' wardrobe.
+            Premium kids wear handcrafted with love. We bring elegance to your little ones&apos; wardrobe.
           </p>
           <div className="flex items-center gap-3 mt-6">
             {["𝕏", "f", "📷", "⭕"].map((icon) => (

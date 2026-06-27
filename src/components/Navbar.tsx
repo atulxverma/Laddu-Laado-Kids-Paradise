@@ -82,7 +82,7 @@ export default function Navbar() {
   }, [cart.items, isSignedIn, user?.id])
 
   useEffect(() => {
-    setMounted(true)
+    setMounted(true);
     const handleScroll = () => setScrolled(window.scrollY > 10)
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
