@@ -7,6 +7,8 @@ import ReviewForm from "@/components/ReviewForm"
 import Link from "next/link"
 import { ChevronLeft, Clock, Package, Tag, Calendar, Star, ShieldCheck } from "lucide-react"
 
+export const dynamic = "force-dynamic"
+
 export default async function ProductPage({
   params,
 }: {

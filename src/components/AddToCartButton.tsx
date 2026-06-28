@@ -1,9 +1,11 @@
 "use client"
 
-import { ShoppingBag, Heart } from "lucide-react"
+import { Heart } from "lucide-react"
 import { useCart } from "@/hooks/use-cart"
 import { useWishlist } from "@/hooks/use-wishlist"
 import { useState, useEffect } from "react"
+
+const allPossibleSizes = ["0-2Y", "2-4Y", "4-6Y", "6-8Y", "8-10Y", "S", "M", "L", "XL"]
 
 export default function AddToCartButton({ product }: { product: any }) {
   const cart = useCart()
@@ -17,7 +19,6 @@ export default function AddToCartButton({ product }: { product: any }) {
     ? product.size.split(",").map((s: string) => s.trim().toUpperCase())
     : []
 
-  const allPossibleSizes = ["0-2Y", "2-4Y", "4-6Y", "6-8Y", "8-10Y", "S", "M", "L", "XL"]
   const isOutOfStock = (product?.stock ?? 0) <= 0
 
   const currentItemInCart = cart.items.find(
