@@ -78,7 +78,6 @@ export default async function MyOrdersPage() {
                   </div>
                 </div>
 
-                {/* Items */}
                 <div className="p-8 space-y-8">
                   {order.orderItems.map((item) => (
                     <div key={item.id} className="flex items-center gap-8 group/item">
