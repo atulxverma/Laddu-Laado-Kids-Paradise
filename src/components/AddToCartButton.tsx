@@ -13,9 +13,9 @@ export default function AddToCartButton({ product }: { product: any }) {
   const [selectedSize, setSelectedSize] = useState("")
   const [mounted, setMounted] = useState(false)
 
-  const availableSizes = product.size 
-    ? product.size.split(",").map((s: string) => s.trim().toUpperCase()) 
-    : []
+  const availableSizes = product?.size 
+  ? product.size.split(",").map((s: string) => s.trim().toUpperCase()) 
+  : []
 
   const allPossibleSizes = ["0-2Y", "2-4Y", "4-6Y", "6-8Y", "8-10Y", "S", "M", "L", "XL"]
   const isOutOfStock = product.stock <= 0
