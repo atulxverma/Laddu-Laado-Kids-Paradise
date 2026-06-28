@@ -9,7 +9,7 @@ export const fetchCache = "force-no-store"
 
 export default async function MyOrdersPage() {
   const user = await currentUser()
-  if (!user) redirect("/sign-in")
+  if (!user) redirect("/sign-in")       
 
   const orders = await db.order.findMany({
     where: { clerkId: user.id },
