@@ -4,6 +4,9 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { Package, ChevronRight, Clock, CheckCircle2, Truck, XCircle } from "lucide-react"
 
+export const dynamic = "force-dynamic"
+export const fetchCache = "force-no-store"
+
 export default async function MyOrdersPage() {
   const user = await currentUser()
   if (!user) redirect("/sign-in")
