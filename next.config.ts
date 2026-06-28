@@ -1,10 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  eslint: {
-    // Build ke waqt ESLint ignore karo taaki deployment na ruke
-    ignoreDuringBuilds: true,
-  },
   typescript: {
     // Build ke waqt Type errors ignore karo
     ignoreBuildErrors: true,
