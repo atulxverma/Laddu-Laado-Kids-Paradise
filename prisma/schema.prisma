@@ -1,6 +1,5 @@
 datasource db {
   provider = "mongodb"
-  // URL yahan se hat gaya hai, ab ye prisma.config.ts se handle hoga
 }
 
 generator client {

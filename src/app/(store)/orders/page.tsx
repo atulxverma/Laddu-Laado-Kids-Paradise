@@ -18,21 +18,25 @@ export default async function MyOrdersPage() {
     orderBy: { createdAt: "desc" }
   })
 
-  const getStatusIcon = (status: string) => {
-    switch (status.toUpperCase()) {
-      case 'DELIVERED': return <CheckCircle2 size={14} className="text-emerald-500" />;
-      case 'SHIPPED': return <Truck size={14} className="text-blue-500" />;
-      case 'CANCELLED': return <XCircle size={14} className="text-rose-500" />;
-      default: return <Clock size={14} className="text-amber-500" />;
+  // Change both helper functions:
+
+  const getStatusIcon = (status?: string | null) => {
+    const s = (status ?? "Pending").toUpperCase()
+    switch (s) {
+      case 'DELIVERED': return <CheckCircle2 size={14} className="text-emerald-500" />
+      case 'SHIPPED': return <Truck size={14} className="text-blue-500" />
+      case 'CANCELLED': return <XCircle size={14} className="text-rose-500" />
+      default: return <Clock size={14} className="text-amber-500" />
     }
   }
 
-  const getStatusBg = (status: string) => {
-    switch (status.toUpperCase()) {
-      case 'DELIVERED': return 'bg-emerald-50 text-emerald-700 border-emerald-100';
-      case 'SHIPPED': return 'bg-blue-50 text-blue-700 border-blue-100';
-      case 'CANCELLED': return 'bg-rose-50 text-rose-700 border-rose-100';
-      default: return 'bg-amber-50 text-amber-700 border-amber-100';
+  const getStatusBg = (status?: string | null) => {
+    const s = (status ?? "Pending").toUpperCase()
+    switch (s) {
+      case 'DELIVERED': return 'bg-emerald-50 text-emerald-700 border-emerald-100'
+      case 'SHIPPED': return 'bg-blue-50 text-blue-700 border-blue-100'
+      case 'CANCELLED': return 'bg-rose-50 text-rose-700 border-rose-100'
+      default: return 'bg-amber-50 text-amber-700 border-amber-100'
     }
   }
 
@@ -67,10 +71,10 @@ export default async function MyOrdersPage() {
                       <p className="text-sm font-black text-black tracking-tight">₹{order.total.toLocaleString("en-IN")}</p>
                     </div>
                   </div>
-                  
+
                   <div className={`flex items-center gap-2 px-4 py-2 rounded-full border text-[10px] font-black uppercase tracking-widest ${getStatusBg(order.status)} shadow-sm`}>
                     {getStatusIcon(order.status)}
-                    {order.status}
+                    {order.status ?? "Pending"}
                   </div>
                 </div>
 
@@ -83,18 +87,18 @@ export default async function MyOrdersPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                           <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">{item.product.category?.name}</span>
+                          <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">{item.product.category?.name}</span>
                         </div>
                         <h4 className="font-bold text-black text-lg truncate mb-1">{item.product.name}</h4>
-                        
+
                         {/* ✅ AB YAHAN DRAMA KHATAM: item.size dikhayenge, item.product.size nahi */}
                         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
                           Size: {item.size || 'N/A'} <span className="mx-2">·</span> Qty: {item.quantity}
                         </p>
 
                         <div className="flex items-center justify-between mt-4">
-                           <p className="font-black text-black">₹{item.product.price.toLocaleString("en-IN")}</p>
-                           <Link href={`/product/${item.product.id}`} className="text-[10px] font-black uppercase border-b-2 border-black pb-0.5 hover:opacity-50 transition-opacity">View Item</Link>
+                          <p className="font-black text-black">₹{item.product.price.toLocaleString("en-IN")}</p>
+                          <Link href={`/product/${item.product.id}`} className="text-[10px] font-black uppercase border-b-2 border-black pb-0.5 hover:opacity-50 transition-opacity">View Item</Link>
                         </div>
                       </div>
                     </div>
@@ -103,7 +107,7 @@ export default async function MyOrdersPage() {
 
                 {/* Footer / Address */}
                 <div className="px-8 py-4 bg-gray-50/30 border-t border-gray-50 text-[10px] text-gray-400 font-bold uppercase tracking-widest flex items-center gap-2">
-                   <Truck size={10} /> Shipping to: <span className="text-gray-600 truncate">{order.address}</span>
+                  <Truck size={10} /> Shipping to: <span className="text-gray-600 truncate">{order.address}</span>
                 </div>
               </div>
             ))}
