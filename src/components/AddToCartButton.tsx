@@ -13,29 +13,30 @@ export default function AddToCartButton({ product }: { product: any }) {
   const [selectedSize, setSelectedSize] = useState("")
   const [mounted, setMounted] = useState(false)
 
-  const availableSizes = product?.size
+  const availableSizes: string[] = product?.size
     ? product.size.split(",").map((s: string) => s.trim().toUpperCase())
     : []
 
   const allPossibleSizes = ["0-2Y", "2-4Y", "4-6Y", "6-8Y", "8-10Y", "S", "M", "L", "XL"]
-  const isOutOfStock = product.stock <= 0
+  const isOutOfStock = (product?.stock ?? 0) <= 0
 
-  // 🔥 Stock Limit Calculation
-  const currentItemInCart = cart.items.find(i => i.id === product.id && i.size === selectedSize)
+  const currentItemInCart = cart.items.find(
+    (i: any) => i.id === product?.id && i.size === selectedSize
+  )
   const currentQty = currentItemInCart?.quantity || 0
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
+  if (!product) return null
   if (!mounted) return null
 
-  const isLiked = wishlistItems.some((i) => i.id === product.id)
+  const isLiked = wishlistItems.some((i: any) => i.id === product.id)
 
   const handleAdd = () => {
     if (!selectedSize) return alert("Please select a size first")
 
-    // Check if adding one more exceeds available stock
     if (currentQty + 1 > product.stock) {
       return alert(`Apologies! Only ${product.stock} units are currently available in stock.`)
     }
@@ -66,23 +67,24 @@ export default function AddToCartButton({ product }: { product: any }) {
 
         <div className="flex gap-2 flex-wrap">
           {allPossibleSizes.map((size) => {
-            const isAvailable = (availableSizes ?? []).includes(size.toUpperCase()) && !isOutOfStock;
+            const isAvailable = availableSizes.includes(size.toUpperCase()) && !isOutOfStock
             return (
               <button
                 key={size}
                 disabled={!isAvailable}
                 onClick={() => setSelectedSize(size)}
-                className={`group relative h-14 min-w-[65px] px-4 rounded-2xl border-2 transition-all duration-300 flex flex-col items-center justify-center ${!isAvailable
+                className={`group relative h-14 min-w-[65px] px-4 rounded-2xl border-2 transition-all duration-300 flex flex-col items-center justify-center ${
+                  !isAvailable
                     ? "bg-gray-50 border-gray-100 opacity-30 cursor-not-allowed"
                     : selectedSize === size
                       ? "bg-black text-white border-black shadow-xl scale-105"
                       : "bg-white border-gray-100 text-black hover:border-black"
-                  }`}
+                }`}
               >
                 <span className={`text-sm font-black ${!isAvailable ? "line-through" : ""}`}>{size}</span>
                 {!isAvailable && <span className="text-[6px] font-bold text-red-500">SOLD OUT</span>}
               </button>
-            );
+            )
           })}
         </div>
       </div>
