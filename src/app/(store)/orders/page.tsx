@@ -90,7 +90,6 @@ export default async function MyOrdersPage() {
                         </div>
                         <h4 className="font-bold text-black text-lg truncate mb-1">{item.product.name}</h4>
 
-                        {/* ✅ AB YAHAN DRAMA KHATAM: item.size dikhayenge, item.product.size nahi */}
                         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
                           Size: {item.size || 'N/A'} <span className="mx-2">·</span> Qty: {item.quantity}
                         </p>
