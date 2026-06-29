@@ -1,22 +1,15 @@
 import { PrismaClient } from "@prisma/client";
 
-const prismaClientSingleton = () => {
-  return new PrismaClient({
-    datasources: {
-      db: {
-        // Safe string fallback boundary for build safety phase validation
-        url: process.env.DATABASE_URL || "postgresql://mock:mock@localhost:5432/mock?schema=public",
-      },
-    },
-  });
+const globalForPrisma = global as unknown as {
+  prisma: PrismaClient | undefined;
 };
 
-declare global {
-  var prisma: undefined | ReturnType<typeof prismaClientSingleton>;
+export const db =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    log: ["query"],
+  });
+
+if (process.env.NODE_ENV !== "production") {
+  globalForPrisma.prisma = db;
 }
-
-const db = globalThis.prisma ?? prismaClientSingleton();
-
-export { db };
-
-if (process.env.NODE_ENV !== "production") globalThis.prisma = db;

@@ -1,5 +1,6 @@
 datasource db {
   provider = "mongodb"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -8,7 +9,7 @@ generator client {
 
 model Category {
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  name      String
+  name      String    @unique
   products  Product[]
   createdAt DateTime  @default(now())
 }
@@ -25,7 +26,7 @@ model Product {
   images        Image[]
   categoryId    String         @db.ObjectId
   category      Category       @relation(fields: [categoryId], references: [id])
-  orderItems    OrderItem[]
+  orderItems    OrderItem[]    
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   gender        String         @default("Unisex")
