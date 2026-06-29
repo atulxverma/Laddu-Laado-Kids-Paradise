@@ -102,9 +102,13 @@ export default function Navbar() {
 
         {/* ── TOP BAR (logo + nav + icons) ── hides on scroll */}
         <motion.div
-          animate={{ y: scrolled ? -64 : 0, opacity: scrolled ? 0 : 1 }}
+          animate={{
+            y: scrolled ? -80 : 0,
+            opacity: scrolled ? 0 : 1,
+          }}
           transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-          className="bg-white border-b border-gray-100"
+          className={`bg-white border-b border-gray-100 ${scrolled ? "pointer-events-none" : ""
+            }`}
         >
           <div className="max-w-7xl mx-auto px-3 md:px-6 h-14 md:h-16 flex items-center justify-between gap-2">
 
@@ -210,11 +214,10 @@ export default function Navbar() {
             y: scrolled ? -64 : 0,
           }}
           transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-          className={`hidden md:block border-b transition-colors duration-300 ${
-            scrolled
-              ? "bg-white/60 backdrop-blur-2xl border-white/20 shadow-lg"
-              : "bg-white/90 backdrop-blur-md border-gray-100"
-          }`}
+          className={`hidden md:block border-b transition-colors duration-300 ${scrolled
+            ? "bg-white/60 backdrop-blur-2xl border-white/20 shadow-lg"
+            : "bg-white/90 backdrop-blur-md border-gray-100"
+            }`}
         >
           <div className="max-w-7xl mx-auto px-6 h-11 flex items-center justify-between gap-6">
 
@@ -237,11 +240,10 @@ export default function Navbar() {
             <div className="flex-1 flex justify-center px-6">
               <button
                 onClick={() => setSearchOpen(true)}
-                className={`flex items-center gap-3 w-full max-w-md rounded-xl px-4 py-1.5 transition-all border ${
-                  scrolled
-                    ? "bg-white/50 backdrop-blur-md border-white/30 hover:bg-white/80"
-                    : "bg-gray-50 border-gray-200 hover:border-gray-300 hover:bg-gray-100"
-                }`}
+                className={`flex items-center gap-3 w-full max-w-md rounded-xl px-4 py-1.5 transition-all border ${scrolled
+                  ? "bg-white/50 backdrop-blur-md border-white/30 hover:bg-white/80"
+                  : "bg-gray-50 border-gray-200 hover:border-gray-300 hover:bg-gray-100"
+                  }`}
               >
                 <Search size={13} className="text-gray-400 shrink-0" />
                 <span className="text-xs text-gray-400 font-medium italic">Discover premium drops...</span>
@@ -255,9 +257,8 @@ export default function Navbar() {
             <div className="flex items-center gap-1.5 shrink-0">
               {categories.map((cat) => (
                 <Link key={cat} href={`/shop?category=${cat.toLowerCase()}`}
-                  className={`text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border transition-all hover:bg-black hover:text-white hover:border-black ${
-                    scrolled ? "border-gray-200/50 text-gray-500 bg-white/20" : "border-gray-100 text-gray-400"
-                  }`}
+                  className={`text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border transition-all hover:bg-black hover:text-white hover:border-black ${scrolled ? "border-gray-200/50 text-gray-500 bg-white/20" : "border-gray-100 text-gray-400"
+                    }`}
                 >
                   {cat}
                 </Link>
@@ -274,7 +275,7 @@ export default function Navbar() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.25 }}
-              className="md:hidden bg-white/70 backdrop-blur-2xl border-b border-white/20 shadow-md"
+              className="fixed top-0 left-0 right-0 z-[55] md:hidden bg-white/70 backdrop-blur-2xl border-b border-white/20 shadow-md"
             >
               <div className="px-3 h-11 flex items-center gap-2">
                 <button onClick={() => setMenuOpen(!menuOpen)} className="p-1.5 hover:bg-gray-100/80 rounded-full">
@@ -301,6 +302,8 @@ export default function Navbar() {
         </AnimatePresence>
 
       </header>
+
+      <div className="h-16 md:h-28" />
 
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
 
