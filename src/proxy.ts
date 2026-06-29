@@ -1,19 +1,18 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server"
 
-// Strict path matching syntax for Clerk
 const isPublicRoute = createRouteMatcher([
   "/",
-  "/product/:id*", // Better safe pattern matching
+  "/product/:id*",
   "/shop",
-  "/shop/:path*",  // Explicitly matches /shop and any sub-routes safely
+  "/shop/:path*",
   "/about",
   "/faqs",
+  "/legal/:slug*",
   "/sign-in(.*)",
   "/sign-up(.*)",
 ])
 
 export default clerkMiddleware(async (auth, req) => {
-  // Safe runtime check guard
   if (req?.nextUrl && !isPublicRoute(req)) {
     await auth.protect()
   }
@@ -21,7 +20,6 @@ export default clerkMiddleware(async (auth, req) => {
 
 export const config = {
   matcher: [
-    // Next.js recommended standard Clerk matching pattern regex
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
     "/",
     "/(api|trpc)(.*)",
