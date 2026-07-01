@@ -14,6 +14,8 @@ model Category {
   isCore      Boolean   @default(false)
   order       Int       @default(0)
 
+  imageUrl    String?
+
   products    Product[]
   createdAt   DateTime  @default(now())
 }
@@ -30,7 +32,10 @@ model Product {
   images        Image[]
   categoryId    String         @db.ObjectId
   category      Category       @relation(fields: [categoryId], references: [id])
-  orderItems    OrderItem[]    
+
+  specifications Json? 
+
+  orderItems    OrderItem[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   gender        String         @default("Unisex")
@@ -40,7 +45,6 @@ model Product {
   cartItems     CartItem[]
   wishlistItems WishlistItem[]
 }
-
 model Image {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   productId String   @db.ObjectId

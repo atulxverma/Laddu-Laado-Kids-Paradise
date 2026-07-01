@@ -2,8 +2,18 @@
 
 import { useState } from "react"
 import { CldUploadWidget } from "next-cloudinary"
-import { ImagePlus, Trash2, X, Baby, Venus, Package, Pencil } from "lucide-react"
+import { ImagePlus, Trash2, X, Package, Pencil } from "lucide-react"
 import { createProduct, updateProduct } from "@/lib/actions"
+
+const sizeOptions = [
+  "0-2Y",
+  "2-4Y",
+  "4-6Y",
+  "6-8Y",
+  "8-10Y",
+  "10-12Y",
+  "12-14Y",
+]
 
 export default function ProductForm({
   categories,
@@ -23,12 +33,15 @@ export default function ProductForm({
     categoryId: product?.categoryId || "",
     size: product?.size || "",
     color: product?.color || "",
-    gender: product?.gender || "Unisex",
-    ageGroup: product?.ageGroup || "2-4Y",
+    gender: product?.gender || "Newborn",
     stock: product?.stock?.toString() || "10",
   })
 
-  const [customDetails, setCustomDetails] = useState<{ key: string, value: string }[]>([])
+  const [customDetails, setCustomDetails] = useState(
+    product?.specifications || [
+      { key: "", value: "" }
+    ]
+  )
 
   const addDetail = () => setCustomDetails([...customDetails, { key: "", value: "" }])
   const removeDetail = (index: number) => setCustomDetails(customDetails.filter((_, i) => i !== index))
@@ -43,17 +56,21 @@ export default function ProductForm({
     if (images.length === 0) return alert("Please upload images first")
     setLoading(true)
 
-    const finalDescription = `${form.description}\n\nGender: ${form.gender}\nAge: ${form.ageGroup}\n${customDetails.map(d => `${d.key}: ${d.value}`).join("\n")}`
+    const specifications = customDetails.filter(
+      d => d.key && d.value
+    )
 
     const res = product
       ? await updateProduct(product.id, {
         ...form,
-        description: finalDescription,
+        description: form.description,
+        specifications,
         images,
       })
       : await createProduct({
         ...form,
-        description: finalDescription,
+        description: form.description,
+        specifications,
         images,
       })
 
@@ -112,7 +129,7 @@ export default function ProductForm({
 
           <input required placeholder="Product Title" value={form.name} className={inputStyle} onChange={(e) => setForm({ ...form, name: e.target.value })} />
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-1.5">
               <label className="text-[10px] font-black uppercase text-gray-400">Price ₹</label>
               <input required type="number" value={form.price} placeholder="999" className={inputStyle} onChange={(e) => setForm({ ...form, price: e.target.value })} />
@@ -125,26 +142,143 @@ export default function ProductForm({
 
           <div className="grid grid-cols-2 gap-4">
             <select required className={inputStyle} value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })}>
-              <option value="Unisex">Unisex</option>
-              <option value="Boy">Boy</option>
-              <option value="Girl">Girl</option>
+              <option value="Newborn">Newborn</option>
+              <option value="Boy">Boys</option>
+              <option value="Girl">Girls</option>
             </select>
-            <select required className={inputStyle} value={form.ageGroup} onChange={(e) => setForm({ ...form, ageGroup: e.target.value })}>
-              <option value="0-2Y">0-2 Years</option>
-              <option value="2-4Y">2-4 Years</option>
-              <option value="4-6Y">4-6 Years</option>
-              <option value="6-8Y">6-8 Years</option>
-            </select>
+
           </div>
 
-          <select required className={inputStyle} value={form.categoryId} onChange={(e) => setForm({ ...form, categoryId: e.target.value })}>
-            <option value="">Select Category</option>
-            {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
+          <div className="space-y-3">
+  <p className="text-[10px] font-black uppercase text-gray-400">
+    Category
+  </p>
 
-          <input required placeholder="Sizes (e.g. S, M, L)" value={form.size} className={inputStyle} onChange={(e) => setForm({ ...form, size: e.target.value })} />
+  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+    {categories.map((cat) => {
+      const active = form.categoryId === cat.id
 
+      return (
+        <button
+          key={cat.id}
+          type="button"
+          onClick={() =>
+            setForm({
+              ...form,
+              categoryId: cat.id,
+            })
+          }
+          className={`h-14 rounded-2xl border-2 transition-all font-bold text-sm ${
+            active
+              ? "bg-black text-white border-black"
+              : "bg-white border-gray-200 hover:border-black"
+          }`}
+        >
+          {cat.name}
+        </button>
+      )
+    })}
+  </div>
+</div>
+
+          <div className="space-y-3">
+            <p className="text-[10px] font-black uppercase text-gray-400">
+              Available Sizes
+            </p>
+
+            <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
+
+              {sizeOptions.map((size) => {
+                const selectedSizes = form.size
+                  ? form.size.split(",")
+                  : []
+
+                const checked = selectedSizes.includes(size)
+
+                return (
+                  <button
+                    key={size}
+                    type="button"
+                    onClick={() => {
+                      let updatedSizes
+
+                      if (checked) {
+                        updatedSizes = selectedSizes.filter(
+                          (s) => s !== size
+                        )
+                      } else {
+                        updatedSizes = [...selectedSizes, size]
+                      }
+
+                      setForm({
+                        ...form,
+                        size: updatedSizes.join(","),
+                      })
+                    }}
+                    className={`h-12 rounded-xl border-2 font-bold transition-all ${checked
+                      ? "bg-black text-white border-black"
+                      : "border-gray-200 bg-white"
+                      }`}
+                  >
+                    {size}
+                  </button>
+                )
+              })}
+
+            </div>
+          </div>
+          <div className="space-y-4">
+
+            <div className="flex justify-between items-center">
+              <p className="text-[10px] font-black uppercase text-gray-400">
+                Specifications
+              </p>
+
+              <button
+                type="button"
+                onClick={addDetail}
+                className="px-4 py-2 rounded-full bg-black text-white text-[10px] font-bold"
+              >
+                Add Row
+              </button>
+            </div>
+
+            {customDetails.map((detail, index) => (
+
+              <div key={index} className="grid grid-cols-[1fr_1fr_auto] gap-3">
+
+                <input
+                  placeholder="Title (Fabric)"
+                  value={detail.key}
+                  className={inputStyle}
+                  onChange={(e) =>
+                    updateDetail(index, "key", e.target.value)
+                  }
+                />
+
+                <input
+                  placeholder="Value (Cotton)"
+                  value={detail.value}
+                  className={inputStyle}
+                  onChange={(e) =>
+                    updateDetail(index, "value", e.target.value)
+                  }
+                />
+
+                <button
+                  type="button"
+                  onClick={() => removeDetail(index)}
+                  className="h-12 w-12 rounded-xl bg-red-50 text-red-500 flex items-center justify-center"
+                >
+                  <Trash2 size={16} />
+                </button>
+
+              </div>
+
+            ))}
+          </div>
           <textarea placeholder="Description..." value={form.description} rows={3} className={`${inputStyle} resize-none`} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+
 
           <button disabled={loading} className="w-full bg-black text-white py-5 rounded-full text-xs font-black uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all disabled:opacity-50">
             {
@@ -262,20 +396,147 @@ export default function ProductForm({
               <select
                 required
                 className={inputStyle}
-                value={form.categoryId}
+                value={form.gender}
                 onChange={(e) =>
-                  setForm({ ...form, categoryId: e.target.value })
+                  setForm({ ...form, gender: e.target.value })
                 }
               >
-                <option value="">Select Category</option>
-
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
+                <option value="Newborn">Newborn</option>
+                <option value="Boy">Boys</option>
+                <option value="Girl">Girls</option>
               </select>
 
+              <div className="space-y-3">
+  <p className="text-[10px] font-black uppercase text-gray-400">
+    Category
+  </p>
+
+  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+    {categories.map((cat) => {
+      const active = form.categoryId === cat.id
+
+      return (
+        <button
+          key={cat.id}
+          type="button"
+          onClick={() =>
+            setForm({
+              ...form,
+              categoryId: cat.id,
+            })
+          }
+          className={`h-14 rounded-2xl border-2 transition-all font-bold text-sm ${
+            active
+              ? "bg-black text-white border-black"
+              : "bg-white border-gray-200 hover:border-black"
+          }`}
+        >
+          {cat.name}
+        </button>
+      )
+    })}
+  </div>
+</div>
+
+              <div className="space-y-3">
+                <p className="text-[10px] font-black uppercase text-gray-400">
+                  Available Sizes
+                </p>
+
+                <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
+
+                  {sizeOptions.map((size) => {
+                    const selectedSizes = form.size
+                      ? form.size.split(",")
+                      : []
+
+                    const checked = selectedSizes.includes(size)
+
+                    return (
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() => {
+                          let updatedSizes
+
+                          if (checked) {
+                            updatedSizes = selectedSizes.filter(
+                              (s) => s !== size
+                            )
+                          } else {
+                            updatedSizes = [...selectedSizes, size]
+                          }
+
+                          setForm({
+                            ...form,
+                            size: updatedSizes.join(","),
+                          })
+                        }}
+                        className={`h-12 rounded-xl border-2 font-bold transition-all ${checked
+                          ? "bg-black text-white border-black"
+                          : "border-gray-200 bg-white"
+                          }`}
+                      >
+                        {size}
+                      </button>
+                    )
+                  })}
+
+                </div>
+              </div>
+<div className="space-y-4">
+
+  <div className="flex justify-between items-center">
+    <p className="text-[10px] font-black uppercase text-gray-400">
+      Specifications
+    </p>
+
+    <button
+      type="button"
+      onClick={addDetail}
+      className="px-4 py-2 rounded-full bg-black text-white text-[10px] font-bold"
+    >
+      Add Row
+    </button>
+  </div>
+
+  {customDetails.map((detail, index) => (
+
+    <div
+      key={index}
+      className="grid grid-cols-[1fr_1fr_auto] gap-3"
+    >
+
+      <input
+        placeholder="Title (Fabric)"
+        value={detail.key}
+        className={inputStyle}
+        onChange={(e) =>
+          updateDetail(index, "key", e.target.value)
+        }
+      />
+
+      <input
+        placeholder="Value (Cotton)"
+        value={detail.value}
+        className={inputStyle}
+        onChange={(e) =>
+          updateDetail(index, "value", e.target.value)
+        }
+      />
+
+      <button
+        type="button"
+        onClick={() => removeDetail(index)}
+        className="h-12 w-12 rounded-xl bg-red-50 text-red-500 flex items-center justify-center"
+      >
+        <Trash2 size={16} />
+      </button>
+
+    </div>
+
+  ))}
+</div>
               <textarea
                 value={form.description}
                 rows={4}

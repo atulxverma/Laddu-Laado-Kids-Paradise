@@ -61,9 +61,12 @@ export async function createProduct(data: any) {
       stock,
       gender,
       ageGroup,
+      specifications, // 👈 NEW
     } = data;
 
-    if (!name) return { error: "Product Name is required" };
+    if (!name) {
+      return { error: "Product Name is required" };
+    }
 
     if (!price || isNaN(parseFloat(price))) {
       return { error: "Valid Price is required" };
@@ -92,6 +95,9 @@ export async function createProduct(data: any) {
         color: color || "Standard",
         gender: gender || "Unisex",
         ageGroup: ageGroup || "2-4Y",
+
+        // 👇 NEW
+        specifications: specifications || [],
 
         images: {
           create: images.map((url: string) => ({
@@ -218,7 +224,7 @@ export async function createOrder(data: {
 }
 
 // --- OTHER ACTIONS ---
-export async function createCategory(name: string) {
+export async function createCategory(name: string, imageUrl?: string) {
   try {
     await checkAdmin();
     if (!name || !name.trim()) return { error: "Category name is required" };
@@ -231,7 +237,13 @@ export async function createCategory(name: string) {
 
     const count = await db.category.count();
     await db.category.create({
-      data: { name: name.trim(), slug, isCore: false, order: count },
+      data: {
+        name: name.trim(),
+        slug,
+        imageUrl,
+        isCore: false,
+        order: count,
+      },
     });
 
     revalidatePath("/admin/categories");
@@ -256,46 +268,53 @@ export async function deleteProduct(id: string) {
   }
 }
 
-export async function updateProduct(
-  id:string,
-  data:any
-){
-  try{
+export async function updateProduct(id: string, data: any) {
+  try {
     await checkAdmin();
 
     await db.image.deleteMany({
-      where:{ productId:id }
+      where: {
+        productId: id,
+      },
     });
 
     await db.product.update({
-      where:{id},
-      data:{
-        name:data.name,
-        description:data.description,
-        price:parseFloat(data.price),
-        stock:parseInt(data.stock),
-        categoryId:data.categoryId,
-        size:data.size,
-        color:data.color,
-        gender:data.gender,
-        ageGroup:data.ageGroup,
+      where: { id },
 
-        images:{
-          create:data.images.map(
-            (url:string)=>({url})
-          )
-        }
-      }
+      data: {
+        name: data.name,
+        description: data.description,
+        price: parseFloat(data.price),
+        stock: parseInt(data.stock),
+
+        categoryId: data.categoryId,
+        size: data.size,
+        color: data.color,
+
+        gender: data.gender,
+        ageGroup: data.ageGroup,
+
+        // 👇 NEW
+        specifications: data.specifications || [],
+
+        images: {
+          create: data.images.map((url: string) => ({
+            url,
+          })),
+        },
+      },
     });
 
     revalidatePath("/admin/products");
     revalidatePath("/");
     revalidatePath("/shop");
+    revalidatePath(`/product/${id}`);
 
-    return {success:true}
-  }
-  catch(error:any){
-    return {error:error.message}
+    return { success: true };
+  } catch (error: any) {
+    return {
+      error: error.message,
+    };
   }
 }
 
@@ -373,59 +392,82 @@ export async function upsertBanner(data: any) {
 
 export async function deleteCategory(id: string) {
   try {
-    await checkAdmin();
+    await checkAdmin()
+
+    const category = await db.category.findUnique({
+      where: { id },
+    })
+
+    if (!category) {
+      return { error: "Category not found" }
+    }
+
+    if (category.isCore) {
+      return {
+        error: "Core categories cannot be deleted",
+      }
+    }
 
     await db.category.delete({
-      where: { id }
-    });
+      where: { id },
+    })
 
-    revalidatePath("/admin/categories");
-    revalidatePath("/");
-    revalidatePath("/shop");
+    revalidatePath("/admin/categories")
+    revalidatePath("/")
+    revalidatePath("/shop")
 
-    return { success: true };
+    return { success: true }
   } catch (error) {
     return {
-      error: "Cannot delete category with existing products."
-    };
+      error: "Cannot delete category with existing products.",
+    }
   }
 }
 
 export async function updateCategory(
   id: string,
-  name: string
+  name: string,
+  imageUrl?: string
 ) {
   try {
-    await checkAdmin();
+    await checkAdmin()
 
-    const exists = await db.category.findFirst({
+    const slug = slugify(name)
+
+    // Duplicate slug check
+    const existing = await db.category.findFirst({
       where: {
-        slug: slugify(name),
-        NOT: { id },
+        slug,
+        NOT: {
+          id,
+        },
       },
-    });
+    })
 
-    if (exists) {
-      return { error: "Category already exists" };
+    if (existing) {
+      return {
+        error: "Category already exists",
+      }
     }
 
     await db.category.update({
       where: { id },
       data: {
         name,
-        slug: slugify(name),
+        slug,
+        imageUrl,
       },
-    });
+    })
 
-    revalidatePath("/admin/categories");
-    revalidatePath("/");
-    revalidatePath("/shop");
+    revalidatePath("/admin/categories")
+    revalidatePath("/")
+    revalidatePath("/shop")
 
-    return { success: true };
-  } catch (e: any) {
+    return { success: true }
+  } catch (error) {
     return {
-      error: e.message,
-    };
+      error: "Failed to update category",
+    }
   }
 }
 

@@ -47,7 +47,7 @@ export default function ProductGallery({
 
       {/* Main Image */}
       <div className="order-1 lg:order-2 flex-1">
-        <div className="group relative aspect-square md:aspect-[4/5] rounded-[2.5rem] overflow-hidden bg-[#fafafa]">
+        <div className="group relative h-[320px] md:h-[450px] lg:h-[500px] max-w-[500px] mx-auto rounded-[2.5rem] overflow-hidden bg-[#fafafa]">
 
           <img
             src={images[active]?.url}

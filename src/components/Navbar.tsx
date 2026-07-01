@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Search, ShoppingBag, Menu, X, Heart, LayoutDashboard, Package, ChevronDown } from "lucide-react"
+import { Search, ShoppingBag, Menu, X, Heart, LayoutDashboard, Package } from "lucide-react"
 import { useCart } from "@/hooks/use-cart"
 import { useWishlist } from "@/hooks/use-wishlist"
 import { useEffect, useState } from "react"
@@ -10,15 +10,15 @@ import { SignInButton, UserButton, useUser } from "@clerk/nextjs"
 import SearchModal from "@/components/SearchModal"
 import { syncCartWithDb, getDbCart } from "@/lib/actions"
 
-const categories = ["Clothing", "Footwear", "Accessories", "Essentials"]
+const genderFilters = [
+  { label: "NEWBORN", href: "/shop?gender=Newborn" },
+  { label: "BOYS", href: "/shop?gender=Boy" },
+  { label: "GIRLS", href: "/shop?gender=Girl" },
+  { label: "NEW ARRIVALS", href: "/shop?sort=new" },
+]
 const navLinks = [
   { label: "About", href: "/about" },
   { label: "FAQs", href: "/faqs" },
-]
-const genderFilters = [
-  { label: "BOYS", href: "/shop?gender=boy" },
-  { label: "GIRLS", href: "/shop?gender=girl" },
-  { label: "NEWBORN", href: "/shop?age=0-2y" },
 ]
 
 export default function Navbar() {
@@ -219,22 +219,23 @@ export default function Navbar() {
             : "bg-white/90 backdrop-blur-md border-gray-100"
             }`}
         >
-          <div className="max-w-7xl mx-auto px-6 h-11 flex items-center justify-between gap-6">
+          <div className="max-w-7xl mx-auto px-6 h-11 flex items-center gap-10">
 
-            {/* Gender filters */}
-            <div className="flex items-center gap-6 shrink-0">
-              <button className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-black hover:opacity-60 transition-opacity">
-                Categories <ChevronDown size={11} className="text-gray-400" />
-              </button>
-              <div className="h-3.5 w-[1px] bg-gray-200" />
-              {genderFilters.map((filter) => (
-                <Link key={filter.label} href={filter.href}
-                  className="text-[10px] font-black uppercase tracking-[0.15em] text-gray-400 hover:text-black transition-all"
-                >
-                  {filter.label}
-                </Link>
-              ))}
-            </div>
+            <div className="flex items-center gap-8 mx-auto">
+
+  {genderFilters.map((filter) => (
+    <Link
+      key={filter.label}
+      href={filter.href}
+      className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 hover:text-black transition-all relative group"
+    >
+      {filter.label}
+
+      <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-black transition-all group-hover:w-full" />
+    </Link>
+  ))}
+
+</div>
 
             {/* Search bar */}
             <div className="flex-1 flex justify-center px-6">
@@ -253,17 +254,7 @@ export default function Navbar() {
               </button>
             </div>
 
-            {/* Category pills */}
-            <div className="flex items-center gap-1.5 shrink-0">
-              {categories.map((cat) => (
-                <Link key={cat} href={`/shop?category=${cat.toLowerCase()}`}
-                  className={`text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border transition-all hover:bg-black hover:text-white hover:border-black ${scrolled ? "border-gray-200/50 text-gray-500 bg-white/20" : "border-gray-100 text-gray-400"
-                    }`}
-                >
-                  {cat}
-                </Link>
-              ))}
-            </div>
+            
           </div>
         </motion.div>
 
@@ -374,15 +365,7 @@ export default function Navbar() {
                   ))}
                 </div>
 
-                <div className="flex flex-wrap gap-2">
-                  {categories.map(cat => (
-                    <Link key={cat} href={`/shop?category=${cat.toLowerCase()}`} onClick={() => setMenuOpen(false)}
-                      className="px-4 py-2 bg-gray-50 border border-gray-100 rounded-full text-[10px] font-black uppercase"
-                    >
-                      {cat}
-                    </Link>
-                  ))}
-                </div>
+                
 
                 <div className="pt-2 border-t border-gray-100 space-y-3">
                   {navLinks.map((link) => (

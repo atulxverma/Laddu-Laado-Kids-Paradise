@@ -33,9 +33,21 @@ export default async function CategoriesPage() {
               className="rounded-2xl border border-gray-100 p-6 flex items-center justify-between hover:border-gray-200 hover:shadow-sm transition-all"
             >
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center">
-                  <Layers size={16} className="text-gray-400" />
-                </div>
+                <div className="w-12 h-12 rounded-xl overflow-hidden border border-gray-100">
+
+  {cat.imageUrl ? (
+    <img
+      src={cat.imageUrl}
+      alt={cat.name}
+      className="h-full w-full object-cover"
+    />
+  ) : (
+    <div className="h-full w-full flex items-center justify-center bg-gray-50">
+      <Layers size={16} className="text-gray-400" />
+    </div>
+  )}
+
+</div>
                 <div>
                   <p className="font-semibold text-black text-sm">{cat.name}</p>
                   <p className="text-xs text-gray-400 mt-0.5">

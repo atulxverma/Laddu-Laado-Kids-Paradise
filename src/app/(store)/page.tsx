@@ -8,12 +8,17 @@ export const dynamic = "force-dynamic";
 export default async function HomePage() {
   // 1. Parallel Data Fetching
   const [products, categories, banners, reviews] = await Promise.all([
-    db.product.findMany({ 
-      include: { category: true, images: true }, 
-      take: 8, 
-      orderBy: { createdAt: "desc" } 
+    db.product.findMany({
+      include: { category: true, images: true },
+      take: 8,
+      orderBy: { createdAt: "desc" }
     }),
-    db.category.findMany({ take: 4 }),
+    db.category.findMany({
+      take: 4,
+      orderBy: {
+        createdAt: "desc"
+      }
+    }),
     db.banner.findMany({ where: { active: true } }),
     db.review.findMany({ take: 6, orderBy: { createdAt: "desc" } })
   ])
@@ -92,12 +97,25 @@ export default async function HomePage() {
           {categories.map((cat) => (
             <Link key={cat.id} href={`/shop?category=${cat.name.toLowerCase()}`}>
               <div className="relative rounded-3xl overflow-hidden h-52 bg-gray-100 group">
-                <div className="absolute inset-0 bg-black/5 group-hover:bg-black/20 transition-all duration-500" />
+
+                {cat.imageUrl ? (
+                  <img
+                    src={cat.imageUrl}
+                    alt={cat.name}
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-gray-100" />
+                )}
+
+                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-all duration-500" />
+
                 <div className="absolute bottom-4 left-4">
                   <span className="bg-white text-black text-[10px] font-black uppercase px-4 py-2 rounded-xl shadow-lg">
                     {cat.name}
                   </span>
                 </div>
+
               </div>
             </Link>
           ))}
@@ -120,7 +138,7 @@ export default async function HomePage() {
           <h2 className="text-4xl font-black italic tracking-tighter uppercase leading-none">The Community</h2>
           <p className="text-gray-400 text-sm font-medium uppercase tracking-[0.2em]">Verified stories from our customers</p>
         </div>
-        
+
         <div className="flex flex-wrap justify-center gap-4">
           {reviews.length > 0 ? (
             <div className="flex justify-center -space-x-4 mb-10">

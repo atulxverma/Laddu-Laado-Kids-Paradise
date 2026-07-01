@@ -19,8 +19,8 @@ export default async function ProductPage({
   // 1. Fetch Product with Reviews
   const product = await db.product.findUnique({
     where: { id: productId },
-    include: { 
-      category: true, 
+    include: {
+      category: true,
       images: true,
       reviews: { orderBy: { createdAt: "desc" } }
     },
@@ -38,7 +38,7 @@ export default async function ProductPage({
   // 3. Dynamic Stats Logic
   const reviews = product.reviews || []
   const totalReviews = reviews.length
-  const avgRating = totalReviews > 0 
+  const avgRating = totalReviews > 0
     ? (reviews.reduce((acc, r) => acc + r.rating, 0) / totalReviews).toFixed(1)
     : "0.0"
 
@@ -51,7 +51,7 @@ export default async function ProductPage({
 
   return (
     <main className="bg-white pb-16 pt-2 md:pt-4">
-      <div className="max-w-7xl mx-auto px-4 pt-20 md:pt-28">
+      <div className="max-w-7xl mx-auto px-4 pt-2 md:pt-8">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400 py-2 md:py-4">
           <Link href="/" className="hover:text-black flex items-center gap-1 transition-colors">
@@ -63,7 +63,9 @@ export default async function ProductPage({
 
         {/* Main Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-5 lg:gap-12">
-          <ProductGallery images={product.images} />
+          <div className="lg:sticky lg:top-24 h-fit">
+   <ProductGallery images={product.images} />
+</div>
 
           <div className="flex flex-col gap-4">
             <div className="space-y-4">
@@ -73,21 +75,21 @@ export default async function ProductPage({
                 </span>
                 <span className="text-[10px] font-black uppercase text-emerald-500">In Stock</span>
               </div>
-              
+
               <h1 className="text-xl md:text-4xl font-black italic tracking-tighter uppercase leading-[0.9]">
                 {product.name}
               </h1>
-              
+
               <div className="flex items-center gap-4">
                 <p className="text-3xl md:text-4xl font-black tracking-tighter">₹{product.price.toLocaleString("en-IN")}</p>
                 <div className="h-8 w-[1px] bg-gray-100" />
                 <div className="flex items-center gap-2">
-                   <div className="flex">
+                  <div className="flex">
                     {[1, 2, 3, 4, 5].map(s => (
                       <Star key={s} size={12} className={s <= Math.round(Number(avgRating)) ? "fill-yellow-400 text-yellow-400" : "text-gray-200"} />
                     ))}
-                   </div>
-                   <span className="text-[10px] font-black text-gray-400 uppercase">{avgRating} ({totalReviews} Reviews)</span>
+                  </div>
+                  <span className="text-[10px] font-black text-gray-400 uppercase">{avgRating} ({totalReviews} Reviews)</span>
                 </div>
               </div>
             </div>
@@ -120,6 +122,33 @@ export default async function ProductPage({
                 </p>
               </details>
 
+              {product.specifications?.length > 0 && (
+                <div className="mt-8">
+                  <h3 className="text-sm font-black uppercase tracking-widest mb-4">
+                    Specifications
+                  </h3>
+
+                  <div className="rounded-3xl overflow-hidden border border-gray-100 bg-[#fafafa]">
+                    {product.specifications.map(
+                      (item: any, index: number) => (
+                        <div
+                          key={index}
+                          className="grid grid-cols-[140px_1fr] md:grid-cols-[180px_1fr] gap-4 px-5 py-4 border-b border-gray-100 last:border-none bg-white"
+                        >
+                          <span className="font-bold text-gray-500">
+                            {item.key}
+                          </span>
+
+                          <span className="text-black font-medium">
+                            {item.value}
+                          </span>
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
+              )}
+
               <details className="group border-t border-gray-100">
                 <summary className="flex items-center justify-between cursor-pointer text-[11px] font-black uppercase tracking-[0.2em] py-5 list-none">
                   Premium Quality Guarantee <span className="group-open:rotate-180 transition-transform">▼</span>
@@ -149,7 +178,7 @@ export default async function ProductPage({
         <section className="mt-16 md:mt-24 border-t border-gray-100 pt-12 md:pt-16">
           <div className="flex flex-col lg:flex-row gap-10 lg:gap-16">
             <div className="lg:w-1/3 space-y-10">
-              <h2 className="text-3xl md:text-5xl font-black italic tracking-tighter uppercase leading-[0.8]">What Souls <br/> <span className="text-gray-300">Are Saying</span></h2>
+              <h2 className="text-3xl md:text-5xl font-black italic tracking-tighter uppercase leading-[0.8]">What Souls <br /> <span className="text-gray-300">Are Saying</span></h2>
               <div className="flex items-end gap-5">
                 <span className="text-5xl md:text-8xl font-black tracking-tighter leading-none">{avgRating}</span>
                 <div className="pb-2">
