@@ -1,6 +1,7 @@
 import { db } from "@/lib/db"
 import CategoryForm from "./CategoryForm"
-import { Layers } from "lucide-react"
+import { Layers, Pencil, Trash2 } from "lucide-react"
+import DeleteCategoryButton from "./DeleteCategoryButton"
 
 export default async function CategoriesPage() {
   const categories = await db.category.findMany({
@@ -42,9 +43,15 @@ export default async function CategoriesPage() {
                   </p>
                 </div>
               </div>
-              <p className="text-[10px] text-gray-400">
-                {new Date(cat.createdAt).toLocaleDateString("en-IN")}
-              </p>
+              <div className="flex items-center gap-2">
+
+                <CategoryForm category={cat} />
+
+                <DeleteCategoryButton
+                  categoryId={cat.id}
+                />
+
+              </div>
             </div>
           ))}
         </div>

@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Heart, ShoppingBag } from "lucide-react"
+import { Heart, ShoppingBag, Pencil } from "lucide-react"
 import { useWishlist } from "@/hooks/use-wishlist"
 
 export default function ProductCard({ product }: { product: any }) {

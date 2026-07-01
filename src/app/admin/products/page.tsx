@@ -68,7 +68,14 @@ export default async function ProductsPage() {
                       )}
 
                       {/* Delete Button */}
-                      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+
+                        
+
+                        <ProductForm
+                          categories={categories}
+                          product={product}
+                        />
                         <DeleteProductButton productId={product.id} />
                       </div>
                     </div>

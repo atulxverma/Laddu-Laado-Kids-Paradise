@@ -8,10 +8,14 @@ generator client {
 }
 
 model Category {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  name      String    @unique
-  products  Product[]
-  createdAt DateTime  @default(now())
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String    @unique
+  slug        String    @unique
+  isCore      Boolean   @default(false)
+  order       Int       @default(0)
+
+  products    Product[]
+  createdAt   DateTime  @default(now())
 }
 
 model Product {
@@ -83,13 +87,13 @@ model Review {
 
 model Banner {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  label     String   
-  title     String   
+  label     String
+  title     String
   subtitle  String?
   imageUrl  String
   link      String   @default("/shop")
   active    Boolean  @default(true)
-  type      String   @default("HERO") 
+  type      String   @unique @default("HERO")
 }
 
 model Newsletter {

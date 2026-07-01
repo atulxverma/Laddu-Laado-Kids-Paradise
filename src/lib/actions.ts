@@ -8,6 +8,14 @@ import Razorpay from "razorpay";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+function slugify(text: string) {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID!,
   key_secret: process.env.RAZORPAY_KEY_SECRET!,
@@ -41,6 +49,7 @@ export async function initiateRazorpayPayment(amount: number) {
 export async function createProduct(data: any) {
   try {
     await checkAdmin();
+
     const {
       name,
       description,
@@ -55,13 +64,22 @@ export async function createProduct(data: any) {
     } = data;
 
     if (!name) return { error: "Product Name is required" };
-    if (!price || isNaN(parseFloat(price)))
+
+    if (!price || isNaN(parseFloat(price))) {
       return { error: "Valid Price is required" };
-    if (!categoryId) return { error: "Please select a Category" };
-    if (!images || images.length === 0)
+    }
+
+    if (!categoryId) {
+      return { error: "Please select a Category" };
+    }
+
+    if (!images || images.length === 0) {
       return { error: "Please upload at least one image" };
-    if (!stock || isNaN(parseInt(stock)))
+    }
+
+    if (stock === undefined || isNaN(parseInt(stock))) {
       return { error: "Stock quantity is required" };
+    }
 
     await db.product.create({
       data: {
@@ -74,16 +92,24 @@ export async function createProduct(data: any) {
         color: color || "Standard",
         gender: gender || "Unisex",
         ageGroup: ageGroup || "2-4Y",
-        images: { create: images.map((url: string) => ({ url })) },
+
+        images: {
+          create: images.map((url: string) => ({
+            url,
+          })),
+        },
       },
     });
 
     revalidatePath("/admin/products");
     revalidatePath("/");
     revalidatePath("/shop");
+
     return { success: true };
   } catch (error: any) {
-    return { error: "Database Error: " + error.message };
+    return {
+      error: "Database Error: " + error.message,
+    };
   }
 }
 
@@ -195,9 +221,22 @@ export async function createOrder(data: {
 export async function createCategory(name: string) {
   try {
     await checkAdmin();
-    if (!name) return { error: "Category name is required" };
-    await db.category.create({ data: { name } });
+    if (!name || !name.trim()) return { error: "Category name is required" };
+
+    const slug = slugify(name);
+    const existing = await db.category.findFirst({
+      where: { OR: [{ name: name.trim() }, { slug }] },
+    });
+    if (existing) return { error: "This category already exists" };
+
+    const count = await db.category.count();
+    await db.category.create({
+      data: { name: name.trim(), slug, isCore: false, order: count },
+    });
+
     revalidatePath("/admin/categories");
+    revalidatePath("/");
+    revalidatePath("/shop");
     return { success: true };
   } catch (error: any) {
     return { error: "Failed to create category" };
@@ -214,6 +253,49 @@ export async function deleteProduct(id: string) {
     return { success: true };
   } catch (error) {
     return { error: "Failed to delete product" };
+  }
+}
+
+export async function updateProduct(
+  id:string,
+  data:any
+){
+  try{
+    await checkAdmin();
+
+    await db.image.deleteMany({
+      where:{ productId:id }
+    });
+
+    await db.product.update({
+      where:{id},
+      data:{
+        name:data.name,
+        description:data.description,
+        price:parseFloat(data.price),
+        stock:parseInt(data.stock),
+        categoryId:data.categoryId,
+        size:data.size,
+        color:data.color,
+        gender:data.gender,
+        ageGroup:data.ageGroup,
+
+        images:{
+          create:data.images.map(
+            (url:string)=>({url})
+          )
+        }
+      }
+    });
+
+    revalidatePath("/admin/products");
+    revalidatePath("/");
+    revalidatePath("/shop");
+
+    return {success:true}
+  }
+  catch(error:any){
+    return {error:error.message}
   }
 }
 
@@ -257,18 +339,32 @@ export async function subscribeNewsletter(email: string) {
 export async function upsertBanner(data: any) {
   try {
     await checkAdmin();
+
     await db.banner.upsert({
-      where: { id: data.type },
-      update: { imageUrl: data.imageUrl, title: data.title, label: data.label },
+      where: {
+        type: data.type,
+      },
+
+      update: {
+        imageUrl: data.imageUrl,
+        title: data.title,
+        label: data.label,
+        subtitle: data.subtitle,
+        link: data.link,
+      },
+
       create: {
-        id: data.type,
         type: data.type,
         imageUrl: data.imageUrl,
         title: data.title,
         label: data.label,
+        subtitle: data.subtitle,
+        link: data.link,
       },
     });
+
     revalidatePath("/");
+
     return { success: true };
   } catch (error: any) {
     return { error: error.message };
@@ -278,11 +374,96 @@ export async function upsertBanner(data: any) {
 export async function deleteCategory(id: string) {
   try {
     await checkAdmin();
-    await db.category.delete({ where: { id } });
+
+    await db.category.delete({
+      where: { id }
+    });
+
     revalidatePath("/admin/categories");
+    revalidatePath("/");
+    revalidatePath("/shop");
+
     return { success: true };
   } catch (error) {
-    return { error: "Cannot delete category with products." };
+    return {
+      error: "Cannot delete category with existing products."
+    };
+  }
+}
+
+export async function updateCategory(
+  id: string,
+  name: string
+) {
+  try {
+    await checkAdmin();
+
+    const exists = await db.category.findFirst({
+      where: {
+        slug: slugify(name),
+        NOT: { id },
+      },
+    });
+
+    if (exists) {
+      return { error: "Category already exists" };
+    }
+
+    await db.category.update({
+      where: { id },
+      data: {
+        name,
+        slug: slugify(name),
+      },
+    });
+
+    revalidatePath("/admin/categories");
+    revalidatePath("/");
+    revalidatePath("/shop");
+
+    return { success: true };
+  } catch (e: any) {
+    return {
+      error: e.message,
+    };
+  }
+}
+
+export async function seedCoreCategories() {
+  try {
+    await checkAdmin();
+    const core = [
+      { name: "Clothing", slug: "clothing", order: 0 },
+      { name: "Footwear", slug: "footwear", order: 1 },
+      { name: "Accessories", slug: "accessories", order: 2 },
+      { name: "Essentials", slug: "essentials", order: 3 },
+    ];
+
+    for (const cat of core) {
+      await db.category.upsert({
+        where: { slug: cat.slug },
+        update: { isCore: true, order: cat.order },
+        create: { ...cat, isCore: true },
+      });
+    }
+
+    revalidatePath("/admin/categories");
+    revalidatePath("/");
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message || "Failed to seed categories" };
+  }
+}
+
+export async function getNavCategories() {
+  try {
+    const categories = await db.category.findMany({
+      orderBy: { order: "asc" },
+      include: { _count: { select: { products: true } } },
+    });
+    return categories;
+  } catch (e) {
+    return [];
   }
 }
 
@@ -299,16 +480,16 @@ export async function deleteBanner(id: string) {
 
 export async function syncCartWithDb(clerkId: string, items: any[]) {
   try {
-    await db.cartItem.deleteMany({ where: { clerkId } }); 
-    
+    await db.cartItem.deleteMany({ where: { clerkId } });
+
     if (items.length > 0) {
       await db.cartItem.createMany({
-        data: items.map(i => ({
+        data: items.map((i) => ({
           clerkId,
-          productId: i.id, 
+          productId: i.id,
           quantity: i.quantity,
-          size: i.size
-        }))
+          size: i.size,
+        })),
       });
     }
   } catch (e) {
@@ -320,7 +501,9 @@ export async function getDbCart(clerkId: string) {
   try {
     return await db.cartItem.findMany({
       where: { clerkId },
-      include: { product: { include: { images: true } } }
+      include: { product: { include: { images: true } } },
     });
-  } catch (e) { return [] }
+  } catch (e) {
+    return [];
+  }
 }

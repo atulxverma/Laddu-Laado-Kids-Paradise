@@ -56,7 +56,7 @@ export default function AddToCartButton({ product }: { product: any }) {
   }
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-10">
       {/* Size Selector */}
       <div>
         <div className="flex items-center justify-between mb-4">
@@ -66,7 +66,7 @@ export default function AddToCartButton({ product }: { product: any }) {
           </span>
         </div>
 
-        <div className="flex gap-2 flex-wrap">
+        <div className="grid grid-cols-4 md:grid-cols-5 gap-3">
           {allPossibleSizes.map((size) => {
             const isAvailable = availableSizes.includes(size.toUpperCase()) && !isOutOfStock
             return (
@@ -74,13 +74,12 @@ export default function AddToCartButton({ product }: { product: any }) {
                 key={size}
                 disabled={!isAvailable}
                 onClick={() => setSelectedSize(size)}
-                className={`group relative h-14 min-w-[65px] px-4 rounded-2xl border-2 transition-all duration-300 flex flex-col items-center justify-center ${
-                  !isAvailable
-                    ? "bg-gray-50 border-gray-100 opacity-30 cursor-not-allowed"
-                    : selectedSize === size
-                      ? "bg-black text-white border-black shadow-xl scale-105"
-                      : "bg-white border-gray-100 text-black hover:border-black"
-                }`}
+                className={`h-11 md:h-14 rounded-xl md:rounded-2xl border-2 transition-all duration-300 flex items-center justify-center font-black text-xs md:text-sm ${!isAvailable
+                  ? "bg-gray-50 border-gray-100 opacity-30 cursor-not-allowed"
+                  : selectedSize === size
+                    ? "bg-black text-white border-black shadow-xl scale-105"
+                    : "bg-white border-gray-200 hover:border-black hover:shadow-md"
+                  }`}
               >
                 <span className={`text-sm font-black ${!isAvailable ? "line-through" : ""}`}>{size}</span>
                 {!isAvailable && <span className="text-[6px] font-bold text-red-500">SOLD OUT</span>}
@@ -91,21 +90,36 @@ export default function AddToCartButton({ product }: { product: any }) {
       </div>
 
       {/* Actions */}
-      <div className="flex gap-3">
+      <div className="flex gap-3 pt-2">
+
         <button
           onClick={handleAdd}
           disabled={!selectedSize || isOutOfStock}
-          className="flex-1 flex items-center justify-center gap-3 bg-black text-white py-5 rounded-[1.5rem] text-[11px] font-black uppercase tracking-[0.2em] hover:opacity-90 active:scale-95 transition-all disabled:opacity-30"
+          className="flex-1 h-16 rounded-[1.5rem] bg-black text-white font-black uppercase tracking-[0.2em] text-xs transition-all hover:opacity-90 active:scale-95 disabled:opacity-30 shadow-xl"
         >
-          {isOutOfStock ? "OUT OF STOCK" : !selectedSize ? "CHOOSE SIZE" : added ? "ADDED TO BAG ✓" : "ADD TO BAG"}
+          {isOutOfStock
+            ? "OUT OF STOCK"
+            : !selectedSize
+              ? "SELECT SIZE"
+              : added
+                ? "ADDED ✓"
+                : "ADD TO BAG"}
         </button>
 
         <button
           onClick={() => toggleItem(product)}
-          className="h-16 w-16 rounded-[1.5rem] border-2 border-gray-100 bg-white flex items-center justify-center active:scale-75 transition-all hover:bg-gray-50"
+          className="h-16 w-16 rounded-[1.5rem] border border-gray-200 bg-white flex items-center justify-center hover:bg-gray-50 transition-all"
         >
-          <Heart size={24} className={`transition-all duration-500 ${isLiked ? "fill-red-500 text-red-500 scale-110" : "text-gray-200"}`} />
+          <Heart
+            size={24}
+            className={
+              isLiked
+                ? "fill-red-500 text-red-500"
+                : "text-gray-400"
+            }
+          />
         </button>
+
       </div>
     </div>
   )

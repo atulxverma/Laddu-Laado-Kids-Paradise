@@ -50,10 +50,10 @@ export default async function ProductPage({
   const deliveryStr = `${deliveryStart.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} - ${deliveryEnd.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`;
 
   return (
-    <main className="bg-white pb-20 pt-10">
-      <div className="max-w-7xl mx-auto px-4">
+    <main className="bg-white pb-16 pt-2 md:pt-4">
+      <div className="max-w-7xl mx-auto px-4 pt-20 md:pt-28">
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 py-6">
+        <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400 py-2 md:py-4">
           <Link href="/" className="hover:text-black flex items-center gap-1 transition-colors">
             <ChevronLeft size={12} /> Home
           </Link>
@@ -62,10 +62,10 @@ export default async function ProductPage({
         </div>
 
         {/* Main Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-5 lg:gap-12">
           <ProductGallery images={product.images} />
 
-          <div className="flex flex-col gap-8">
+          <div className="flex flex-col gap-4">
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-black uppercase bg-gray-100 px-3 py-1 rounded-full text-gray-500 tracking-widest">
@@ -74,12 +74,12 @@ export default async function ProductPage({
                 <span className="text-[10px] font-black uppercase text-emerald-500">In Stock</span>
               </div>
               
-              <h1 className="text-5xl font-black italic tracking-tighter uppercase leading-[0.9]">
+              <h1 className="text-xl md:text-4xl font-black italic tracking-tighter uppercase leading-[0.9]">
                 {product.name}
               </h1>
               
               <div className="flex items-center gap-4">
-                <p className="text-4xl font-black tracking-tighter">₹{product.price.toLocaleString("en-IN")}</p>
+                <p className="text-3xl md:text-4xl font-black tracking-tighter">₹{product.price.toLocaleString("en-IN")}</p>
                 <div className="h-8 w-[1px] bg-gray-100" />
                 <div className="flex items-center gap-2">
                    <div className="flex">
@@ -93,9 +93,9 @@ export default async function ProductPage({
             </div>
 
             {/* Premium Delivery Widget */}
-            <div className="bg-black text-white p-6 rounded-[2rem] flex items-center justify-between shadow-2xl">
+            <div className="bg-black text-white p-4 md:p-6 rounded-3xl flex items-center justify-between shadow-2xl">
               <div className="flex items-center gap-4">
-                <div className="h-10 w-10 bg-white/10 rounded-full flex items-center justify-center">
+                <div className="h-8 w-8 md:h-10 md:w-10 bg-white/10 rounded-full flex items-center justify-center">
                   <Clock size={18} />
                 </div>
                 <div>
@@ -112,10 +112,10 @@ export default async function ProductPage({
             {/* Accordions */}
             <div className="border-t border-gray-100 pt-4 space-y-2">
               <details open className="group">
-                <summary className="flex items-center justify-between cursor-pointer text-[11px] font-black uppercase tracking-[0.2em] py-5 list-none">
+                <summary className="flex items-center justify-between cursor-pointer text-[11px] font-black uppercase tracking-[0.2em] py-3 list-none">
                   Description & Fit <span className="group-open:rotate-180 transition-transform">▼</span>
                 </summary>
-                <p className="text-sm text-gray-500 leading-relaxed pb-8 whitespace-pre-wrap font-medium">
+                <p className="text-sm text-gray-500 leading-relaxed pb-5 whitespace-pre-wrap font-medium">
                   {product.description || "Premium handcrafted clothing designed for your little ones."}
                 </p>
               </details>
@@ -146,12 +146,12 @@ export default async function ProductPage({
         </div>
 
         {/* --- DYNAMIC REVIEWS SECTION --- */}
-        <section className="mt-40 border-t border-gray-100 pt-24">
-          <div className="flex flex-col lg:flex-row gap-20">
+        <section className="mt-16 md:mt-24 border-t border-gray-100 pt-12 md:pt-16">
+          <div className="flex flex-col lg:flex-row gap-10 lg:gap-16">
             <div className="lg:w-1/3 space-y-10">
-              <h2 className="text-5xl font-black italic tracking-tighter uppercase leading-[0.8]">What Souls <br/> <span className="text-gray-300">Are Saying</span></h2>
+              <h2 className="text-3xl md:text-5xl font-black italic tracking-tighter uppercase leading-[0.8]">What Souls <br/> <span className="text-gray-300">Are Saying</span></h2>
               <div className="flex items-end gap-5">
-                <span className="text-8xl font-black tracking-tighter leading-none">{avgRating}</span>
+                <span className="text-5xl md:text-8xl font-black tracking-tighter leading-none">{avgRating}</span>
                 <div className="pb-2">
                   <div className="flex gap-1 mb-2">
                     {[1, 2, 3, 4, 5].map(s => (
@@ -171,7 +171,7 @@ export default async function ProductPage({
                 </div>
               ) : (
                 reviews.map((review) => (
-                  <div key={review.id} className="bg-white border border-gray-100 rounded-[2.5rem] p-10 space-y-6 hover:shadow-2xl transition-all duration-500">
+                  <div key={review.id} className="bg-white border border-gray-100 rounded-[2rem] p-6 md:p-10 space-y-6 hover:shadow-2xl transition-all duration-500">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         <img src={review.userImage || "https://avatar.vercel.sh/user"} className="h-12 w-12 rounded-full border-2 border-white shadow-lg" alt="" />
@@ -196,7 +196,7 @@ export default async function ProductPage({
 
         {/* RELATED */}
         {related.length > 0 && (
-          <section className="mt-40 mb-10">
+          <section className="mt-16 md:mt-24 mb-6">
             <div className="flex items-center justify-between mb-12">
               <h2 className="text-3xl font-black italic tracking-tighter uppercase">More to Love</h2>
               <Link href="/shop" className="text-[10px] font-black border-b-2 border-black pb-1 uppercase tracking-widest">Explore All</Link>
