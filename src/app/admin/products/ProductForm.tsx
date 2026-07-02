@@ -35,6 +35,7 @@ export default function ProductForm({
     color: product?.color || "",
     gender: product?.gender || "Newborn",
     stock: product?.stock?.toString() || "10",
+    isNewArrival: product?.isNewArrival ?? true,
   })
 
   const [customDetails, setCustomDetails] = useState(
@@ -140,6 +141,24 @@ export default function ProductForm({
             </div>
           </div>
 
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              checked={form.isNewArrival}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  isNewArrival: e.target.checked,
+                })
+              }
+              className="h-4 w-4"
+            />
+
+            <label className="text-sm font-medium">
+              Mark as New Arrival
+            </label>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <select required className={inputStyle} value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })}>
               <option value="Newborn">Newborn</option>
@@ -150,36 +169,35 @@ export default function ProductForm({
           </div>
 
           <div className="space-y-3">
-  <p className="text-[10px] font-black uppercase text-gray-400">
-    Category
-  </p>
+            <p className="text-[10px] font-black uppercase text-gray-400">
+              Category
+            </p>
 
-  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-    {categories.map((cat) => {
-      const active = form.categoryId === cat.id
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {categories.map((cat) => {
+                const active = form.categoryId === cat.id
 
-      return (
-        <button
-          key={cat.id}
-          type="button"
-          onClick={() =>
-            setForm({
-              ...form,
-              categoryId: cat.id,
-            })
-          }
-          className={`h-14 rounded-2xl border-2 transition-all font-bold text-sm ${
-            active
-              ? "bg-black text-white border-black"
-              : "bg-white border-gray-200 hover:border-black"
-          }`}
-        >
-          {cat.name}
-        </button>
-      )
-    })}
-  </div>
-</div>
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() =>
+                      setForm({
+                        ...form,
+                        categoryId: cat.id,
+                      })
+                    }
+                    className={`h-14 rounded-2xl border-2 transition-all font-bold text-sm ${active
+                      ? "bg-black text-white border-black"
+                      : "bg-white border-gray-200 hover:border-black"
+                      }`}
+                  >
+                    {cat.name}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
 
           <div className="space-y-3">
             <p className="text-[10px] font-black uppercase text-gray-400">
@@ -406,37 +424,54 @@ export default function ProductForm({
                 <option value="Girl">Girls</option>
               </select>
 
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={form.isNewArrival}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      isNewArrival: e.target.checked,
+                    })
+                  }
+                  className="h-4 w-4"
+                />
+
+                <label className="text-sm font-medium">
+                  Mark as New Arrival
+                </label>
+              </div>
+
               <div className="space-y-3">
-  <p className="text-[10px] font-black uppercase text-gray-400">
-    Category
-  </p>
+                <p className="text-[10px] font-black uppercase text-gray-400">
+                  Category
+                </p>
 
-  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-    {categories.map((cat) => {
-      const active = form.categoryId === cat.id
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {categories.map((cat) => {
+                    const active = form.categoryId === cat.id
 
-      return (
-        <button
-          key={cat.id}
-          type="button"
-          onClick={() =>
-            setForm({
-              ...form,
-              categoryId: cat.id,
-            })
-          }
-          className={`h-14 rounded-2xl border-2 transition-all font-bold text-sm ${
-            active
-              ? "bg-black text-white border-black"
-              : "bg-white border-gray-200 hover:border-black"
-          }`}
-        >
-          {cat.name}
-        </button>
-      )
-    })}
-  </div>
-</div>
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() =>
+                          setForm({
+                            ...form,
+                            categoryId: cat.id,
+                          })
+                        }
+                        className={`h-14 rounded-2xl border-2 transition-all font-bold text-sm ${active
+                          ? "bg-black text-white border-black"
+                          : "bg-white border-gray-200 hover:border-black"
+                          }`}
+                      >
+                        {cat.name}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
 
               <div className="space-y-3">
                 <p className="text-[10px] font-black uppercase text-gray-400">
@@ -484,59 +519,59 @@ export default function ProductForm({
 
                 </div>
               </div>
-<div className="space-y-4">
+              <div className="space-y-4">
 
-  <div className="flex justify-between items-center">
-    <p className="text-[10px] font-black uppercase text-gray-400">
-      Specifications
-    </p>
+                <div className="flex justify-between items-center">
+                  <p className="text-[10px] font-black uppercase text-gray-400">
+                    Specifications
+                  </p>
 
-    <button
-      type="button"
-      onClick={addDetail}
-      className="px-4 py-2 rounded-full bg-black text-white text-[10px] font-bold"
-    >
-      Add Row
-    </button>
-  </div>
+                  <button
+                    type="button"
+                    onClick={addDetail}
+                    className="px-4 py-2 rounded-full bg-black text-white text-[10px] font-bold"
+                  >
+                    Add Row
+                  </button>
+                </div>
 
-  {customDetails.map((detail, index) => (
+                {customDetails.map((detail, index) => (
 
-    <div
-      key={index}
-      className="grid grid-cols-[1fr_1fr_auto] gap-3"
-    >
+                  <div
+                    key={index}
+                    className="grid grid-cols-[1fr_1fr_auto] gap-3"
+                  >
 
-      <input
-        placeholder="Title (Fabric)"
-        value={detail.key}
-        className={inputStyle}
-        onChange={(e) =>
-          updateDetail(index, "key", e.target.value)
-        }
-      />
+                    <input
+                      placeholder="Title (Fabric)"
+                      value={detail.key}
+                      className={inputStyle}
+                      onChange={(e) =>
+                        updateDetail(index, "key", e.target.value)
+                      }
+                    />
 
-      <input
-        placeholder="Value (Cotton)"
-        value={detail.value}
-        className={inputStyle}
-        onChange={(e) =>
-          updateDetail(index, "value", e.target.value)
-        }
-      />
+                    <input
+                      placeholder="Value (Cotton)"
+                      value={detail.value}
+                      className={inputStyle}
+                      onChange={(e) =>
+                        updateDetail(index, "value", e.target.value)
+                      }
+                    />
 
-      <button
-        type="button"
-        onClick={() => removeDetail(index)}
-        className="h-12 w-12 rounded-xl bg-red-50 text-red-500 flex items-center justify-center"
-      >
-        <Trash2 size={16} />
-      </button>
+                    <button
+                      type="button"
+                      onClick={() => removeDetail(index)}
+                      className="h-12 w-12 rounded-xl bg-red-50 text-red-500 flex items-center justify-center"
+                    >
+                      <Trash2 size={16} />
+                    </button>
 
-    </div>
+                  </div>
 
-  ))}
-</div>
+                ))}
+              </div>
               <textarea
                 value={form.description}
                 rows={4}

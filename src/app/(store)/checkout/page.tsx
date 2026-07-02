@@ -15,8 +15,14 @@ export default function CheckoutPage() {
   const items = useCart((state) => state.items)
   const clearCart = useCart((state) => state.clearCart)
 
-  const total = items.reduce((s, i) => s + i.price * i.quantity, 0)
-  
+  const validItems = items.filter(
+    item => item && item.id && item.name
+  )
+  const total = validItems.reduce(
+    (s, i) => s + i.price * i.quantity,
+    0
+  )
+
   const [loading, setLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [pincodeLoading, setPincodeLoading] = useState(false)
@@ -78,9 +84,24 @@ export default function CheckoutPage() {
 
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (loading) return
     if (!user) return
     setLoading(true)
-
+    if (
+      !form.houseDetails.trim() ||
+      !form.city ||
+      !form.state ||
+      !form.pincode
+    ) {
+      alert("Please complete your address")
+      setLoading(false)
+      return
+    }
+    if (form.phone.length !== 10) {
+      alert("Please enter valid phone number")
+      setLoading(false)
+      return
+    }
     const fullAddress = `${form.houseDetails}, ${form.city}, ${form.state} - ${form.pincode}`
 
     try {
@@ -98,7 +119,9 @@ export default function CheckoutPage() {
         name: "laddu LAADO",
         description: "Premium Couture Order",
         order_id: res.orderId,
-        handler: async function (response: any) {
+        handler: async function () {
+          setLoading(true)
+
           const orderRes = await createOrder({
             clerkId: user.id,
             phone: form.phone,
@@ -106,11 +129,16 @@ export default function CheckoutPage() {
             total,
             items,
           })
+
           if (orderRes.success) {
             setIsSuccess(true)
             clearCart()
             setTimeout(() => router.push("/"), 4000)
+          } else {
+            alert(orderRes.error || "Order failed")
           }
+
+          setLoading(false)
         },
         prefill: {
           name: user.fullName,
@@ -125,22 +153,40 @@ export default function CheckoutPage() {
     } catch (err) { setLoading(false) }
   }
 
-if (isSuccess) return (
-  <main className="bg-white min-h-screen flex flex-col items-center justify-center p-4 text-center">
-    <div className="space-y-6">
-      <div className="h-20 w-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto border border-gray-100">
-        <CheckCircle2 size={40} className="text-black" />
+  if (isSuccess) return (
+    <main className="bg-white min-h-screen flex flex-col items-center justify-center p-4 text-center">
+      <div className="space-y-6">
+        <div className="h-20 w-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto border border-gray-100">
+          <CheckCircle2 size={40} className="text-black" />
+        </div>
+        <h1 className="text-4xl font-black italic tracking-tighter uppercase">Order Confirmed</h1>
+        <p className="text-gray-500 text-sm max-w-xs mx-auto font-medium">
+          Thank you for your purchase. We have received your order and are preparing it for shipment.
+        </p>
+        <div className="pt-10">
+          <p className="text-[9px] font-black text-gray-300 uppercase tracking-[0.3em]">Redirecting to your orders...</p>
+        </div>
       </div>
-      <h1 className="text-4xl font-black italic tracking-tighter uppercase">Order Confirmed</h1>
-      <p className="text-gray-500 text-sm max-w-xs mx-auto font-medium">
-        Thank you for your purchase. We have received your order and are preparing it for shipment.
-      </p>
-      <div className="pt-10">
-         <p className="text-[9px] font-black text-gray-300 uppercase tracking-[0.3em]">Redirecting to your orders...</p>
-      </div>
-    </div>
-  </main>
-)
+    </main>
+  )
+
+  if (isLoaded && !user) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-6">
+          <h2 className="text-3xl font-black">
+            Please Sign In
+          </h2>
+
+          <SignInButton mode="modal">
+            <button className="bg-black text-white px-8 py-4 rounded-full">
+              Sign In
+            </button>
+          </SignInButton>
+        </div>
+      </main>
+    )
+  }
 
   if (isLoaded && items.length === 0) return (
     <main className="bg-white min-h-screen flex flex-col items-center justify-center gap-4">
@@ -153,15 +199,15 @@ if (isSuccess) return (
   return (
     <main className="bg-white pb-20 min-h-screen pt-20">
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
-      
+
       <div className="max-w-6xl mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-12">
-          
+
           {/* LEFT: SHIPPING FORM (WITH PLACEHOLDERS RESTORED) */}
           <div className="space-y-8">
             <div className="flex items-center justify-between">
               <h1 className="text-3xl font-black tracking-tighter uppercase italic">Checkout</h1>
-              <button 
+              <button
                 type="button"
                 onClick={detectLocation}
                 disabled={locating}
@@ -182,7 +228,7 @@ if (isSuccess) return (
                 <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Phone Number</label>
                 <div className="relative">
                   <span className="absolute left-5 top-4 text-sm font-bold text-gray-400">+91</span>
-                  <input required type="tel" placeholder="00000 00000" pattern="[6-9]{1}[0-9]{9}" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, "").slice(0,10) })} className="w-full border border-gray-100 rounded-2xl pl-14 pr-5 py-4 text-sm outline-none focus:border-black bg-gray-50/30 font-bold" />
+                  <input required type="tel" placeholder="00000 00000" pattern="[6-9]{1}[0-9]{9}" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })} className="w-full border border-gray-100 rounded-2xl pl-14 pr-5 py-4 text-sm outline-none focus:border-black bg-gray-50/30 font-bold" />
                 </div>
               </div>
 
@@ -207,7 +253,7 @@ if (isSuccess) return (
 
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest">House No / Landmark / Road</label>
-                <textarea required rows={3} placeholder="Flat/House No, Building Name, Near Landmark, Road Name..." value={form.houseDetails} onChange={(e) => setForm({ ...form, houseDetails: e.target.value })} className="w-full border border-gray-100 rounded-2xl px-5 py-4 text-sm outline-none focus:border-black bg-gray-50/30 resize-none font-medium" />
+                <textarea minLength={10} required rows={3} placeholder="Flat/House No, Building Name, Near Landmark, Road Name..." value={form.houseDetails} onChange={(e) => setForm({ ...form, houseDetails: e.target.value })} className="w-full border border-gray-100 rounded-2xl px-5 py-4 text-sm outline-none focus:border-black bg-gray-50/30 resize-none font-medium" />
               </div>
             </form>
           </div>
@@ -216,12 +262,12 @@ if (isSuccess) return (
           <div className="space-y-6">
             <div className="bg-gray-50 rounded-[2.5rem] p-8 border border-gray-100 sticky top-28">
               <h3 className="font-black text-xs uppercase tracking-[0.2em] text-gray-400 mb-8">Summary</h3>
-              
+
               <div className="space-y-5 max-h-[350px] overflow-y-auto no-scrollbar mb-8">
-                {items.map((item) => (
+                {validItems.map((item) => (
                   <div key={`${item.id}-${item.size}`} className="flex items-center gap-4">
                     <div className="h-20 w-16 bg-white rounded-2xl overflow-hidden shrink-0 border border-gray-100">
-                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                      <img src={item.image || "/placeholder.png"} alt={item.name} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold text-black truncate">{item.name}</p>
@@ -258,7 +304,7 @@ if (isSuccess) return (
               <div className="mt-8 flex flex-col items-center gap-3">
                 <p className="text-[8px] font-black text-gray-300 uppercase tracking-widest">Powered by Razorpay Secure</p>
                 <div className="flex gap-3 opacity-20 grayscale">
-                   {["VISA", "MC", "UPI", "PAYTM"].map(p => <span key={p} className="text-[7px] font-black border border-black px-1.5 py-0.5 rounded">{p}</span>)}
+                  {["VISA", "MC", "UPI", "PAYTM"].map(p => <span key={p} className="text-[7px] font-black border border-black px-1.5 py-0.5 rounded">{p}</span>)}
                 </div>
               </div>
             </div>

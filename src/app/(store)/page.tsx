@@ -7,20 +7,45 @@ export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   // 1. Parallel Data Fetching
-  const [products, categories, banners, reviews] = await Promise.all([
+  const [latestProducts, categories, banners, reviews] =
+  await Promise.all([
     db.product.findMany({
       include: { category: true, images: true },
       take: 8,
       orderBy: { createdAt: "desc" }
     }),
+
     db.category.findMany({
       take: 4,
       orderBy: {
         createdAt: "desc"
       }
     }),
-    db.banner.findMany({ where: { active: true } }),
-    db.review.findMany({ take: 6, orderBy: { createdAt: "desc" } })
+
+    db.banner.findMany({
+      where: { active: true }
+    }),
+
+    db.review.findMany({
+      take: 6,
+      orderBy: { createdAt: "desc" }
+    })
+  ])
+
+  const [products] = await Promise.all([
+    db.product.findMany({
+      where: {
+        isNewArrival: true
+      },
+      include: {
+        category: true,
+        images: true
+      },
+      take: 8,
+      orderBy: {
+        createdAt: "desc"
+      }
+    }),
   ])
 
   // Fallback data agar DB khali ho

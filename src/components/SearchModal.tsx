@@ -6,15 +6,20 @@ import { Search, X, TrendingUp } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 
-const categories = ["Men", "Women", "Children", "Brands"]
-const allFilters = ["All", ...categories]
+const genderFilters = [
+  "Newborn",
+  "Boy",
+  "Girl",
+]
+
+const allFilters = ["All", ...genderFilters]
 
 const trendingSearches = [
-  "Summer Dress",
-  "Silk Saree",
-  "Loose Fit Hoodie",
-  "Kids Wear",
-  "Winter Jacket",
+  "Party Wear",
+  "Ethnic Wear",
+  "Frocks",
+  "Newborn Set",
+  "Winter Wear",
 ]
 
 export default function SearchModal({
@@ -49,13 +54,19 @@ export default function SearchModal({
   }, [onClose])
 
   const handleSearch = (q: string) => {
-    if (!q.trim()) return
-    const params = new URLSearchParams()
-    params.set("q", q.trim())
-    if (activeFilter !== "All") params.set("category", activeFilter)
-    onClose()
-    router.push(`/shop?${params.toString()}`)
+  if (!q.trim()) return
+
+  const params = new URLSearchParams()
+
+  params.set("q", q.trim())
+
+  if (activeFilter !== "All") {
+    params.set("gender", activeFilter)
   }
+
+  onClose()
+  router.push(`/shop?${params.toString()}`)
+}
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -202,10 +213,10 @@ export default function SearchModal({
                         Browse by Category
                       </p>
                       <div className="grid grid-cols-2 gap-2">
-                        {categories.map((cat) => (
+                        {genderFilters.map((cat) => (
                           <Link
                             key={cat}
-                            href={`/shop?category=${cat.toLowerCase()}`}
+                            href={`/shop?gender=${cat}`}
                             onClick={onClose}
                             className="flex items-center gap-2 p-3 rounded-xl border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-all group"
                           >

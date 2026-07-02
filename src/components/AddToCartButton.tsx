@@ -48,6 +48,7 @@ export default function AddToCartButton({ product }: { product: any }) {
       size: selectedSize,
       color: product.color || "Standard",
       category: product.category?.name || "",
+      stock: product.stock,
     })
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)

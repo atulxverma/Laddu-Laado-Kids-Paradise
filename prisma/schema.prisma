@@ -25,26 +25,37 @@ model Product {
   name          String
   description   String
   price         Float
+
   isFeatured    Boolean        @default(false)
   isArchived    Boolean        @default(false)
+
+  isNewArrival  Boolean        @default(true)
+
   size          String
   color         String
+
   images        Image[]
+
   categoryId    String         @db.ObjectId
   category      Category       @relation(fields: [categoryId], references: [id])
 
-  specifications Json? 
+  specifications Json?
 
   orderItems    OrderItem[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
-  gender        String         @default("Unisex")
-  ageGroup      String         @default("2-4Y")
+
+  gender        String         @default("Newborn")
+  ageGroup      String         @default("0-2Y")
+
   reviews       Review[]
+
   stock         Int            @default(10)
+
   cartItems     CartItem[]
   wishlistItems WishlistItem[]
 }
+
 model Image {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   productId String   @db.ObjectId

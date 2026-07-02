@@ -14,7 +14,7 @@ const genderFilters = [
   { label: "NEWBORN", href: "/shop?gender=Newborn" },
   { label: "BOYS", href: "/shop?gender=Boy" },
   { label: "GIRLS", href: "/shop?gender=Girl" },
-  { label: "NEW ARRIVALS", href: "/shop?sort=new" },
+  { label: "NEW ARRIVALS", href: "/shop?new=true" },
 ]
 const navLinks = [
   { label: "About", href: "/about" },
@@ -223,19 +223,19 @@ export default function Navbar() {
 
             <div className="flex items-center gap-8 mx-auto">
 
-  {genderFilters.map((filter) => (
-    <Link
-      key={filter.label}
-      href={filter.href}
-      className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 hover:text-black transition-all relative group"
-    >
-      {filter.label}
+              {genderFilters.map((filter) => (
+                <Link
+                  key={filter.label}
+                  href={filter.href}
+                  className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 hover:text-black transition-all relative group"
+                >
+                  {filter.label}
 
-      <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-black transition-all group-hover:w-full" />
-    </Link>
-  ))}
+                  <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-black transition-all group-hover:w-full" />
+                </Link>
+              ))}
 
-</div>
+            </div>
 
             {/* Search bar */}
             <div className="flex-1 flex justify-center px-6">
@@ -254,7 +254,7 @@ export default function Navbar() {
               </button>
             </div>
 
-            
+
           </div>
         </motion.div>
 
@@ -365,7 +365,7 @@ export default function Navbar() {
                   ))}
                 </div>
 
-                
+
 
                 <div className="pt-2 border-t border-gray-100 space-y-3">
                   {navLinks.map((link) => (

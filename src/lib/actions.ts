@@ -64,12 +64,20 @@ export async function createProduct(data: any) {
       specifications, // 👈 NEW
     } = data;
 
-    if (!name) {
-      return { error: "Product Name is required" };
+    if (!name.trim()) {
+      return {
+        error: "Product name is required",
+      };
     }
 
     if (!price || isNaN(parseFloat(price))) {
       return { error: "Valid Price is required" };
+    }
+
+    if (Number(price) <= 0) {
+      return {
+        error: "Price must be greater than 0",
+      };
     }
 
     if (!categoryId) {
@@ -83,24 +91,39 @@ export async function createProduct(data: any) {
     if (stock === undefined || isNaN(parseInt(stock))) {
       return { error: "Stock quantity is required" };
     }
+    if (Number(stock) < 0) {
+      return {
+        error: "Stock cannot be negative",
+      };
+    }
+    if (!data.size) {
+      return { error: "Please select at least one size" };
+    }
+
+    if (!data.gender) {
+      return { error: "Please select gender" };
+    }
 
     await db.product.create({
       data: {
-        name,
-        description: description || "",
-        price: parseFloat(price),
-        stock: parseInt(stock),
-        categoryId,
-        size: size || "Standard",
-        color: color || "Standard",
-        gender: gender || "Unisex",
-        ageGroup: ageGroup || "2-4Y",
+        name: data.name,
+        description: data.description,
+        price: Number(data.price),
 
-        // 👇 NEW
-        specifications: specifications || [],
+        isNewArrival: data.isNewArrival ?? true,
+
+        stock: Number(data.stock),
+        gender: data.gender,
+        ageGroup: data.ageGroup,
+
+        size: data.size,
+        color: data.color,
+        categoryId: data.categoryId,
+
+        specifications: data.specifications,
 
         images: {
-          create: images.map((url: string) => ({
+          create: data.images.map((url: string) => ({
             url,
           })),
         },
@@ -128,17 +151,39 @@ export async function createOrder(data: {
   items: any[];
 }) {
   try {
-    // 🔥 Sabse pehle user fetch karo taaki mail bhej sakein
+    if (!data.items.length) {
+      return { error: "Cart is empty" };
+    }
+
+    if (!data.address.trim()) {
+      return { error: "Address is required" };
+    }
+
+    if (!/^[0-9]{10}$/.test(data.phone)) {
+      return { error: "Invalid phone number" };
+    }
+
     const user = await currentUser();
 
     const order = await db.$transaction(async (tx) => {
+      // Stock Validation
       for (const item of data.items) {
-        const product = await tx.product.findUnique({ where: { id: item.id } });
-        if (!product || product.stock < item.quantity) {
-          throw new Error(`Item ${item.name} is currently out of stock.`);
+        const latestProduct = await tx.product.findUnique({
+          where: { id: item.id },
+        });
+
+        if (!latestProduct) {
+          throw new Error(`${item.name} no longer exists.`);
+        }
+
+        if (latestProduct.stock < item.quantity) {
+          throw new Error(
+            `${item.name} has only ${latestProduct.stock} item(s) left in stock.`,
+          );
         }
       }
 
+      // Create Order
       const newOrder = await tx.order.create({
         data: {
           clerkId: data.clerkId,
@@ -147,6 +192,7 @@ export async function createOrder(data: {
           total: data.total,
           isPaid: true,
           status: "Confirmed",
+
           orderItems: {
             create: data.items.map((item: any) => ({
               productId: item.id,
@@ -157,56 +203,57 @@ export async function createOrder(data: {
         },
       });
 
+      // Reduce Stock
       for (const item of data.items) {
         await tx.product.update({
           where: { id: item.id },
-          data: { stock: { decrement: item.quantity } },
+          data: {
+            stock: {
+              decrement: item.quantity,
+            },
+          },
         });
       }
 
       return newOrder;
     });
+    await db.cartItem.deleteMany({
+      where: {
+        clerkId: data.clerkId,
+      },
+    });
 
-    // --- EMAILS LOGIC ---
+    // Emails
     const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
     const orderIdShort = order.id.slice(-6).toUpperCase();
 
     if (process.env.RESEND_API_KEY) {
-      // 1. ADMIN ALERT
       if (adminEmail) {
         await resend.emails.send({
           from: "Laddu Laado <onboarding@resend.dev>",
           to: adminEmail,
           subject: `✨ New Order [#${orderIdShort}] Received`,
-          html: `<div style="font-family:sans-serif; padding:20px; border:1px solid #eee; border-radius:20px;">
-                  <h2>New Premium Order!</h2>
-                  <p><strong>Revenue:</strong> ₹${data.total.toLocaleString("en-IN")}</p>
-                  <p><strong>Customer:</strong> ${user?.fullName} (${data.phone})</p>
-                  <p><strong>Address:</strong> ${data.address}</p>
-                  <a href="${process.env.NEXT_PUBLIC_APP_URL}/admin/orders">View Dashboard</a>
-                </div>`,
+          html: `
+            <div>
+              <h2>New Premium Order!</h2>
+              <p>Total Revenue: ₹${data.total}</p>
+              <p>Customer: ${user?.fullName}</p>
+            </div>
+          `,
         });
       }
 
-      // 2. CUSTOMER CONFIRMATION
       if (user?.primaryEmailAddress?.emailAddress) {
         await resend.emails.send({
           from: "Laddu Laado <onboarding@resend.dev>",
           to: user.primaryEmailAddress.emailAddress,
           subject: "Your Laddu Laado Order is Confirmed! ✨",
           html: `
-            <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 30px; border: 1px solid #f0f0f0; border-radius: 24px;">
-              <h1 style="text-align: center; font-style: italic;">LADDU LAADO</h1>
-              <h2 style="text-align: center; margin-bottom: 30px;">Order Confirmed!</h2>
-              <p>Hi ${user.fullName},</p>
-              <p>Thank you for choosing Laddu Laado. Your premium selection is being prepared for shipment.</p>
-              <div style="background: #fafafa; padding: 20px; border-radius: 15px; margin: 20px 0;">
-                 <p><strong>Order ID:</strong> #${orderIdShort}</p>
-                 <p style="font-size: 18px;"><strong>Total Amount:</strong> ₹${data.total.toLocaleString("en-IN")}</p>
-              </div>
-              <p style="text-align: center; margin-top: 30px;">
-                <a href="${process.env.NEXT_PUBLIC_APP_URL}/orders" style="background:#000; color:#fff; padding:15px 30px; border-radius:50px; text-decoration:none; font-weight:bold;">TRACK MY ORDER</a>
-              </p>
+            <div>
+              <h2>Order Confirmed!</h2>
+              <p>Hi ${user.fullName}</p>
+              <p>Your order #${orderIdShort} has been confirmed.</p>
+              <p>Total Amount: ₹${data.total}</p>
             </div>
           `,
         });
@@ -216,10 +263,18 @@ export async function createOrder(data: {
     revalidatePath("/admin/orders");
     revalidatePath("/admin/products");
     revalidatePath("/orders");
-    return { success: true, orderId: order.id };
+    revalidatePath("/shop");
+
+    return {
+      success: true,
+      orderId: order.id,
+    };
   } catch (error: any) {
-    console.error("ORDER_ERROR", error);
-    return { error: error.message || "Failed to place order." };
+    console.error(error);
+
+    return {
+      error: error.message || "Failed to place order.",
+    };
   }
 }
 
@@ -258,19 +313,104 @@ export async function createCategory(name: string, imageUrl?: string) {
 export async function deleteProduct(id: string) {
   try {
     await checkAdmin();
-    await db.product.delete({ where: { id } });
+
+    // Delete reviews first
+    await db.review.deleteMany({
+      where: {
+        productId: id,
+      },
+    });
+
+    // Delete product images
+    await db.image.deleteMany({
+      where: {
+        productId: id,
+      },
+    });
+
+    // Delete cart items
+    await db.cartItem.deleteMany({
+      where: {
+        productId: id,
+      },
+    });
+
+    // Delete wishlist items
+    await db.wishlistItem.deleteMany({
+      where: {
+        productId: id,
+      },
+    });
+
+    // Finally delete product
+    const orderExists = await db.orderItem.findFirst({
+      where: {
+        productId: id,
+      },
+    });
+
+    if (orderExists) {
+      return {
+        error: "This product has orders and cannot be deleted.",
+      };
+    }
+    await db.product.delete({
+      where: {
+        id,
+      },
+    });
+
     revalidatePath("/admin/products");
     revalidatePath("/shop");
     revalidatePath("/");
+
     return { success: true };
   } catch (error) {
-    return { error: "Failed to delete product" };
+    return {
+      error: "Failed to delete product",
+    };
   }
 }
 
 export async function updateProduct(id: string, data: any) {
   try {
     await checkAdmin();
+
+    if (!data.name?.trim()) {
+      return {
+        error: "Product name is required",
+      };
+    }
+
+    if (!data.images || data.images.length === 0) {
+      return {
+        error: "Please upload at least one image",
+      };
+    }
+
+    if (Number(data.price) <= 0) {
+      return {
+        error: "Price must be greater than 0",
+      };
+    }
+
+    if (Number(data.stock) < 0) {
+      return {
+        error: "Stock cannot be negative",
+      };
+    }
+
+    if (!data.size) {
+      return {
+        error: "Please select at least one size",
+      };
+    }
+
+    if (!data.gender) {
+      return {
+        error: "Please select gender",
+      };
+    }
 
     await db.image.deleteMany({
       where: {
@@ -284,8 +424,10 @@ export async function updateProduct(id: string, data: any) {
       data: {
         name: data.name,
         description: data.description,
-        price: parseFloat(data.price),
-        stock: parseInt(data.stock),
+        price: Number(data.price),
+        stock: Number(data.stock),
+
+        isNewArrival: data.isNewArrival ?? true,
 
         categoryId: data.categoryId,
         size: data.size,
@@ -294,7 +436,6 @@ export async function updateProduct(id: string, data: any) {
         gender: data.gender,
         ageGroup: data.ageGroup,
 
-        // 👇 NEW
         specifications: data.specifications || [],
 
         images: {
@@ -310,7 +451,9 @@ export async function updateProduct(id: string, data: any) {
     revalidatePath("/shop");
     revalidatePath(`/product/${id}`);
 
-    return { success: true };
+    return {
+      success: true,
+    };
   } catch (error: any) {
     return {
       error: error.message,
@@ -338,20 +481,75 @@ export async function createReview(data: {
   userImage: string;
 }) {
   try {
-    await db.review.create({ data });
+    if (!data.comment.trim()) {
+      return {
+        error: "Review cannot be empty",
+      };
+    }
+
+    if (data.comment.trim().length < 10) {
+      return {
+        error: "Review must be at least 10 characters long",
+      };
+    }
+    if (data.rating < 1 || data.rating > 5) {
+      return {
+        error: "Invalid rating",
+      };
+    }
+
+    const existingReview = await db.review.findFirst({
+      where: {
+        productId: data.productId,
+        clerkId: data.clerkId,
+      },
+    });
+
+    if (existingReview) {
+      return {
+        error: "You have already reviewed this product.",
+      };
+    }
+
+    await db.review.create({
+      data,
+    });
+
     revalidatePath(`/product/${data.productId}`);
+
     return { success: true };
   } catch (error) {
-    return { error: "Review failed" };
+    return {
+      error: "Review failed",
+    };
   }
 }
 
 export async function subscribeNewsletter(email: string) {
   try {
-    await db.newsletter.create({ data: { email } });
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(email)) {
+      return {
+        error: "Invalid email address",
+      };
+    }
+
+    await db.newsletter.create({
+      data: { email },
+    });
+
     return { success: true };
-  } catch (error) {
-    return { error: "Already subscribed or invalid email" };
+  } catch (error: any) {
+    if (error.code === "P2002") {
+      return {
+        error: "You are already subscribed",
+      };
+    }
+
+    return {
+      error: "Subscription failed",
+    };
   }
 }
 
@@ -392,47 +590,46 @@ export async function upsertBanner(data: any) {
 
 export async function deleteCategory(id: string) {
   try {
-    await checkAdmin()
+    await checkAdmin();
+    // Check if category has products
+    const productCount = await db.product.count({
+      where: {
+        categoryId: id,
+      },
+    });
 
-    const category = await db.category.findUnique({
-      where: { id },
-    })
-
-    if (!category) {
-      return { error: "Category not found" }
-    }
-
-    if (category.isCore) {
+    if (productCount > 0) {
       return {
-        error: "Core categories cannot be deleted",
-      }
+        error:
+          "Cannot delete this category because products are assigned to it.",
+      };
     }
 
     await db.category.delete({
-      where: { id },
-    })
+      where: {
+        id,
+      },
+    });
 
-    revalidatePath("/admin/categories")
-    revalidatePath("/")
-    revalidatePath("/shop")
+    revalidatePath("/admin/categories");
 
-    return { success: true }
+    return { success: true };
   } catch (error) {
     return {
-      error: "Cannot delete category with existing products.",
-    }
+      error: "Failed to delete category.",
+    };
   }
 }
 
 export async function updateCategory(
   id: string,
   name: string,
-  imageUrl?: string
+  imageUrl?: string,
 ) {
   try {
-    await checkAdmin()
+    await checkAdmin();
 
-    const slug = slugify(name)
+    const slug = slugify(name);
 
     // Duplicate slug check
     const existing = await db.category.findFirst({
@@ -442,12 +639,12 @@ export async function updateCategory(
           id,
         },
       },
-    })
+    });
 
     if (existing) {
       return {
         error: "Category already exists",
-      }
+      };
     }
 
     await db.category.update({
@@ -457,17 +654,17 @@ export async function updateCategory(
         slug,
         imageUrl,
       },
-    })
+    });
 
-    revalidatePath("/admin/categories")
-    revalidatePath("/")
-    revalidatePath("/shop")
+    revalidatePath("/admin/categories");
+    revalidatePath("/");
+    revalidatePath("/shop");
 
-    return { success: true }
+    return { success: true };
   } catch (error) {
     return {
       error: "Failed to update category",
-    }
+    };
   }
 }
 
@@ -475,10 +672,10 @@ export async function seedCoreCategories() {
   try {
     await checkAdmin();
     const core = [
-      { name: "Clothing", slug: "clothing", order: 0 },
-      { name: "Footwear", slug: "footwear", order: 1 },
-      { name: "Accessories", slug: "accessories", order: 2 },
-      { name: "Essentials", slug: "essentials", order: 3 },
+      { name: "Ethnic Wear", slug: "ethnic-wear", order: 0 },
+      { name: "Party Wear", slug: "party-wear", order: 1 },
+      { name: "Casual Wear", slug: "casual-wear", order: 2 },
+      { name: "Night Wear", slug: "night-wear", order: 3 },
     ];
 
     for (const cat of core) {
@@ -522,16 +719,30 @@ export async function deleteBanner(id: string) {
 
 export async function syncCartWithDb(clerkId: string, items: any[]) {
   try {
-    await db.cartItem.deleteMany({ where: { clerkId } });
+    await db.cartItem.deleteMany({
+      where: { clerkId },
+    });
 
-    if (items.length > 0) {
+    const validItems = [];
+
+    for (const item of items) {
+      const product = await db.product.findUnique({
+        where: { id: item.id },
+      });
+
+      if (!product) continue;
+
+      validItems.push({
+        clerkId,
+        productId: item.id,
+        quantity: Math.min(item.quantity, product.stock),
+        size: item.size,
+      });
+    }
+
+    if (validItems.length > 0) {
       await db.cartItem.createMany({
-        data: items.map((i) => ({
-          clerkId,
-          productId: i.id,
-          quantity: i.quantity,
-          size: i.size,
-        })),
+        data: validItems,
       });
     }
   } catch (e) {
