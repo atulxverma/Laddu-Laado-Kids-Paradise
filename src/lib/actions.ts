@@ -743,7 +743,7 @@ export async function syncCartWithDb(clerkId: string, items: any[]) {
         where: { id: item.id },
       });
 
-      if (!product) continue;
+      if (!product || product.stock <= 0) continue;
 
       validItems.push({
         clerkId,

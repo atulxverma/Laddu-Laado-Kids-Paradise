@@ -52,22 +52,27 @@ export default function OrderStatusButton({
   }, [])
 
   const handleSelect = async (newStatus: string) => {
-    if (status === "Delivered") {
-      alert("Delivered orders cannot be modified.")
-      return
-    }
+  setOpen(false)
 
-    if (status === "Cancelled") {
-      alert("Cancelled orders cannot be modified.")
-      return
-    }
-    setOpen(false)
-    if (newStatus === status) return
-    setLoading(true)
-    const res = await updateOrderStatus(orderId, newStatus)
-    if (res?.success) setStatus(newStatus)
-    setLoading(false)
+  if (status === "Delivered" || status === "Cancelled") {
+    alert(`${status} orders cannot be modified.`)
+    return
   }
+
+  if (newStatus === status) return
+
+  setLoading(true)
+
+  const res = await updateOrderStatus(orderId, newStatus)
+
+  if (res?.success) {
+    setStatus(newStatus)
+  } else {
+    alert(res?.error || "Failed to update status")
+  }
+
+  setLoading(false)
+}
 
   // Fallback styling lookup to avoid undefined string injections
   const currentStyle = STATUS_STYLES[status] || STATUS_STYLES["Pending"]
