@@ -63,6 +63,10 @@ export default function CheckoutPage() {
         setLocating(false)
       })
     }
+    else {
+      alert("Geolocation is not supported in this browser.")
+      setLocating(false)
+    }
   }
 
   // --- 🔢 PINCODE LOOKUP ---
@@ -188,7 +192,7 @@ export default function CheckoutPage() {
     )
   }
 
-  if (isLoaded && items.length === 0) return (
+  if (isLoaded && validItems.length === 0) return (
     <main className="bg-white min-h-screen flex flex-col items-center justify-center gap-4">
       <ShoppingBag size={48} className="text-gray-100" />
       <p className="text-gray-400 text-sm">Your cart is empty</p>

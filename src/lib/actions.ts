@@ -187,6 +187,7 @@ export async function createOrder(data: {
       const newOrder = await tx.order.create({
         data: {
           clerkId: data.clerkId,
+          customerName: user?.fullName || "Guest User",
           phone: data.phone,
           address: data.address,
           total: data.total,
@@ -205,7 +206,7 @@ export async function createOrder(data: {
 
       // Reduce Stock
       for (const item of data.items) {
-        await tx.product.update({
+        const updatedProduct = await tx.product.update({
           where: { id: item.id },
           data: {
             stock: {
@@ -213,6 +214,15 @@ export async function createOrder(data: {
             },
           },
         });
+
+        if (updatedProduct.stock <= 0) {
+          await tx.product.update({
+            where: { id: item.id },
+            data: {
+              isArchived: true,
+            },
+          });
+        }
       }
 
       return newOrder;
@@ -541,7 +551,10 @@ export async function subscribeNewsletter(email: string) {
 
     return { success: true };
   } catch (error: any) {
-    if (error.code === "P2002") {
+    if (
+      error.code === "P2002" ||
+      error.message?.includes("Unique constraint")
+    ) {
       return {
         error: "You are already subscribed",
       };

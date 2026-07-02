@@ -52,6 +52,15 @@ export default function OrderStatusButton({
   }, [])
 
   const handleSelect = async (newStatus: string) => {
+    if (status === "Delivered") {
+      alert("Delivered orders cannot be modified.")
+      return
+    }
+
+    if (status === "Cancelled") {
+      alert("Cancelled orders cannot be modified.")
+      return
+    }
     setOpen(false)
     if (newStatus === status) return
     setLoading(true)

@@ -7,7 +7,7 @@ export const fetchCache = "force-no-store";
 
 export default async function OrdersPage() {
   let orders = [];
-  
+
   try {
     orders = await db.order.findMany({
       include: {
@@ -63,6 +63,9 @@ export default async function OrdersPage() {
               <div className="space-y-4">
                 <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Customer Details</p>
                 <div className="space-y-2">
+                  <p className="text-sm font-bold text-black">
+                    {order.customerName || "Guest User"}
+                  </p>
                   <p className="flex items-center gap-2 text-sm font-bold text-black">
                     <Smartphone size={14} className="text-gray-400" /> {order?.phone || "N/A"}
                   </p>
@@ -75,21 +78,51 @@ export default async function OrdersPage() {
               <div className="space-y-4">
                 <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Line Items</p>
                 <div className="space-y-3">
-                  {order?.orderItems?.map((item) => (
-                    <div key={item.id} className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
-                      <div className="h-10 w-8 rounded-md overflow-hidden bg-gray-200 shrink-0">
-                        {item?.product?.images?.[0]?.url && (
-                          <img src={item.product.images[0].url} className="h-full w-full object-cover" alt="" />
-                        )}
+
+                  {order?.orderItems?.length ? (
+
+                    order.orderItems.map((item) => (
+
+                      <div
+                        key={item.id}
+                        className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100"
+                      >
+
+                        <div className="h-10 w-8 rounded-md overflow-hidden bg-gray-200 shrink-0">
+
+                          <img
+                            src={
+                              item?.product?.images?.[0]?.url ||
+                              "/placeholder.png"
+                            }
+                            className="h-full w-full object-cover"
+                            alt={item?.product?.name || "Product"}
+                          />
+
+                        </div>
+
+                        <div>
+                          <p className="text-[11px] font-bold text-black uppercase">
+                            {item?.product?.name || "Product"}
+                          </p>
+
+                          <p className="text-[9px] text-gray-400 font-black uppercase">
+                            Size: {item?.size || "N/A"} · Qty: {item?.quantity || 0}
+                          </p>
+                        </div>
+
                       </div>
-                      <div>
-                        <p className="text-[11px] font-bold text-black uppercase">{item?.product?.name || "Product"}</p>
-                        <p className="text-[9px] text-gray-400 font-black uppercase">
-                          Size: {item?.size || "N/A"} · Qty: {item?.quantity || 0}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+
+                    ))
+
+                  ) : (
+
+                    <p className="text-xs text-gray-400">
+                      No products found in this order
+                    </p>
+
+                  )}
+
                 </div>
               </div>
             </div>
