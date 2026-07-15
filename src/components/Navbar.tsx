@@ -25,22 +25,27 @@ import {
   getDbCart,
 } from "@/lib/actions"
 
+import {
+  Baby,
+  Shirt,
+  Sparkles,
+} from "lucide-react"
+
 const genderFilters = [
   {
-    label: "NEWBORN",
-    href: "/shop?gender=Newborn",
+    label: "Newborn",
+    href: "/shop?ageGroup=0-2Y",
+    icon: Baby,
   },
   {
-    label: "BOYS",
+    label: "Boys",
     href: "/shop?gender=Boy",
+    icon: Shirt,
   },
   {
-    label: "GIRLS",
+    label: "Girls",
     href: "/shop?gender=Girl",
-  },
-  {
-    label: "NEW ARRIVALS",
-    href: "/shop?new=true",
+    icon: Sparkles,
   },
 ]
 
@@ -287,7 +292,7 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white">
 
         <motion.div
           animate={{
@@ -298,11 +303,10 @@ export default function Navbar() {
             duration: 0.35,
             ease: [0.4, 0, 0.2, 1],
           }}
-          className={`bg-white border-b border-gray-100 ${
-            scrolled
+          className={`bg-white border-b border-gray-100 ${scrolled
               ? "pointer-events-none"
               : ""
-          }`}
+            }`}
         >
           <div
             className="
@@ -559,7 +563,7 @@ export default function Navbar() {
 
                 {mounted &&
                   wishlist.items.length >
-                    0 && (
+                  0 && (
                     <span
                       className="
                         absolute
@@ -735,11 +739,10 @@ export default function Navbar() {
             duration: 0.35,
             ease: [0.4, 0, 0.2, 1],
           }}
-          className={`hidden md:block border-b transition-colors duration-300 ${
-            scrolled
+          className={`hidden md:block border-b transition-colors duration-300 ${scrolled
               ? "bg-white/60 backdrop-blur-2xl border-white/20 shadow-lg"
               : "bg-white/90 backdrop-blur-md border-gray-100"
-          }`}
+            }`}
         >
           <div
             className="
@@ -795,11 +798,10 @@ export default function Navbar() {
                 onClick={() =>
                   setSearchOpen(true)
                 }
-                className={`flex items-center gap-3 w-full max-w-md rounded-xl px-4 py-1.5 transition-all border ${
-                  scrolled
+                className={`flex items-center gap-3 w-full max-w-md rounded-xl px-4 py-1.5 transition-all border ${scrolled
                     ? "bg-white/50 backdrop-blur-md border-white/30 hover:bg-white/80"
                     : "bg-gray-50 border-gray-200 hover:border-gray-300 hover:bg-gray-100"
-                }`}
+                  }`}
               >
                 <Search
                   size={13}
@@ -841,6 +843,43 @@ export default function Navbar() {
           </div>
         </motion.div>
 
+        <div
+          className="md:hidden bg-white border-b border-gray-200 overflow-x-auto no-scrollbar"
+        >
+          <div className="flex items-center justify-around min-w-full px-3 py-2">
+
+            {genderFilters.map((item) => {
+              const Icon = item.icon
+
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="flex flex-col items-center justify-center flex-1"
+                >
+                  <Icon
+                    size={16}
+                    strokeWidth={2}
+                    className="text-gray-700 mx-auto"
+                  />
+
+                  <span className="
+mt-1
+text-[9px]
+font-medium
+text-gray-700
+leading-none
+whitespace-nowrap
+">
+                    {item.label}
+                  </span>
+                </Link>
+              )
+            })}
+
+          </div>
+        </div>
+
         {/* MOBILE SCROLLED NAVBAR */}
 
         <AnimatePresence>
@@ -868,7 +907,7 @@ export default function Navbar() {
                 right-0
                 z-[55]
                 md:hidden
-                bg-white/90
+                bg-white
                 backdrop-blur-2xl
                 border-b
                 border-gray-100
