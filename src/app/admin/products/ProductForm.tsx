@@ -35,6 +35,7 @@ export default function ProductForm({
     color: product?.color || "",
     gender: product?.gender || "Newborn",
     stock: product?.stock?.toString() || "10",
+    ageGroup: product?.ageGroup || "0-2Y",
     isNewArrival: product?.isNewArrival ?? true,
   })
 
@@ -136,7 +137,12 @@ export default function ProductForm({
               <input required type="number" value={form.price} placeholder="999" className={inputStyle} onChange={(e) => setForm({ ...form, price: e.target.value })} />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase text-gray-400 flex items-center gap-1"><Package size={10} /> Stock</label>
+              <label className="text-[10px] font-black uppercase text-gray-400 flex items-center gap-1"><Package size={10} /> <span
+                className={`text-[10px] font-black uppercase ${(product?.stock ?? 0) > 0 ? "text-emerald-500" : "text-red-500"
+                  }`}
+              >
+                {(product?.stock ?? 0) > 0 ? "In Stock" : "Sold Out"}
+              </span></label>
               <input required type="number" value={form.stock} className={inputStyle} onChange={(e) => setForm({ ...form, stock: e.target.value })} />
             </div>
           </div>

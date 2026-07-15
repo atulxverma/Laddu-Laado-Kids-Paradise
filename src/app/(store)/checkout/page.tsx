@@ -109,7 +109,13 @@ export default function CheckoutPage() {
     const fullAddress = `${form.houseDetails}, ${form.city}, ${form.state} - ${form.pincode}`
 
     try {
-      const res = await initiateRazorpayPayment(total)
+      const checkoutItems = validItems.map((item) => ({
+        id: item.id,
+        quantity: item.quantity,
+        size: item.size,
+      }))
+
+      const res = await initiateRazorpayPayment(checkoutItems)
       if (!res.success) {
         alert("Payment Gateway Error")
         setLoading(false)
@@ -123,15 +129,18 @@ export default function CheckoutPage() {
         name: "laddu LAADO",
         description: "Premium Couture Order",
         order_id: res.orderId,
-        handler: async function () {
+        handler: async function (response: any) {
           setLoading(true)
 
           const orderRes = await createOrder({
-            clerkId: user.id,
             phone: form.phone,
             address: fullAddress,
-            total,
-            items,
+            items: checkoutItems,
+            payment: {
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+            },
           })
 
           if (orderRes.success) {

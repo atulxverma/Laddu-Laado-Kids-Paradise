@@ -65,16 +65,18 @@ model Image {
 }
 
 model Order {
-  id         String      @id @default(auto()) @map("_id") @db.ObjectId
-  clerkId    String
-  phone      String      @default("")
-  address    String      @default("")
-  total      Float
-  isPaid     Boolean     @default(false)
-  status     String      @default("Pending")
-  orderItems OrderItem[]
-  customerName String?
-  createdAt  DateTime    @default(now())
+  id                String      @id @default(auto()) @map("_id") @db.ObjectId
+  clerkId           String
+  phone             String      @default("")
+  address           String      @default("")
+  total             Float
+  isPaid            Boolean     @default(false)
+  status            String      @default("Pending")
+  orderItems        OrderItem[]
+  customerName      String?
+  razorpayOrderId   String?
+  razorpayPaymentId String?      @unique
+  createdAt         DateTime    @default(now())
 }
 
 model OrderItem {

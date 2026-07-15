@@ -5,12 +5,10 @@ interface WishlistStore {
   items: any[]
 
   toggleItem: (product: any) => void
-
   removeItem: (id: string) => void
-
   clearWishlist: () => void
-
   cleanWishlist: (validIds: string[]) => void
+  setItems: (items: any[]) => void
 }
 
 export const useWishlist = create<WishlistStore>()(
@@ -18,16 +16,20 @@ export const useWishlist = create<WishlistStore>()(
     (set) => ({
       items: [],
 
+      setItems: (items) => {
+        set({ items })
+      },
+
       toggleItem: (product) =>
         set((state) => {
-          const exists = state.items.find(
-            (i) => i.id === product.id
+          const exists = state.items.some(
+            (item) => item.id === product.id
           )
 
           if (exists) {
             return {
               items: state.items.filter(
-                (i) => i.id !== product.id
+                (item) => item.id !== product.id
               ),
             }
           }
@@ -40,12 +42,13 @@ export const useWishlist = create<WishlistStore>()(
       removeItem: (id) =>
         set((state) => ({
           items: state.items.filter(
-            (i) => i.id !== id
+            (item) => item.id !== id
           ),
         })),
 
-      clearWishlist: () =>
-        set({ items: [] }),
+      clearWishlist: () => {
+        set({ items: [] })
+      },
 
       cleanWishlist: (validIds) =>
         set((state) => ({
@@ -54,7 +57,6 @@ export const useWishlist = create<WishlistStore>()(
           ),
         })),
     }),
-
     {
       name: "laddu-laado-wishlist",
     }

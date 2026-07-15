@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { currentUser } from "@clerk/nextjs/server";
 import { Resend } from "resend";
 import Razorpay from "razorpay";
+import crypto from "crypto";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -30,18 +31,423 @@ async function checkAdmin() {
   }
 }
 
-// --- RAZORPAY ACTION ---
-export async function initiateRazorpayPayment(amount: number) {
+type CheckoutItem = {
+  id: string;
+  quantity: number;
+  size: string;
+};
+
+type PaymentDetails = {
+  razorpayOrderId: string;
+  razorpayPaymentId: string;
+  razorpaySignature: string;
+};
+
+export async function initiateRazorpayPayment(items: CheckoutItem[]) {
   try {
-    const options = {
-      amount: Math.round(amount * 100),
+    const user = await currentUser();
+
+    if (!user) {
+      return {
+        success: false,
+        error: "Please sign in before checkout.",
+      };
+    }
+
+    if (!items || items.length === 0) {
+      return {
+        success: false,
+        error: "Cart is empty.",
+      };
+    }
+
+    const productIds = [...new Set(items.map((item) => item.id))];
+
+    const products = await db.product.findMany({
+      where: {
+        id: {
+          in: productIds,
+        },
+        isArchived: false,
+      },
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        stock: true,
+      },
+    });
+
+    if (products.length !== productIds.length) {
+      return {
+        success: false,
+        error: "Some products are unavailable.",
+      };
+    }
+
+    let serverTotal = 0;
+
+    for (const item of items) {
+      if (!Number.isInteger(item.quantity) || item.quantity < 1) {
+        return {
+          success: false,
+          error: "Invalid product quantity.",
+        };
+      }
+
+      const product = products.find((product) => product.id === item.id);
+
+      if (!product) {
+        return {
+          success: false,
+          error: "Product not found.",
+        };
+      }
+
+      if (product.stock < item.quantity) {
+        return {
+          success: false,
+          error: `${product.name} has only ${product.stock} item(s) left.`,
+        };
+      }
+
+      serverTotal += product.price * item.quantity;
+    }
+
+    const amountInPaise = Math.round(serverTotal * 100);
+
+    if (amountInPaise <= 0) {
+      return {
+        success: false,
+        error: "Invalid order amount.",
+      };
+    }
+
+    const razorpayOrder = await razorpay.orders.create({
+      amount: amountInPaise,
       currency: "INR",
       receipt: `receipt_${Date.now()}`,
+    });
+
+    return {
+      success: true,
+      orderId: razorpayOrder.id,
+      amount: razorpayOrder.amount,
+      total: serverTotal,
     };
-    const order = await razorpay.orders.create(options);
-    return { success: true, orderId: order.id, amount: order.amount };
   } catch (error) {
-    return { success: false, error: "Failed to initiate payment" };
+    console.error("Razorpay order creation error:", error);
+
+    return {
+      success: false,
+      error: "Failed to initiate payment.",
+    };
+  }
+}
+
+export async function createOrder(data: {
+  phone: string;
+  address: string;
+  items: CheckoutItem[];
+  payment: PaymentDetails;
+}) {
+  try {
+    const user = await currentUser();
+
+    if (!user) {
+      return {
+        error: "Please sign in before placing an order.",
+      };
+    }
+
+    if (!data.items || data.items.length === 0) {
+      return {
+        error: "Cart is empty.",
+      };
+    }
+
+    const cleanAddress = data.address.trim();
+    const cleanPhone = data.phone.trim();
+
+    if (!cleanAddress) {
+      return {
+        error: "Address is required.",
+      };
+    }
+
+    if (!/^[6-9][0-9]{9}$/.test(cleanPhone)) {
+      return {
+        error: "Please enter a valid 10-digit Indian phone number.",
+      };
+    }
+
+    if (
+      !data.payment?.razorpayOrderId ||
+      !data.payment?.razorpayPaymentId ||
+      !data.payment?.razorpaySignature
+    ) {
+      return {
+        error: "Payment verification details are missing.",
+      };
+    }
+
+    const razorpaySecret = process.env.RAZORPAY_KEY_SECRET;
+
+    if (!razorpaySecret) {
+      throw new Error("Razorpay secret is not configured.");
+    }
+
+    const generatedSignature = crypto
+      .createHmac("sha256", razorpaySecret)
+      .update(
+        `${data.payment.razorpayOrderId}|${data.payment.razorpayPaymentId}`,
+      )
+      .digest("hex");
+
+    const receivedSignature = data.payment.razorpaySignature;
+
+    const generatedBuffer = Buffer.from(generatedSignature, "utf8");
+
+    const receivedBuffer = Buffer.from(receivedSignature, "utf8");
+
+    const isSignatureValid =
+      generatedBuffer.length === receivedBuffer.length &&
+      crypto.timingSafeEqual(generatedBuffer, receivedBuffer);
+
+    if (!isSignatureValid) {
+      return {
+        error: "Payment verification failed.",
+      };
+    }
+
+    const existingOrder = await db.order.findFirst({
+      where: {
+        razorpayPaymentId: data.payment.razorpayPaymentId,
+      },
+    });
+
+    if (existingOrder) {
+      return {
+        success: true,
+        orderId: existingOrder.id,
+      };
+    }
+
+    const razorpayPayment = await razorpay.payments.fetch(
+      data.payment.razorpayPaymentId,
+    );
+
+    if (razorpayPayment.order_id !== data.payment.razorpayOrderId) {
+      return {
+        error: "Payment order verification failed.",
+      };
+    }
+
+    if (razorpayPayment.status !== "captured") {
+      return {
+        error: "Payment has not been successfully captured.",
+      };
+    }
+
+    const productIds = [...new Set(data.items.map((item) => item.id))];
+
+    const products = await db.product.findMany({
+      where: {
+        id: {
+          in: productIds,
+        },
+        isArchived: false,
+      },
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        stock: true,
+      },
+    });
+
+    if (products.length !== productIds.length) {
+      return {
+        error: "Some products are no longer available.",
+      };
+    }
+
+    let serverTotal = 0;
+
+    for (const item of data.items) {
+      if (!Number.isInteger(item.quantity) || item.quantity < 1) {
+        return {
+          error: "Invalid product quantity.",
+        };
+      }
+
+      const product = products.find((product) => product.id === item.id);
+
+      if (!product) {
+        return {
+          error: "Product no longer exists.",
+        };
+      }
+
+      if (product.stock < item.quantity) {
+        return {
+          error: `${product.name} has only ${product.stock} item(s) left.`,
+        };
+      }
+
+      serverTotal += product.price * item.quantity;
+    }
+
+    const razorpayOrder = await razorpay.orders.fetch(
+      data.payment.razorpayOrderId,
+    );
+
+    const expectedAmount = Math.round(serverTotal * 100);
+
+    if (
+      Number(razorpayOrder.amount) !== expectedAmount ||
+      razorpayOrder.currency !== "INR"
+    ) {
+      return {
+        error: "Payment amount verification failed.",
+      };
+    }
+
+    const order = await db.$transaction(async (tx) => {
+      for (const item of data.items) {
+        const latestProduct = await tx.product.findUnique({
+          where: {
+            id: item.id,
+          },
+        });
+
+        if (!latestProduct) {
+          throw new Error("A product in your cart no longer exists.");
+        }
+
+        if (latestProduct.stock < item.quantity) {
+          throw new Error(
+            `${latestProduct.name} has only ${latestProduct.stock} item(s) left.`,
+          );
+        }
+      }
+
+      const newOrder = await tx.order.create({
+        data: {
+          clerkId: user.id,
+          customerName: user.fullName || "Guest User",
+          phone: cleanPhone,
+          address: cleanAddress,
+          total: serverTotal,
+          isPaid: true,
+          status: "Confirmed",
+
+          razorpayOrderId: data.payment.razorpayOrderId,
+
+          razorpayPaymentId: data.payment.razorpayPaymentId,
+
+          orderItems: {
+            create: data.items.map((item) => ({
+              productId: item.id,
+              quantity: item.quantity,
+              size: item.size,
+            })),
+          },
+        },
+      });
+
+      for (const item of data.items) {
+        const updatedProduct = await tx.product.update({
+          where: {
+            id: item.id,
+          },
+          data: {
+            stock: {
+              decrement: item.quantity,
+            },
+          },
+        });
+
+        if (updatedProduct.stock <= 0) {
+          await tx.product.update({
+            where: {
+              id: item.id,
+            },
+            data: {
+              isArchived: true,
+            },
+          });
+        }
+      }
+
+      await tx.cartItem.deleteMany({
+        where: {
+          clerkId: user.id,
+        },
+      });
+
+      return newOrder;
+    });
+
+    const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+
+    const orderIdShort = order.id.slice(-6).toUpperCase();
+
+    if (process.env.RESEND_API_KEY) {
+      try {
+        if (adminEmail) {
+          await resend.emails.send({
+            from: "Laddu Laado <onboarding@resend.dev>",
+            to: adminEmail,
+            subject: `✨ New Order [#${orderIdShort}] Received`,
+            html: `
+              <div>
+                <h2>New Premium Order!</h2>
+                <p>Total Revenue: ₹${serverTotal}</p>
+                <p>Customer: ${user.fullName || "Guest User"}</p>
+              </div>
+            `,
+          });
+        }
+
+        const customerEmail = user.primaryEmailAddress?.emailAddress;
+
+        if (customerEmail) {
+          await resend.emails.send({
+            from: "Laddu Laado <onboarding@resend.dev>",
+            to: customerEmail,
+            subject: "Your Laddu Laado Order is Confirmed! ✨",
+            html: `
+              <div>
+                <h2>Order Confirmed!</h2>
+                <p>Hi ${user.fullName || "Customer"}</p>
+                <p>Your order #${orderIdShort} has been confirmed.</p>
+                <p>Total Amount: ₹${serverTotal}</p>
+              </div>
+            `,
+          });
+        }
+      } catch (emailError) {
+        console.error("Order created but email failed:", emailError);
+      }
+    }
+
+    revalidatePath("/admin/orders");
+    revalidatePath("/admin/products");
+    revalidatePath("/orders");
+    revalidatePath("/shop");
+    revalidatePath("/cart");
+
+    return {
+      success: true,
+      orderId: order.id,
+    };
+  } catch (error) {
+    console.error("Create order error:", error);
+
+    return {
+      error: error instanceof Error ? error.message : "Failed to place order.",
+    };
   }
 }
 
@@ -138,152 +544,6 @@ export async function createProduct(data: any) {
   } catch (error: any) {
     return {
       error: "Database Error: " + error.message,
-    };
-  }
-}
-
-// --- ORDER ACTIONS (With Dual Premium Emails) ---
-export async function createOrder(data: {
-  clerkId: string;
-  phone: string;
-  address: string;
-  total: number;
-  items: any[];
-}) {
-  try {
-    if (!data.items.length) {
-      return { error: "Cart is empty" };
-    }
-
-    if (!data.address.trim()) {
-      return { error: "Address is required" };
-    }
-
-    if (!/^[0-9]{10}$/.test(data.phone)) {
-      return { error: "Invalid phone number" };
-    }
-
-    const user = await currentUser();
-
-    const order = await db.$transaction(async (tx) => {
-      // Stock Validation
-      for (const item of data.items) {
-        const latestProduct = await tx.product.findUnique({
-          where: { id: item.id },
-        });
-
-        if (!latestProduct) {
-          throw new Error(`${item.name} no longer exists.`);
-        }
-
-        if (latestProduct.stock < item.quantity) {
-          throw new Error(
-            `${item.name} has only ${latestProduct.stock} item(s) left in stock.`,
-          );
-        }
-      }
-
-      // Create Order
-      const newOrder = await tx.order.create({
-        data: {
-          clerkId: data.clerkId,
-          customerName: user?.fullName || "Guest User",
-          phone: data.phone,
-          address: data.address,
-          total: data.total,
-          isPaid: true,
-          status: "Confirmed",
-
-          orderItems: {
-            create: data.items.map((item: any) => ({
-              productId: item.id,
-              quantity: item.quantity,
-              size: item.size,
-            })),
-          },
-        },
-      });
-
-      // Reduce Stock
-      for (const item of data.items) {
-        const updatedProduct = await tx.product.update({
-          where: { id: item.id },
-          data: {
-            stock: {
-              decrement: item.quantity,
-            },
-          },
-        });
-
-        if (updatedProduct.stock <= 0) {
-          await tx.product.update({
-            where: { id: item.id },
-            data: {
-              isArchived: true,
-            },
-          });
-        }
-      }
-
-      return newOrder;
-    });
-    await db.cartItem.deleteMany({
-      where: {
-        clerkId: data.clerkId,
-      },
-    });
-
-    // Emails
-    const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-    const orderIdShort = order.id.slice(-6).toUpperCase();
-
-    if (process.env.RESEND_API_KEY) {
-      if (adminEmail) {
-        await resend.emails.send({
-          from: "Laddu Laado <onboarding@resend.dev>",
-          to: adminEmail,
-          subject: `✨ New Order [#${orderIdShort}] Received`,
-          html: `
-            <div>
-              <h2>New Premium Order!</h2>
-              <p>Total Revenue: ₹${data.total}</p>
-              <p>Customer: ${user?.fullName}</p>
-            </div>
-          `,
-        });
-      }
-
-      if (user?.primaryEmailAddress?.emailAddress) {
-        await resend.emails.send({
-          from: "Laddu Laado <onboarding@resend.dev>",
-          to: user.primaryEmailAddress.emailAddress,
-          subject: "Your Laddu Laado Order is Confirmed! ✨",
-          html: `
-            <div>
-              <h2>Order Confirmed!</h2>
-              <p>Hi ${user.fullName}</p>
-              <p>Your order #${orderIdShort} has been confirmed.</p>
-              <p>Total Amount: ₹${data.total}</p>
-            </div>
-          `,
-        });
-      }
-    }
-
-    revalidatePath("/admin/orders");
-    revalidatePath("/admin/products");
-    revalidatePath("/orders");
-    revalidatePath("/shop");
-
-    return {
-      success: true,
-      orderId: order.id,
-    };
-  } catch (error: any) {
-    console.error(error);
-
-    return {
-      error: error.message || "Failed to place order.",
     };
   }
 }
@@ -471,67 +731,164 @@ export async function updateProduct(id: string, data: any) {
   }
 }
 
-export async function updateOrderStatus(orderId: string, status: string) {
+export async function updateOrderStatus(
+  orderId: string,
+  status: string
+) {
   try {
-    await checkAdmin();
-    await db.order.update({ where: { id: orderId }, data: { status } });
-    revalidatePath("/admin/orders");
-    return { success: true };
-  } catch (error: any) {
-    return { error: "Failed to update status" };
+    await checkAdmin()
+
+    const allowedStatuses = [
+      "Pending",
+      "Confirmed",
+      "Shipped",
+      "Delivered",
+      "Cancelled",
+    ]
+
+    if (!allowedStatuses.includes(status)) {
+      return {
+        error: "Invalid order status",
+      }
+    }
+
+    const order = await db.order.findUnique({
+      where: {
+        id: orderId,
+      },
+      select: {
+        status: true,
+      },
+    })
+
+    if (!order) {
+      return {
+        error: "Order not found",
+      }
+    }
+
+    if (
+      order.status === "Delivered" ||
+      order.status === "Cancelled"
+    ) {
+      return {
+        error: `${order.status} orders cannot be modified`,
+      }
+    }
+
+    await db.order.update({
+      where: {
+        id: orderId,
+      },
+      data: {
+        status,
+      },
+    })
+
+    revalidatePath("/admin/orders")
+    revalidatePath("/orders")
+
+    return {
+      success: true,
+    }
+  } catch (error) {
+    console.error("UPDATE_ORDER_STATUS_ERROR", error)
+
+    return {
+      error: "Failed to update status",
+    }
   }
 }
 
 export async function createReview(data: {
-  productId: string;
-  rating: number;
-  comment: string;
-  clerkId: string;
-  userName: string;
-  userImage: string;
+  productId: string
+  rating: number
+  comment: string
 }) {
   try {
-    if (!data.comment.trim()) {
+    const user = await currentUser()
+
+    if (!user) {
       return {
-        error: "Review cannot be empty",
-      };
+        error: "Please sign in to submit a review.",
+      }
     }
 
-    if (data.comment.trim().length < 10) {
+    const cleanComment = data.comment.trim()
+
+    if (!cleanComment) {
       return {
-        error: "Review must be at least 10 characters long",
-      };
+        error: "Review cannot be empty.",
+      }
     }
-    if (data.rating < 1 || data.rating > 5) {
+
+    if (cleanComment.length < 10) {
       return {
-        error: "Invalid rating",
-      };
+        error: "Review must be at least 10 characters long.",
+      }
+    }
+
+    if (
+      !Number.isInteger(data.rating) ||
+      data.rating < 1 ||
+      data.rating > 5
+    ) {
+      return {
+        error: "Invalid rating.",
+      }
+    }
+
+    const product = await db.product.findUnique({
+      where: {
+        id: data.productId,
+      },
+      select: {
+        id: true,
+        isArchived: true,
+      },
+    })
+
+    if (!product || product.isArchived) {
+      return {
+        error: "This product is no longer available.",
+      }
     }
 
     const existingReview = await db.review.findFirst({
       where: {
         productId: data.productId,
-        clerkId: data.clerkId,
+        clerkId: user.id,
       },
-    });
+    })
 
     if (existingReview) {
       return {
         error: "You have already reviewed this product.",
-      };
+      }
     }
 
     await db.review.create({
-      data,
-    });
+      data: {
+        productId: data.productId,
+        rating: data.rating,
+        comment: cleanComment,
+        clerkId: user.id,
+        userName: user.fullName || "Valued Customer",
+        userImage: user.imageUrl || null,
+      },
+    })
 
-    revalidatePath(`/product/${data.productId}`);
+    revalidatePath(`/product/${data.productId}`)
 
-    return { success: true };
-  } catch (error) {
     return {
-      error: "Review failed",
-    };
+      success: true,
+    }
+  } catch (error) {
+    console.error("Create review error:", error)
+
+    return {
+      error: "Review failed.",
+    }
   }
 }
 
@@ -730,46 +1087,147 @@ export async function deleteBanner(id: string) {
   }
 }
 
-export async function syncCartWithDb(clerkId: string, items: any[]) {
+export async function syncCartWithDb(items: any[]) {
   try {
-    await db.cartItem.deleteMany({
-      where: { clerkId },
-    });
+    const user = await currentUser()
 
-    const validItems = [];
+    if (!user) {
+      return {
+        error: "Unauthorized",
+      }
+    }
+
+    if (!Array.isArray(items)) {
+      return {
+        error: "Invalid cart data",
+      }
+    }
+
+    const clerkId = user.id
+
+    const mergedItems = new Map<
+      string,
+      {
+        id: string
+        size: string
+        quantity: number
+      }
+    >()
 
     for (const item of items) {
-      const product = await db.product.findUnique({
-        where: { id: item.id },
-      });
+      if (
+        !item.id ||
+        !item.size ||
+        !Number.isInteger(item.quantity) ||
+        item.quantity < 1
+      ) {
+        continue
+      }
 
-      if (!product || product.stock <= 0) continue;
+      const key = `${item.id}-${item.size}`
+
+      const existing = mergedItems.get(key)
+
+      if (existing) {
+        existing.quantity += item.quantity
+      } else {
+        mergedItems.set(key, {
+          id: item.id,
+          size: item.size,
+          quantity: item.quantity,
+        })
+      }
+    }
+
+    const validItems = []
+
+    for (const item of mergedItems.values()) {
+      const product = await db.product.findUnique({
+        where: {
+          id: item.id,
+        },
+        select: {
+          id: true,
+          stock: true,
+          isArchived: true,
+        },
+      })
+
+      if (
+        !product ||
+        product.isArchived ||
+        product.stock <= 0
+      ) {
+        continue
+      }
 
       validItems.push({
         clerkId,
-        productId: item.id,
-        quantity: Math.min(item.quantity, product.stock),
+        productId: product.id,
+        quantity: Math.min(
+          item.quantity,
+          product.stock
+        ),
         size: item.size,
-      });
+      })
     }
 
-    if (validItems.length > 0) {
-      await db.cartItem.createMany({
-        data: validItems,
-      });
+    await db.$transaction(async (tx) => {
+      await tx.cartItem.deleteMany({
+        where: {
+          clerkId,
+        },
+      })
+
+      if (validItems.length > 0) {
+        await tx.cartItem.createMany({
+          data: validItems,
+        })
+      }
+    })
+
+    return {
+      success: true,
     }
-  } catch (e) {
-    console.error("DB_SYNC_FAIL", e);
+  } catch (error) {
+    console.error("DB_SYNC_FAIL", error)
+
+    return {
+      error: "Failed to sync cart",
+    }
   }
 }
 
-export async function getDbCart(clerkId: string) {
+export async function getDbCart() {
   try {
-    return await db.cartItem.findMany({
-      where: { clerkId },
-      include: { product: { include: { images: true } } },
-    });
-  } catch (e) {
-    return [];
+    const user = await currentUser()
+
+    if (!user) {
+      return []
+    }
+
+    const cartItems = await db.cartItem.findMany({
+      where: {
+        clerkId: user.id,
+      },
+      include: {
+        product: {
+          include: {
+            images: true,
+            category: true,
+          },
+        },
+      },
+    })
+
+    return cartItems.filter(
+      (item) =>
+        item.product &&
+        !item.product.isArchived &&
+        item.product.stock > 0
+    )
+  } catch (error) {
+    console.error("GET_CART_FAIL", error)
+    return []
   }
 }

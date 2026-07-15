@@ -8,13 +8,28 @@ export default function DeleteProductButton({ productId }: { productId: string }
   const [loading, setLoading] = useState(false)
 
   const handleDelete = async (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (!confirm("Delete this product?")) return
-    setLoading(true)
-    await deleteProduct(productId)
+  e.preventDefault()
+  e.stopPropagation()
+
+  if (!confirm("Delete this product?")) return
+
+  setLoading(true)
+
+  try {
+    const res = await deleteProduct(productId)
+
+    if (res?.error) {
+      alert(res.error)
+      return
+    }
+
+    alert("Product deleted successfully")
+  } catch {
+    alert("Something went wrong while deleting the product.")
+  } finally {
     setLoading(false)
   }
+}
 
   return (
     <button
