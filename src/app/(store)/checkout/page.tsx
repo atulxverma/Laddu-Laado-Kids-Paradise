@@ -15,8 +15,18 @@ export default function CheckoutPage() {
   const items = useCart((state) => state.items)
   const clearCart = useCart((state) => state.clearCart)
 
-  const validItems = items.filter(item => item && item.id && item.name)
-  const total = validItems.reduce((s, i) => s + i.price * i.quantity, 0)
+  const validItems = items.filter(
+    (item) => item && item.id && item.name
+  )
+
+  const subtotal = validItems.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  )
+
+  const deliveryCharge = subtotal >= 999 ? 0 : 79
+
+  const total = subtotal + deliveryCharge
 
   const [loading, setLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
@@ -175,7 +185,7 @@ export default function CheckoutPage() {
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-zinc-400">Payment successful</p>
           <h1 className="text-3xl font-semibold tracking-[-0.04em] text-zinc-950 sm:text-4xl">Thank you for your order.</h1>
           <p className="mx-auto mt-5 max-w-sm text-sm leading-6 text-zinc-500">Your order has been confirmed and our team is preparing it for shipment.</p>
-          <div className="mt-10 rounded-2xl bg-zinc-50 px-5 py-4">
+          <div className="mt-10 rounded-2xl bg-zinc-50 px-5 h-14">
             <p className="text-xs font-medium text-zinc-500">Redirecting you home in a few moments…</p>
           </div>
         </section>
@@ -193,7 +203,7 @@ export default function CheckoutPage() {
           <h2 className="text-3xl font-semibold tracking-tight text-zinc-950">Sign in to checkout</h2>
           <p className="mt-3 text-sm leading-6 text-zinc-500">Please sign in to securely continue with your order.</p>
           <SignInButton mode="modal">
-            <button className="mt-8 rounded-2xl bg-black px-8 py-4 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-zinc-800">Sign In</button>
+            <button className="mt-8 rounded-2xl bg-black px-8 h-14 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-zinc-800">Sign In</button>
           </SignInButton>
         </section>
       </main>
@@ -210,7 +220,7 @@ export default function CheckoutPage() {
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-zinc-400">Nothing here yet</p>
           <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Your cart is empty</h1>
           <p className="mt-4 text-sm leading-6 text-zinc-500">Discover pieces made to be worn and loved.</p>
-          <Link href="/" className="mt-8 inline-flex items-center gap-2 rounded-2xl bg-black px-6 py-4 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-zinc-800">
+          <Link href="/" className="mt-8 inline-flex items-center gap-2 rounded-2xl bg-black px-6 h-14 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-zinc-800">
             Continue Shopping
             <ArrowRight size={16} />
           </Link>
@@ -220,19 +230,28 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#fafafa] pb-28 pt-24 sm:px-6 lg:pb-12 lg:pt-32">
+    <main className="min-h-screen bg-[#fafafa] pb-24 pt-16 md:pt-20 lg:pt-24 lg:pb-12">
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-0">
-        <Link href="/cart" className="mb-7 inline-flex items-center gap-2 text-sm font-medium text-zinc-500 transition-colors hover:text-black">
-          <ArrowLeft size={16} />
-          Back to Cart
-        </Link>
+        <header className="mb-8">
 
-        <header className="mb-9 sm:mb-11">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-zinc-400">Secure checkout</p>
-          <h1 className="text-4xl font-semibold tracking-[-0.04em] text-zinc-950 sm:text-5xl">Checkout</h1>
-          <p className="mt-3 text-sm text-zinc-500 sm:text-base">Almost there. Review your shipping details before payment.</p>
+          <Link
+            href="/cart"
+            className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-black mb-5"
+          >
+            <ArrowLeft size={16} />
+            Back to Cart
+          </Link>
+
+          <h1 className="text-3xl md:text-5xl font-black tracking-tight">
+            Checkout
+          </h1>
+
+          <p className="mt-2 text-sm text-neutral-500">
+            Complete your order securely.
+          </p>
+
         </header>
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_390px] lg:gap-10">
@@ -254,7 +273,7 @@ export default function CheckoutPage() {
                   <label className="mb-2 block text-xs font-semibold text-zinc-700">Recipient Name</label>
                   <div className="relative">
                     <User size={17} className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                    <input value={user?.fullName || ""} disabled className="w-full rounded-2xl border border-zinc-100 bg-zinc-50 py-4 pl-12 pr-5 text-sm font-medium text-zinc-400 outline-none" />
+                    <input value={user?.fullName || ""} disabled className="w-full rounded-2xl border border-zinc-100 bg-zinc-50 h-14 pl-12 pr-5 text-sm font-medium text-zinc-400 outline-none" />
                   </div>
                 </div>
 
@@ -263,7 +282,7 @@ export default function CheckoutPage() {
                   <div className="relative">
                     <Phone size={17} className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400" />
                     <span className="pointer-events-none absolute left-12 top-1/2 -translate-y-1/2 border-r border-zinc-200 pr-3 text-sm font-medium text-zinc-500">+91</span>
-                    <input required type="tel" placeholder="00000 00000" pattern="[6-9]{1}[0-9]{9}" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })} className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 py-4 pl-[104px] pr-5 text-sm font-medium text-zinc-950 outline-none transition-all placeholder:text-zinc-400 focus:border-zinc-950 focus:bg-white focus:ring-4 focus:ring-zinc-100" />
+                    <input required type="tel" placeholder="00000 00000" pattern="[6-9]{1}[0-9]{9}" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })} className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 h-14 pl-[104px] pr-5 text-sm font-medium text-zinc-950 outline-none transition-all placeholder:text-zinc-400 focus:border-zinc-950 focus:bg-white focus:ring-4 focus:ring-zinc-100" />
                   </div>
                 </div>
 
@@ -272,7 +291,7 @@ export default function CheckoutPage() {
                     <label className="mb-2 block text-xs font-semibold text-zinc-700">Pincode</label>
                     <div className="relative">
                       <MapPin size={17} className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                      <input required placeholder="6 Digit PIN" value={form.pincode} onChange={handlePincodeChange} className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 py-4 pl-12 pr-10 text-sm font-medium text-zinc-950 outline-none transition-all placeholder:text-zinc-400 focus:border-zinc-950 focus:bg-white focus:ring-4 focus:ring-zinc-100" />
+                      <input required placeholder="6 Digit PIN" value={form.pincode} onChange={handlePincodeChange} className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 h-14 pl-12 pr-10 text-sm font-medium text-zinc-950 outline-none transition-all placeholder:text-zinc-400 focus:border-zinc-950 focus:bg-white focus:ring-4 focus:ring-zinc-100" />
                       {pincodeLoading && <div className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 rounded-full border-2 border-zinc-900 border-t-transparent animate-spin" />}
                     </div>
                   </div>
@@ -281,7 +300,7 @@ export default function CheckoutPage() {
                     <label className="mb-2 block text-xs font-semibold text-zinc-700">City</label>
                     <div className="relative">
                       <Building2 size={17} className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                      <input readOnly placeholder="Auto-detected" value={form.city} className="w-full rounded-2xl border border-zinc-100 bg-zinc-100 py-4 pl-12 pr-5 text-sm font-medium text-zinc-500 outline-none" />
+                      <input readOnly placeholder="Auto-detected" value={form.city} className="w-full rounded-2xl border border-zinc-100 bg-zinc-100 h-14 pl-12 pr-5 text-sm font-medium text-zinc-500 outline-none" />
                     </div>
                   </div>
                 </div>
@@ -290,7 +309,7 @@ export default function CheckoutPage() {
                   <label className="mb-2 block text-xs font-semibold text-zinc-700">State</label>
                   <div className="relative">
                     <Landmark size={17} className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                    <input readOnly placeholder="Auto-detected" value={form.state} className="w-full rounded-2xl border border-zinc-100 bg-zinc-100 py-4 pl-12 pr-5 text-sm font-medium text-zinc-500 outline-none" />
+                    <input readOnly placeholder="Auto-detected" value={form.state} className="w-full rounded-2xl border border-zinc-100 bg-zinc-100 h-14 pl-12 pr-5 text-sm font-medium text-zinc-500 outline-none" />
                   </div>
                 </div>
 
@@ -298,13 +317,13 @@ export default function CheckoutPage() {
                   <label className="mb-2 block text-xs font-semibold text-zinc-700">House No / Landmark / Road</label>
                   <div className="relative">
                     <Home size={17} className="pointer-events-none absolute left-5 top-5 text-zinc-400" />
-                    <textarea minLength={10} required rows={4} placeholder="Flat/House No, Building Name, Near Landmark, Road Name..." value={form.houseDetails} onChange={(e) => setForm({ ...form, houseDetails: e.target.value })} className="w-full resize-none rounded-2xl border border-zinc-200 bg-zinc-50 py-4 pl-12 pr-5 text-sm font-medium leading-6 text-zinc-950 outline-none transition-all placeholder:text-zinc-400 focus:border-zinc-950 focus:bg-white focus:ring-4 focus:ring-zinc-100" />
+                    <textarea minLength={10} required rows={4} placeholder="Flat/House No, Building Name, Near Landmark, Road Name..." value={form.houseDetails} onChange={(e) => setForm({ ...form, houseDetails: e.target.value })} className="w-full resize-none rounded-2xl border border-zinc-200 bg-zinc-50 h-14 pl-12 pr-5 text-sm font-medium leading-6 text-zinc-950 outline-none transition-all placeholder:text-zinc-400 focus:border-zinc-950 focus:bg-white focus:ring-4 focus:ring-zinc-100" />
                   </div>
                 </div>
               </form>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="rounded-2xl bg-white p-4 shadow-sm"><ShieldCheck size={19} className="text-zinc-900" /><p className="mt-3 text-xs font-semibold text-zinc-800">Secure Checkout</p><p className="mt-1 text-[11px] text-zinc-500">Protected data</p></div>
               <div className="rounded-2xl bg-white p-4 shadow-sm"><PackageCheck size={19} className="text-zinc-900" /><p className="mt-3 text-xs font-semibold text-zinc-800">Easy Returns</p><p className="mt-1 text-[11px] text-zinc-500">Simple process</p></div>
               <div className="rounded-2xl bg-white p-4 shadow-sm"><Truck size={19} className="text-zinc-900" /><p className="mt-3 text-xs font-semibold text-zinc-800">Fast Delivery</p><p className="mt-1 text-[11px] text-zinc-500">Tracked shipping</p></div>
@@ -313,66 +332,402 @@ export default function CheckoutPage() {
           </section>
 
           <aside className="h-fit lg:sticky lg:top-28">
-            <div className="rounded-[28px] bg-zinc-950 p-5 text-white shadow-[0_18px_60px_rgba(0,0,0,0.16)] sm:p-7">
+            <div className="rounded-[28px] border border-neutral-200 bg-white p-6 shadow-lg sm:p-7">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold tracking-tight">Order Summary</h2>
-                <span className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-medium text-zinc-300">{validItems.length} {validItems.length === 1 ? "item" : "items"}</span>
+                <span className="rounded-full bg-neutral-100 text-neutral-700 px-3 py-1 text-xs font-bold">{validItems.length} {validItems.length === 1 ? "item" : "items"}</span>
               </div>
 
-              <div className="mt-6 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4">
-                <div className="flex items-center gap-2 text-sm font-semibold text-emerald-300"><CheckCircle2 size={16} /> Free Delivery Unlocked</div>
-                <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full w-full rounded-full bg-emerald-400" /></div>
-                <p className="mt-2 text-xs text-zinc-400">Your order qualifies for complimentary delivery.</p>
-              </div>
+              {total >= 999 ? (
+
+                <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
+
+                  <div className="flex items-center gap-3">
+
+                    <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                      <CheckCircle2 size={18} className="text-emerald-600" />
+                    </div>
+
+                    <div>
+
+                      <p className="text-sm font-black text-emerald-700">
+                        Free Delivery Unlocked 🎉
+                      </p>
+
+                      <p className="text-xs text-emerald-600 mt-1">
+                        Your order qualifies for complimentary shipping.
+                      </p>
+
+                    </div>
+
+                  </div>
+
+                  <div className="mt-4 h-2 rounded-full bg-emerald-200 overflow-hidden">
+                    <div className="h-full w-full bg-emerald-500 rounded-full" />
+                  </div>
+
+                </div>
+
+              ) : (
+
+                <div className="mt-6 rounded-2xl border border-orange-200 bg-orange-50 p-5">
+
+                  <div className="flex items-center justify-between">
+
+                    <div>
+
+                      <p className="text-sm font-black text-orange-700">
+                        Unlock Free Delivery
+                      </p>
+
+                      <p className="text-xs text-orange-600 mt-1">
+                        Add ₹{(999 - total).toLocaleString("en-IN")} more
+                      </p>
+
+                    </div>
+
+                    <Truck size={22} className="text-orange-500" />
+
+                  </div>
+
+                  <div className="mt-4 h-2 rounded-full bg-orange-200 overflow-hidden">
+
+                    <div
+                      className="h-full rounded-full bg-orange-500"
+                      style={{
+                        width: `${Math.min((total / 999) * 100, 100)}%`
+                      }}
+                    />
+
+                  </div>
+
+                </div>
+
+              )}
 
               <div className="my-6 max-h-[310px] space-y-4 overflow-y-auto pr-1">
+
                 {validItems.map((item) => (
-                  <div key={`${item.id}-${item.size}`} className="flex gap-3 border-b border-white/10 pb-4 last:border-0 last:pb-0">
-                    <div className="h-20 w-16 shrink-0 overflow-hidden rounded-xl bg-white/10">
-                      {item.image ? <img src={item.image} alt={item.name} className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center"><ShoppingBag size={19} className="text-zinc-500" /></div>}
+
+                  <div
+                    key={`${item.id}-${item.size}`}
+                    className="flex gap-3 border-b border-neutral-200 pb-4 last:border-0 last:pb-0"
+                  >
+
+                    <div className="h-20 w-16 shrink-0 overflow-hidden rounded-xl bg-neutral-100">
+
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center">
+                          <ShoppingBag size={18} className="text-neutral-400" />
+                        </div>
+                      )}
+
                     </div>
+
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-white">{item.name}</p>
-                      <p className="mt-1 text-xs text-zinc-400">Size {item.size} · Qty {item.quantity}</p>
-                      <p className="mt-2 text-sm font-semibold text-white">₹{(item.price * item.quantity).toLocaleString("en-IN")}</p>
+
+                      <p className="truncate text-sm font-bold text-black">
+                        {item.name}
+                      </p>
+
+                      <p className="mt-1 text-xs text-neutral-500">
+                        Size {item.size} • Qty {item.quantity}
+                      </p>
+
+                      <p className="mt-2 text-sm font-black text-black">
+                        ₹{(item.price * item.quantity).toLocaleString("en-IN")}
+                      </p>
+
                     </div>
+
                   </div>
+
                 ))}
+
+              </div>
+
+              <div className="border-t border-neutral-200 pt-5">
+
+                <div className="space-y-3">
+
+                  <div className="flex justify-between">
+
+                    <span className="text-neutral-500">
+                      Subtotal
+                    </span>
+
+                    <span className="font-bold">
+                      ₹{subtotal.toLocaleString("en-IN")}
+                    </span>
+
+                  </div>
+
+                  <div className="flex justify-between">
+
+                    <span className="text-neutral-500">
+                      Delivery Charges
+                    </span>
+
+                    {deliveryCharge === 0 ? (
+                      <span className="font-bold text-emerald-600">
+                        FREE
+                      </span>
+                    ) : (
+                      <span className="font-bold">
+                        ₹79
+                      </span>
+                    )}
+
+                  </div>
+
+                  <div className="flex justify-between">
+
+                    <span className="text-neutral-500">
+                      Taxes
+                    </span>
+
+                    <span className="font-bold">
+                      Included
+                    </span>
+
+                  </div>
+
+                </div>
+
+                <div className="my-5 h-px bg-neutral-200" />
+
+                <div className="flex justify-between items-end">
+
+                  <div>
+
+                    <p className="text-sm text-neutral-500">
+                      Grand Total
+                    </p>
+
+                    <p className="text-[11px] text-neutral-400">
+                      Inclusive of all taxes
+                    </p>
+
+                  </div>
+
+                  <h3 className="text-3xl font-black">
+                    ₹{total.toLocaleString("en-IN")}
+                  </h3>
+
+                </div>
+
+                <div className="mt-5 rounded-2xl bg-neutral-50 border border-neutral-200 p-4">
+
+                  <div className="flex items-center gap-3">
+
+                    <Truck
+                      size={18}
+                      className="text-emerald-600"
+                    />
+
+                    <div>
+
+                      <p className="text-sm font-bold">
+                        Estimated Delivery
+                      </p>
+
+                      <p className="text-[11px] text-neutral-500">
+                        Arrives in 3–5 Business Days
+                      </p>
+
+                    </div>
+
+                  </div>
+
+                </div>
+
+                <button
+                  form="checkout-form"
+                  type="submit"
+                  disabled={loading || !form.city}
+                  className="mt-6 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-black text-white font-black hover:shadow-xl transition-all"
+                >
+
+                  {loading ? (
+                    "Preparing Payment..."
+                  ) : (
+                    <>
+                      <LockKeyhole size={18} />
+                      Proceed to Payment
+                      <ArrowRight size={18} />
+                    </>
+                  )}
+
+                </button>
+
+                <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+
+                  <div className="flex items-center gap-3">
+
+                    <ShieldCheck
+                      size={18}
+                      className="text-emerald-600"
+                    />
+
+                    <div>
+
+                      <p className="text-sm font-bold">
+                        Secure Checkout
+                      </p>
+
+                      <p className="text-[11px] text-neutral-500">
+                        SSL encrypted payment powered by Razorpay
+                      </p>
+
+                    </div>
+
+                  </div>
+
+                </div>
+
               </div>
 
               <div className="border-t border-white/15 pt-5">
                 <div className="space-y-3 text-sm">
-                  <div className="flex justify-between text-zinc-400"><span>Subtotal</span><span className="font-medium text-zinc-200">₹{total.toLocaleString("en-IN")}</span></div>
-                  <div className="flex justify-between text-zinc-400"><span>Delivery charges</span><span className="font-medium text-emerald-300">FREE</span></div>
-                  <div className="flex justify-between text-zinc-400"><span>Discount</span><span className="font-medium text-zinc-200">₹0</span></div>
-                  <div className="flex justify-between text-zinc-400"><span>Taxes</span><span className="font-medium text-zinc-200">Included</span></div>
+
+                  <div className="flex justify-between">
+                    <span className="text-neutral-500">
+                      Subtotal
+                    </span>
+
+                    <span className="font-semibold text-black">
+                      ₹{subtotal.toLocaleString("en-IN")}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between">
+
+                    <span className="text-neutral-500">
+                      Delivery Charges
+                    </span>
+
+                    {deliveryCharge === 0 ? (
+
+                      <span className="font-bold text-emerald-600">
+                        FREE
+                      </span>
+
+                    ) : (
+
+                      <span className="font-semibold text-black">
+                        ₹79
+                      </span>
+
+                    )}
+
+                  </div>
+
+                  <div className="flex justify-between">
+
+                    <span className="text-neutral-500">
+                      Taxes
+                    </span>
+
+                    <span className="font-semibold text-black">
+                      Included
+                    </span>
+
+                  </div>
+
                 </div>
 
-                <div className="my-5 h-px bg-white/15" />
+                <div className="my-5 h-px bg-neutral-200" />
 
                 <div className="flex items-end justify-between">
-                  <div><p className="text-sm font-medium text-zinc-300">Grand Total</p><p className="mt-1 text-xs text-zinc-500">Inclusive of applicable taxes</p></div>
-                  <p className="text-2xl font-semibold tracking-tight text-white">₹{total.toLocaleString("en-IN")}</p>
+
+                  <div>
+
+                    <p className="text-sm text-neutral-500">
+                      Grand Total
+                    </p>
+
+                    <p className="text-[11px] text-neutral-400 mt-1">
+                      Inclusive of all taxes
+                    </p>
+
+                  </div>
+
+                  <h3 className="text-3xl font-black text-black">
+                    ₹{total.toLocaleString("en-IN")}
+                  </h3>
+
                 </div>
 
                 <div className="mt-5 rounded-2xl bg-white/5 p-4">
                   <div className="flex items-center gap-3"><div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10"><Truck size={17} className="text-white" /></div><div><p className="text-xs font-semibold text-white">Estimated Delivery</p><p className="mt-0.5 text-xs text-zinc-400">Arrives in 3–5 business days</p></div></div>
                 </div>
 
-                <button form="checkout-form" type="submit" disabled={loading || !form.city} className="mt-6 hidden w-full items-center justify-center gap-2 rounded-2xl bg-white px-5 py-4 text-sm font-semibold text-black shadow-lg transition-all hover:-translate-y-0.5 hover:bg-zinc-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 lg:flex">
-                  {loading ? "Preparing secure payment…" : <><LockKeyhole size={16} /> Proceed to Payment <ArrowRight size={16} /></>}
+                <button
+                  form="checkout-form"
+                  type="submit"
+                  disabled={loading || !form.city}
+                  className="mt-7 flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-black text-white font-black transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[.98] disabled:opacity-40"
+                >
+
+                  {loading ? (
+
+                    "Preparing Payment..."
+
+                  ) : (
+
+                    <>
+
+                      <LockKeyhole size={17} />
+
+                      Proceed to Payment
+
+                      <ArrowRight size={17} />
+
+                    </>
+
+                  )}
+
                 </button>
 
-                <div className="mt-5 flex items-center justify-center gap-2 text-xs text-zinc-500"><ShieldCheck size={14} /> SSL Secure · Encrypted Payment · Razorpay</div>
-              </div>
-            </div>
+                <div className="mt-6 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
 
-            <div className="mt-5 rounded-[24px] bg-white p-5 shadow-sm">
-              <div className="flex items-center gap-2 text-sm font-semibold text-zinc-900"><CreditCard size={17} /> Accepted payment methods</div>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {["Visa", "Mastercard", "RuPay", "UPI", "Paytm", "PhonePe", "Google Pay", "Cash on Delivery"].map((method) => (
-                  <span key={method} className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[10px] font-semibold text-zinc-600">{method}</span>
-                ))}
+                  <div className="flex items-center gap-3">
+
+                    <ShieldCheck
+                      size={18}
+                      className="text-emerald-600"
+                    />
+
+                    <div>
+
+                      <p className="text-sm font-bold">
+                        Secure Checkout
+                      </p>
+
+                      <p className="text-[11px] text-neutral-500">
+                        SSL encrypted payment powered by Razorpay
+                      </p>
+
+                    </div>
+
+                  </div>
+
+                </div>
+              </div>
+
+              <div className="mt-5 rounded-[24px] bg-white p-5 shadow-sm">
+                <div className="flex items-center gap-2 text-sm font-semibold text-zinc-900"><CreditCard size={17} /> Accepted payment methods</div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {["Visa", "Mastercard", "RuPay", "UPI", "Paytm", "PhonePe", "Google Pay", "Cash on Delivery"].map((method) => (
+                    <span key={method} className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[10px] font-semibold text-zinc-600">{method}</span>
+                  ))}
+                </div>
               </div>
             </div>
           </aside>
