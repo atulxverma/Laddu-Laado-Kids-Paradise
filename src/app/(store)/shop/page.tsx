@@ -58,175 +58,238 @@ export default async function ShopPage({
   });
 
   return (
-    <main className="bg-white min-h-screen pb-20 pt-15">
+    <main className="min-h-screen bg-white pb-20 pt-16 md:pt-20">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="mb-8 md:mb-10">
+        <div className="mb-10">
 
-  <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.28em] text-neutral-400">
-    Premium Kids Fashion
-  </span>
+          <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.28em] text-neutral-400">
+            Premium Kids Fashion
+          </span>
 
-  <div className="mt-2 flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+          <div className="mt-3 flex flex-col md:flex-row md:items-end md:justify-between gap-3">
 
-    <div>
+            <div>
 
-      <h1 className="text-[30px] md:text-5xl font-black tracking-tight leading-none">
+              <h1 className="text-[30px] md:text-5xl font-black tracking-tight leading-none">
 
-        {gender === "Boy"
-          ? "Boys Collection"
-          : gender === "Girl"
-          ? "Girls Collection"
-          : age === "0-2Y"
-          ? "Newborn Collection"
-          : "All Collection"}
+                {gender === "Boy"
+                  ? "Boys Collection"
+                  : gender === "Girl"
+                    ? "Girls Collection"
+                    : age === "0-2Y"
+                      ? "Newborn Collection"
+                      : "All Collection"}
 
-      </h1>
+              </h1>
 
-      <p className="mt-2 text-sm text-neutral-500 max-w-lg">
+              <p className="mt-2 text-sm text-neutral-500 max-w-lg">
+                Discover premium outfits crafted with comfort, style and love.
+              </p>
 
-        Discover premium outfits crafted with comfort, style and love.
+            </div>
 
-      </p>
+            {(gender || age) && (
+              <Link
+                href="/shop"
+                className="text-xs font-bold text-neutral-500 hover:text-black transition"
+              >
+                View All →
+              </Link>
+            )}
 
-    </div>
+          </div>
 
-    {(gender || age) && (
-      <Link
-        href="/shop"
-        className="text-xs font-bold text-neutral-500 hover:text-black transition"
-      >
-        View All →
-      </Link>
-    )}
+          <div className="mt-8 rounded-[30px] border border-neutral-200 bg-gradient-to-r from-neutral-50 to-white p-6 md:p-8 shadow-sm">
 
-  </div>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
 
-</div>
+              <div>
+
+                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-neutral-400">
+                  Available Products
+                </p>
+
+                <h3 className="mt-2 text-2xl md:text-4xl font-black">
+                  {products.length} Products
+                </h3>
+
+                <p className="mt-2 text-sm text-neutral-500">
+                  Carefully curated premium kidswear.
+                </p>
+
+              </div>
+
+              <div className="rounded-full bg-black px-6 py-3 text-sm font-bold text-white shadow-lg">
+                Premium Collection
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
 
         {/* -------- CATEGORY CARDS -------- */}
 
         <div className="grid grid-cols-3 gap-3 md:gap-5 mb-10">
 
-  <Link href="/shop?age=0-2Y">
+          <Link href="/shop?age=0-2Y">
 
-    <div className="rounded-2xl border border-neutral-200 bg-gradient-to-b from-orange-50 to-white px-3 py-5 md:p-6 flex flex-col items-center justify-center hover:shadow-lg transition-all duration-300">
+            <div className="rounded-2xl border border-neutral-200 bg-gradient-to-b from-orange-50 to-white px-3 py-5 md:p-6 flex flex-col items-center justify-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
 
-      <div className="h-11 w-11 md:h-14 md:w-14 rounded-full bg-orange-100 flex items-center justify-center">
+              <div className="h-11 w-11 md:h-14 md:w-14 rounded-full bg-orange-100 flex items-center justify-center">
 
-        <Baby size={20} />
+                <Baby size={20} />
 
-      </div>
+              </div>
 
-      <p className="mt-3 text-[11px] md:text-sm font-bold">
-        Newborn
-      </p>
+              <p className="mt-3 text-[11px] md:text-sm font-bold">
+                Newborn
+              </p>
 
-    </div>
+            </div>
 
-  </Link>
+          </Link>
 
-  <Link href="/shop?gender=Boy">
+          <Link href="/shop?gender=Boy">
 
-    <div className="rounded-2xl border border-neutral-200 bg-gradient-to-b from-sky-50 to-white px-3 py-5 md:p-6 flex flex-col items-center justify-center hover:shadow-lg transition-all duration-300">
+            <div className="rounded-2xl border border-neutral-200 bg-gradient-to-b from-sky-50 to-white px-3 py-5 md:p-6 flex flex-col items-center justify-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
 
-      <div className="h-11 w-11 md:h-14 md:w-14 rounded-full bg-sky-100 flex items-center justify-center">
+              <div className="h-11 w-11 md:h-14 md:w-14 rounded-full bg-sky-100 flex items-center justify-center">
 
-        <Shirt size={20} />
+                <Shirt size={20} />
 
-      </div>
+              </div>
 
-      <p className="mt-3 text-[11px] md:text-sm font-bold">
-        Boys
-      </p>
+              <p className="mt-3 text-[11px] md:text-sm font-bold">
+                Boys
+              </p>
 
-    </div>
+            </div>
 
-  </Link>
+          </Link>
 
-  <Link href="/shop?gender=Girl">
+          <Link href="/shop?gender=Girl">
 
-    <div className="rounded-2xl border border-neutral-200 bg-gradient-to-b from-pink-50 to-white px-3 py-5 md:p-6 flex flex-col items-center justify-center hover:shadow-lg transition-all duration-300">
+            <div className="rounded-2xl border border-neutral-200 bg-gradient-to-b from-pink-50 to-white px-3 py-5 md:p-6 flex flex-col items-center justify-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
 
-      <div className="h-11 w-11 md:h-14 md:w-14 rounded-full bg-pink-100 flex items-center justify-center">
+              <div className="h-11 w-11 md:h-14 md:w-14 rounded-full bg-pink-100 flex items-center justify-center">
 
-        <Sparkles size={20} />
+                <Sparkles size={20} />
 
-      </div>
+              </div>
 
-      <p className="mt-3 text-[11px] md:text-sm font-bold">
-        Girls
-      </p>
+              <p className="mt-3 text-[11px] md:text-sm font-bold">
+                Girls
+              </p>
 
-    </div>
+            </div>
 
-  </Link>
+          </Link>
 
-</div>
+        </div>
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
 
-  <h2 className="text-xl md:text-3xl font-black">
-    Latest Collection
-  </h2>
+          <h2 className="text-xl md:text-3xl font-black">
+            Explore Collection
+          </h2>
+          <p className="mt-1 text-sm text-neutral-500">
+            Showing {products.length} Products
+          </p>
 
-  <div className="flex overflow-x-auto no-scrollbar gap-2">
+          <div className="flex overflow-x-auto no-scrollbar gap-2">
 
-    <Link
-      href={`/shop?sort=newest${gender ? `&gender=${gender}` : age ? `&age=${age}` : ""}`}
-      className={`whitespace-nowrap px-4 py-2 rounded-full text-[10px] font-bold transition ${
-        !sort || sort === "newest"
-          ? "bg-black text-white"
-          : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
-      }`}
-    >
-      Newest
-    </Link>
+            <Link
+              href={`/shop?sort=newest${gender ? `&gender=${gender}` : age ? `&age=${age}` : ""}`}
+              className={`whitespace-nowrap px-5 py-3 rounded-2xl text-[10px] font-bold transition ${!sort || sort === "newest"
+                  ? "bg-black text-white"
+                  : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                }`}
+            >
+              Newest
+            </Link>
 
-    <Link
-      href={`/shop?sort=price-asc${gender ? `&gender=${gender}` : age ? `&age=${age}` : ""}`}
-      className={`whitespace-nowrap px-4 py-2 rounded-full text-[10px] font-bold transition ${
-        sort === "price-asc"
-          ? "bg-black text-white"
-          : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
-      }`}
-    >
-      Low Price
-    </Link>
+            <Link
+              href={`/shop?sort=price-asc${gender ? `&gender=${gender}` : age ? `&age=${age}` : ""}`}
+              className={`whitespace-nowrap px-4 py-2 rounded-full text-[10px] font-bold transition ${sort === "price-asc"
+                  ? "bg-black text-white"
+                  : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                }`}
+            >
+              Low Price
+            </Link>
 
-    <Link
-      href={`/shop?sort=price-desc${gender ? `&gender=${gender}` : age ? `&age=${age}` : ""}`}
-      className={`whitespace-nowrap px-4 py-2 rounded-full text-[10px] font-bold transition ${
-        sort === "price-desc"
-          ? "bg-black text-white"
-          : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
-      }`}
-    >
-      High Price
-    </Link>
+            <Link
+              href={`/shop?sort=price-desc${gender ? `&gender=${gender}` : age ? `&age=${age}` : ""}`}
+              className={`whitespace-nowrap px-4 py-2 rounded-full text-[10px] font-bold transition ${sort === "price-desc"
+                  ? "bg-black text-white"
+                  : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                }`}
+            >
+              High Price
+            </Link>
 
-  </div>
+          </div>
 
-</div>
+        </div>
         {/* --- PRODUCT GRID --- */}
         {products.length === 0 ? (
-          <div className="py-32 text-center bg-gray-50 rounded-[3rem] border-2 border-dashed border-gray-100">
-            <Search size={40} className="mx-auto text-gray-200 mb-4" />
-            <h2 className="text-xl font-black uppercase text-gray-400">
-              No Collection Matches
+          <div className="flex min-h-[500px] flex-col items-center justify-center rounded-[32px] border border-neutral-200 bg-neutral-50">
+
+            <Search size={50} className="text-neutral-300" />
+
+            <p className="mt-6 text-xs font-black uppercase tracking-[0.22em] text-neutral-400">
+              No Products Found
+            </p>
+
+            <h2 className="mt-3 text-3xl font-black">
+              Nothing matches your search
             </h2>
+
+            <p className="mt-3 max-w-sm text-center text-neutral-500">
+              Try changing your filters or browse all collections.
+            </p>
+
             <Link
               href="/shop"
-              className="mt-4 inline-block text-[10px] font-black border-b-2 border-black pb-1 uppercase tracking-widest"
+              className="mt-8 rounded-full bg-black px-8 py-4 text-xs font-bold uppercase tracking-wider text-white"
             >
-              Back to Store
+              View All Products →
             </Link>
+
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-8 md:gap-x-8 md:gap-y-12">
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-8 md:gap-x-8 md:gap-y-12">
             {products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
+
         )}
+
+        <section className="mt-20 rounded-[32px] border border-neutral-200 bg-neutral-50 p-10 text-center">
+
+          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-neutral-400">
+            Can't Decide?
+          </p>
+
+          <h2 className="mt-3 text-3xl font-black">
+            Discover New Arrivals
+          </h2>
+
+          <p className="mt-3 text-neutral-500">
+            Fresh styles added every week.
+          </p>
+
+          <Link
+            href="/shop?new=true"
+            className="mt-7 inline-flex items-center gap-2 rounded-full bg-black px-8 py-4 text-xs font-bold uppercase tracking-wider text-white transition-all hover:-translate-y-1 hover:shadow-xl"
+          >
+            New Arrivals
+            <ArrowRight size={15} />
+          </Link>
+
+        </section>
       </div>
     </main>
   );

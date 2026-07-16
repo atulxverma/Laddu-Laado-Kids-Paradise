@@ -54,19 +54,19 @@ export default function SearchModal({
   }, [onClose])
 
   const handleSearch = (q: string) => {
-  if (!q.trim()) return
+    if (!q.trim()) return
 
-  const params = new URLSearchParams()
+    const params = new URLSearchParams()
 
-  params.set("q", q.trim())
+    params.set("q", q.trim())
 
-  if (activeFilter !== "All") {
-    params.set("gender", activeFilter)
+    if (activeFilter !== "All") {
+      params.set("gender", activeFilter)
+    }
+
+    onClose()
+    router.push(`/shop?${params.toString()}`)
   }
-
-  onClose()
-  router.push(`/shop?${params.toString()}`)
-}
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -93,21 +93,26 @@ export default function SearchModal({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -16, scale: 0.98 }}
             transition={{ type: "spring", damping: 30, stiffness: 400 }}
-            className="fixed top-4 left-1/2 -translate-x-1/2 z-[70] w-full max-w-2xl px-4"
+            className="fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto p-4"
           >
-            <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+            <div className="w-full max-w-3xl rounded-[32px] border border-neutral-200 bg-white shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
 
               {/* Input */}
               <form onSubmit={handleSubmit}>
                 <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100">
-                  <Search size={17} className="text-gray-400 shrink-0" />
+                  <Search size={20} className="text-gray-400 shrink-0" />
                   <input
                     ref={inputRef}
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Search for products, categories..."
-                    className="flex-1 text-sm text-black placeholder:text-gray-400 outline-none bg-transparent"
+                    className="flex-1 text-base md:text-lg font-medium text-black placeholder:text-neutral-300 outline-none bg-transparent"
                   />
+                  {query && (
+                    <p className="mt-2 px-5 text-[11px] text-neutral-400">
+                      Press <span className="font-bold">Enter</span> to search
+                    </p>
+                  )}
                   {query && (
                     <button
                       type="button"
@@ -118,12 +123,24 @@ export default function SearchModal({
                     </button>
                   )}
                   <button
-                    type="button"
-                    onClick={onClose}
-                    className="text-[10px] text-gray-400 hover:text-gray-600 transition-colors ml-1 shrink-0 border border-gray-200 px-2 py-1 rounded-lg font-mono"
-                  >
-                    ESC
-                  </button>
+  type="button"
+  onClick={onClose}
+  className="
+    flex h-9 w-9 md:h-auto md:w-auto
+    items-center justify-center
+    rounded-full border border-neutral-200
+    md:px-4 md:py-2
+    text-neutral-500
+    hover:bg-neutral-100
+    transition-all
+  "
+>
+  <X className="h-4 w-4 md:hidden" />
+
+  <span className="hidden md:block text-xs font-bold uppercase tracking-wider">
+    Close
+  </span>
+</button>
                 </div>
               </form>
 
@@ -137,11 +154,10 @@ export default function SearchModal({
                     key={f}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setActiveFilter(f)}
-                    className={`shrink-0 px-3 py-1 rounded-full text-[10px] font-bold transition-all ${
-                      activeFilter === f
+                    className={`shrink-0 px-4 py-2 rounded-2xl text-xs font-bold transition-all ${activeFilter === f
                         ? "bg-black text-white"
-                        : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-                    }`}
+                        : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                      }`}
                   >
                     {f}
                   </motion.button>
@@ -149,7 +165,7 @@ export default function SearchModal({
               </div>
 
               {/* Body */}
-              <div className="p-5">
+              <div className="flex-1 overflow-y-auto p-5">
                 {query.trim() ? (
                   <div>
                     <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-3">
@@ -157,14 +173,14 @@ export default function SearchModal({
                     </p>
                     <button
                       onClick={() => handleSearch(query)}
-                      className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors text-left group"
+                      className="w-full flex items-center gap-3 p-4 rounded-2xl hover:bg-neutral-50 hover:-translate-y-1 hover:shadow-md transition-colors text-left group"
                     >
                       <div className="h-8 w-8 bg-black rounded-xl flex items-center justify-center shrink-0">
                         <Search size={14} className="text-white" />
                       </div>
                       <div>
                         <p className="text-sm font-semibold text-black">
-                          Search for &quot;{query}&quot;
+                          Search results for &quot;{query}&quot;
                         </p>
                         {activeFilter !== "All" && (
                           <p className="text-xs text-gray-400">in {activeFilter}</p>
@@ -181,7 +197,7 @@ export default function SearchModal({
                     <div>
                       <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-3 flex items-center gap-1.5">
                         <TrendingUp size={10} />
-                        Trending Searches
+                        Popular Searches
                       </p>
                       <div className="space-y-0.5">
                         {trendingSearches.map((term, i) => (
@@ -191,7 +207,7 @@ export default function SearchModal({
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: i * 0.04 }}
                             onClick={() => handleSearch(term)}
-                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors text-left group"
+                            className="w-full flex items-center gap-4 px-3 py-2.5 rounded-xl hover:bg-neutral-50 hover:translate-x-1 transition-colors text-left group"
                           >
                             <div className="h-7 w-7 bg-gray-100 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-gray-200 transition-colors">
                               <TrendingUp size={11} className="text-gray-400" />
@@ -210,7 +226,7 @@ export default function SearchModal({
                     {/* Categories */}
                     <div>
                       <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-3">
-                        Browse by Category
+                        Explore Collections
                       </p>
                       <div className="grid grid-cols-2 gap-2">
                         {genderFilters.map((cat) => (
@@ -218,7 +234,7 @@ export default function SearchModal({
                             key={cat}
                             href={`/shop?gender=${cat}`}
                             onClick={onClose}
-                            className="flex items-center gap-2 p-3 rounded-xl border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-all group"
+                            className="flex items-center gap-2 p-4 rounded-xl border border-neutral-200 hover:border-gray-200 hover:bg-neutral-50 hover:translate-x-1 transition-all group"
                           >
                             <span className="text-sm font-medium text-gray-700 group-hover:text-black transition-colors">
                               {cat}
@@ -232,6 +248,29 @@ export default function SearchModal({
                     </div>
                   </div>
                 )}
+              </div>
+              <div className="border-t border-neutral-100 bg-neutral-50 px-6 py-5">
+
+                <p className="text-[10px] uppercase tracking-[0.22em] font-black text-neutral-400">
+                  Need Inspiration?
+                </p>
+
+                <h2 className="mt-2 text-xl font-black">
+                  Find Your Perfect Outfit
+                </h2>
+
+                <p className="mt-2 text-sm text-neutral-500">
+                  Explore our newest arrivals and trending collections.
+                </p>
+
+                <Link
+                  href="/shop?new=true"
+                  onClick={onClose}
+                  className="mt-5 inline-flex items-center gap-2 rounded-full bg-black px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-white hover:-translate-y-1 transition-all"
+                >
+                  New Arrivals →
+                </Link>
+
               </div>
 
             </div>
