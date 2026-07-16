@@ -1,7 +1,6 @@
 import { db } from "@/lib/db"
 import Link from "next/link"
 import HomeProductCarousel from "@/components/HomeProductCarousel"
-import NewsletterForm from "@/components/NewsletterForm"
 import {
 Truck,
 ShieldCheck,
@@ -89,7 +88,7 @@ export default async function HomePage() {
               {title}
             </h2>
 
-            <p className="text-[11px] text-gray-500 mt-1 font-medium">
+            <p className="text-[10px] text-gray-500 mt-1 font-medium">
               Handpicked premium styles
             </p>
           </div>
@@ -130,7 +129,7 @@ export default async function HomePage() {
       }),
 
       db.review.findMany({
-        take: 6,
+        take: 3,
         orderBy: { createdAt: "desc" }
       })
     ])
@@ -172,44 +171,103 @@ export default async function HomePage() {
 
   return (
     <div className="bg-white">
-      {/* ── DYNAMIC HERO ── */}
-      <section className="max-w-7xl mx-auto px-4 pt-6 pb-4 md:py-4">
-        <div className="relative rounded-[32px] overflow-hidden h-[240px] sm:h-[320px] md:h-[550px] bg-gray-100 shadow-xl">
-          <img src={heroBanner.imageUrl} alt="Hero" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-black/20 flex flex-col items-center justify-center text-white text-center p-6">
-            <span className="bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-4 border border-white/20">
-              {heroBanner.label}
-            </span>
-            <h1 className="text-2xl sm:text-3xl md:text-7xl font-black italic tracking-tighter uppercase leading-tight md:leading-none max-w-4xl drop-shadow-2xl">
-              {heroBanner.title}
-            </h1>
-            <Link
-              href="/shop"
-              className="
-    mt-5
-    md:mt-10
-    bg-white
-    text-black
-    px-5
-    md:px-10
-    py-2.5
-    md:py-5
-    rounded-full
-    text-[10px]
-    md:text-xs
-    font-black
-    uppercase
-    tracking-[0.18em]
-    hover:scale-105
-    transition-all
-    shadow-lg
+      {/* ── PREMIUM HERO ── */}
+
+<section className="max-w-7xl mx-auto px-3 md:px-4 pt-3 pb-5">
+
+  <div className="relative overflow-hidden rounded-[28px] md:rounded-[42px] h-[240px] sm:h-[320px] md:h-[560px] bg-neutral-100 shadow-xl">
+
+    <img
+      src={heroBanner.imageUrl}
+      alt="Hero"
+      className="absolute inset-0 h-full w-full object-cover"
+    />
+
+    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/10" />
+
+    <div className="absolute inset-0 flex flex-col justify-end items-start p-5 md:p-12">
+
+      <span
+        className="
+        mb-3
+        rounded-full
+        bg-white/20
+        backdrop-blur-md
+        border
+        border-white/20
+        px-3
+        py-1
+        text-[9px]
+        md:text-[10px]
+        font-black
+        uppercase
+        tracking-[0.25em]
+        text-white
+      "
+      >
+        {heroBanner.label}
+      </span>
+
+      <h1
+  className="
+  max-w-[95%]
+  text-[22px]
+  sm:text-[26px]
+  md:text-6xl
+  leading-tight
+  font-black
+  italic
+  uppercase
+  tracking-tight
+  text-white
   "
-            >
-              Explore Collection →
-            </Link>
-          </div>
-        </div>
-      </section>
+>
+  {heroBanner.title}
+</h1>
+
+      <p
+        className="
+        mt-3
+        max-w-xs
+        text-[12px]
+        md:text-base
+        text-white/80
+      "
+      >
+        Discover premium fashion crafted for your little stars.
+      </p>
+
+      <Link
+        href="/shop"
+        className="
+mt-5
+inline-flex
+items-center
+gap-2
+rounded-full
+bg-white
+px-5
+md:px-8
+py-3
+md:py-4
+text-[10px]
+md:text-xs
+font-black
+uppercase
+tracking-[0.18em]
+text-black
+transition-all
+hover:scale-105
+"
+      >
+        Explore Collection →
+      </Link>
+
+    </div>
+
+  </div>
+
+</section>
 
 
 
@@ -287,42 +345,7 @@ export default async function HomePage() {
 
 </section>
 
-      {/* ── BROWSE BY CATEGORIES ── */}
-      <section className="max-w-7xl mx-auto px-4 py-12">
-        <div className="flex items-center justify-between mb-10">
-          <h2 className="text-xl font-black italic tracking-tighter uppercase">Browse Categories</h2>
-          <Link href="/shop" className="text-[9px] font-black border-b-2 border-black pb-1 tracking-widest">VIEW ALL</Link>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {categories.map((cat) => (
-            <Link key={cat.id} href={`/shop?category=${cat.name.toLowerCase()}`}>
-              <div className="relative rounded-3xl overflow-hidden h-52 bg-gray-100 group">
-
-                {cat.imageUrl ? (
-                  <img
-                    src={cat.imageUrl}
-                    alt={cat.name}
-                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                  />
-                ) : (
-                  <div className="absolute inset-0 bg-gray-100" />
-                )}
-
-                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-all duration-500" />
-
-                <div className="absolute bottom-4 left-4">
-                  <span className="bg-white text-black text-[10px] font-black uppercase px-4 py-2 rounded-xl shadow-lg">
-                    {cat.name}
-                  </span>
-                </div>
-
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section >
-
-      {/* ── POPULAR PRODUCTS ── */}
+      
       {/* ── NEW ARRIVALS ── */}
       <section className="max-w-7xl mx-auto px-4 py-12">
 
@@ -370,34 +393,126 @@ export default async function HomePage() {
         products={newbornProducts}
       />
 
-      {/* ── DYNAMIC REVIEWS SECTION ── */}
-      <section className="max-w-7xl mx-auto px-4 py-24 bg-gray-50/50 rounded-[3rem] my-10">
-        <div className="text-center mb-12 space-y-4">
-          <h2 className="text-4xl font-black italic tracking-tighter uppercase leading-none">The Community</h2>
-          <p className="text-gray-400 text-sm font-medium uppercase tracking-[0.2em]">Verified stories from our customers</p>
+      {/* ───────────── LOVED BY PARENTS ───────────── */}
+
+<section className="max-w-7xl mx-auto px-4 py-16 md:py-24">
+
+  <div className="text-center mb-12">
+
+    <span className="inline-flex items-center rounded-full bg-pink-50 px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-pink-600">
+      Loved by Parents ❤️
+    </span>
+
+    <h2 className="mt-5 text-2xl md:text-5xl font-black tracking-tight">
+      Trusted by Thousands of Families
+    </h2>
+
+    <p className="mt-4 max-w-2xl mx-auto text-[12px] md:text-base text-neutral-500 leading-6 md:leading-7">
+      Soft fabrics, premium quality and adorable designs that parents absolutely love.
+    </p>
+
+  </div>
+
+  {/* Stats */}
+
+  <div className="grid grid-cols-3 gap-3 md:gap-6 mb-12">
+
+    <div className="rounded-3xl border border-neutral-200 bg-white p-3 md:p-5 text-center shadow-sm">
+
+      <h3 className="text-lg md:text-4xl md:text-4xl font-black">
+        4.9★
+      </h3>
+
+      <p className="mt-2 text-[9px] uppercase tracking-widest text-neutral-500">
+        Average Rating
+      </p>
+
+    </div>
+
+    <div className="rounded-3xl border border-neutral-200 bg-white p-3 md:p-5 text-center shadow-sm">
+
+      <h3 className="text-lg md:text-4xl md:text-4xl font-black">
+        5K+
+      </h3>
+
+      <p className="mt-2 text-[9px] uppercase tracking-widest text-neutral-500">
+        Happy Parents
+      </p>
+
+    </div>
+
+    <div className="rounded-3xl border border-neutral-200 bg-white p-3 md:p-5 text-center shadow-sm">
+
+      <h3 className="text-lg md:text-4xl md:text-4xl font-black">
+        98%
+      </h3>
+
+      <p className="mt-2 text-[9px] uppercase tracking-widest text-neutral-500">
+        Repeat Orders
+      </p>
+
+    </div>
+
+  </div>
+
+  {/* Reviews */}
+
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+    {reviews.slice(0, 3).map((review) => (
+
+      <div
+        key={review.id}
+        className="rounded-[30px] border border-neutral-200 bg-white p-4 md:p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+      >
+
+        <div className="flex items-center gap-4">
+
+          <img
+            src={review.userImage || "https://ui-avatars.com/api/?background=random&name=Parent"}
+            alt={review.userName}
+            className="h-11 w-11 md:h-14 md:w-14 rounded-full object-cover border"
+          />
+
+          <div>
+
+            <h4 className="font-black">
+              {review.userName}
+            </h4>
+
+            <p className="text-yellow-500 text-sm">
+              {Array.from({ length: review.rating }).map((_, i) => (
+  <span key={i}>★</span>
+))}
+            </p>
+
+          </div>
+
         </div>
 
-        <div className="flex flex-wrap justify-center gap-4">
-          {reviews.length > 0 ? (
-            <div className="flex justify-center -space-x-4 mb-10">
-              {reviews.map((r, i) => (
-                <img key={i} src={r.userImage || "https://avatar.vercel.sh/user"} className="w-16 h-16 rounded-full border-4 border-white shadow-xl bg-gray-200 object-cover" alt="User" />
-              ))}
-              <div className="w-16 h-16 rounded-full border-4 border-white shadow-xl bg-black flex items-center justify-center text-white text-[10px] font-black">
-                {reviews.length}+
-              </div>
-            </div>
-          ) : (
-            <p className="text-gray-300 italic font-medium">Join our growing community...</p>
-          )}
-        </div>
-      </section>
+        <p className="mt-5 text-[12px] md:text-[15px] leading-6 md:leading-7 text-neutral-600 line-clamp-4">
 
-      {/* ── NEWSLETTER ── */}
-      <section className="max-w-7xl mx-auto px-4 pb-20">
-        <NewsletterForm />
-      </section>
+          {review.comment.length > 120
+  ? review.comment.slice(0, 120) + "..."
+  : review.comment}
 
+        </p>
+
+      </div>
+
+    ))}
+
+  </div>
+
+</section>
+<div className="mt-12 text-center">
+  <Link
+    href="/shop"
+    className="inline-flex items-center gap-2 rounded-full bg-black px-6 py-3 text-[10px] md:text-sm font-black uppercase tracking-wider text-white hover:scale-105 transition-all"
+  >
+    Shop Collection →
+  </Link>
+</div>
 
     </div >
   )

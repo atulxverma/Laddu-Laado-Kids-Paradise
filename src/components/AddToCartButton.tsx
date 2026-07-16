@@ -72,17 +72,17 @@ export default function AddToCartButton({ product }: { product: any }) {
   </span>
 </div>
 
-        <div className="grid grid-cols-4 md:grid-cols-5 gap-3">
+       <div className="grid grid-cols-4 md:grid-cols-5 gap-2 md:gap-3">
   {availableSizes.map((size) => (
     <button
       key={size}
       type="button"
       onClick={() => setSelectedSize(size)}
-      className={`h-[58px] rounded-[22px] border-2 font-black text-sm tracking-wide transition-all duration-300
+      className={`h-12 md:h-14 rounded-2xl border-2 text-[13px] md:text-sm font-black transition-all duration-300
       ${
         selectedSize === size
-          ? "bg-black text-white border-black shadow-[0_15px_40px_rgba(0,0,0,.18)] scale-[1.04]"
-          : "bg-white border-gray-200 hover:bg-gray-50 hover:border-black hover:-translate-y-1 hover:shadow-xl"
+          ? "bg-black text-white border-black shadow-lg scale-105"
+          : "bg-white border-gray-200 hover:border-black hover:bg-gray-50"
       }`}
     >
       {size}
@@ -93,40 +93,39 @@ export default function AddToCartButton({ product }: { product: any }) {
 
 
       {/* Actions */}
-      <div className="lg:sticky lg:bottom-5 z-20 rounded-[30px] border border-gray-200 bg-white/95 backdrop-blur-xl p-3 shadow-2xl flex gap-3">
+      <div className="mt-2 flex gap-3 rounded-3xl border border-gray-200 bg-white p-2 shadow-lg">
 
-        <button
-  type="button"
-  onClick={handleAdd}
-  disabled={!selectedSize || isOutOfStock}
-  className="flex-1 h-[64px] rounded-[24px] bg-black text-white font-black uppercase tracking-[0.22em] text-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
->
-  {isOutOfStock
-    ? "OUT OF STOCK"
-    : !selectedSize
-      ? "SELECT SIZE"
+  <button
+    type="button"
+    onClick={handleAdd}
+    disabled={!selectedSize || isOutOfStock}
+    className="flex-1 h-14 rounded-2xl bg-black text-white text-[11px] md:text-xs font-black uppercase tracking-[0.18em] transition-all hover:bg-neutral-800 active:scale-95 disabled:opacity-40"
+  >
+    {isOutOfStock
+      ? "OUT OF STOCK"
+      : !selectedSize
+      ? "CHOOSE SIZE"
       : added
-        ? "ADDED ✓"
-        : "ADD TO BAG"}
-</button>
+      ? "ADDED ✓"
+      : "ADD TO CART"}
+  </button>
 
-        <button
-  type="button"
-  onClick={() => toggleItem(product)}
-  className="group h-[64px] w-[64px] rounded-[24px] border border-gray-200 bg-white flex items-center justify-center transition-all duration-300 hover:bg-black hover:-translate-y-1 hover:shadow-xl"
->
-  <Heart
-    size={26}
-    strokeWidth={2}
-    className={`transition-all duration-300 ${
-      isLiked
-        ? "fill-red-500 text-red-500"
-        : "text-gray-500 group-hover:text-white"
-    }`}
-  />
-</button>
+  <button
+    type="button"
+    onClick={() => toggleItem(product)}
+    className="h-14 w-14 rounded-2xl border border-gray-200 bg-white flex items-center justify-center hover:bg-black hover:text-white transition-all"
+  >
+    <Heart
+      size={22}
+      className={
+        isLiked
+          ? "fill-red-500 text-red-500"
+          : "text-gray-500"
+      }
+    />
+  </button>
 
-      </div>
+</div>
     </div>
   )
 }

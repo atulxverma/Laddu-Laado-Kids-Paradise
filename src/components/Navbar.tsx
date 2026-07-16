@@ -34,7 +34,7 @@ import {
 const genderFilters = [
   {
     label: "Newborn",
-    href: "/shop?ageGroup=0-2Y",
+    href: "/shop?age=0-2Y",
     icon: Baby,
   },
   {
@@ -304,8 +304,8 @@ export default function Navbar() {
             ease: [0.4, 0, 0.2, 1],
           }}
           className={`bg-white border-b border-gray-100 ${scrolled
-              ? "pointer-events-none"
-              : ""
+            ? "pointer-events-none"
+            : ""
             }`}
         >
           <div
@@ -740,8 +740,8 @@ export default function Navbar() {
             ease: [0.4, 0, 0.2, 1],
           }}
           className={`hidden md:block border-b transition-colors duration-300 ${scrolled
-              ? "bg-white/60 backdrop-blur-2xl border-white/20 shadow-lg"
-              : "bg-white/90 backdrop-blur-md border-gray-100"
+            ? "bg-white/60 backdrop-blur-2xl border-white/20 shadow-lg"
+            : "bg-white/90 backdrop-blur-md border-gray-100"
             }`}
         >
           <div
@@ -799,8 +799,8 @@ export default function Navbar() {
                   setSearchOpen(true)
                 }
                 className={`flex items-center gap-3 w-full max-w-md rounded-xl px-4 py-1.5 transition-all border ${scrolled
-                    ? "bg-white/50 backdrop-blur-md border-white/30 hover:bg-white/80"
-                    : "bg-gray-50 border-gray-200 hover:border-gray-300 hover:bg-gray-100"
+                  ? "bg-white/50 backdrop-blur-md border-white/30 hover:bg-white/80"
+                  : "bg-gray-50 border-gray-200 hover:border-gray-300 hover:bg-gray-100"
                   }`}
               >
                 <Search
@@ -981,62 +981,60 @@ whitespace-nowrap
                   </span>
                 </Link>
 
-                <div className="flex items-center">
+                <div className="flex items-center gap-1">
+
                   <button
                     type="button"
-                    onClick={() =>
-                      setSearchOpen(true)
-                    }
+                    onClick={() => setSearchOpen(true)}
                     className="
-                      h-10
-                      w-10
-                      flex
-                      items-center
-                      justify-center
-                    "
+      h-10
+      w-10
+      flex
+      items-center
+      justify-center
+      rounded-full
+    "
                   >
-                    <Search size={19} />
+                    <Search size={20} />
                   </button>
 
                   <Link
                     href="/cart"
                     className="
-                      relative
-                      h-10
-                      w-10
-                      flex
-                      items-center
-                      justify-center
-                    "
+      relative
+      h-10
+      w-10
+      flex
+      items-center
+      justify-center
+    "
                   >
-                    <ShoppingBag
-                      size={19}
-                    />
+                    <ShoppingBag size={19} />
 
-                    {mounted &&
-                      cartCount > 0 && (
-                        <span
-                          className="
-                            absolute
-                            top-0
-                            right-0
-                            min-w-[16px]
-                            h-4
-                            px-1
-                            bg-black
-                            text-white
-                            text-[8px]
-                            font-black
-                            rounded-full
-                            flex
-                            items-center
-                            justify-center
-                          "
-                        >
-                          {cartCount}
-                        </span>
-                      )}
+                    {mounted && cartCount > 0 && (
+                      <span
+                        className="
+          absolute
+          top-0
+          right-0
+          min-w-[16px]
+          h-4
+          px-1
+          bg-black
+          text-white
+          text-[8px]
+          font-black
+          rounded-full
+          flex
+          items-center
+          justify-center
+        "
+                      >
+                        {cartCount}
+                      </span>
+                    )}
                   </Link>
+
                 </div>
               </div>
             </motion.div>
@@ -1102,7 +1100,7 @@ whitespace-nowrap
                 left-0
                 bottom-0
                 z-[70]
-                w-[280px]
+                w-[300px]
                 max-w-[85vw]
                 bg-white
                 shadow-2xl
@@ -1113,7 +1111,7 @@ whitespace-nowrap
             >
               <div
                 className="
-                  p-5
+                  px-4 py-4
                   border-b
                   border-gray-100
                   flex
@@ -1180,12 +1178,12 @@ whitespace-nowrap
 
               <div
                 className="
-                  flex-1
-                  overflow-y-auto
-                  p-5
-                  space-y-6
-                  no-scrollbar
-                "
+  flex-1
+  overflow-y-auto
+  px-4 py-4
+  space-y-4
+  no-scrollbar
+"
               >
                 <button
                   type="button"
@@ -1193,19 +1191,7 @@ whitespace-nowrap
                     setMenuOpen(false)
                     setSearchOpen(true)
                   }}
-                  className="
-                    w-full
-                    flex
-                    items-center
-                    gap-3
-                    bg-gray-50
-                    border
-                    border-gray-100
-                    rounded-2xl
-                    px-4
-                    py-3
-                    text-gray-400
-                  "
+                  className="w-full h-11 flex items-center gap-2.5 rounded-xl border border-gray-200 bg-gray-50 px-3 text-gray-500 text-sm hover:bg-white transition-all"
                 >
                   <Search size={18} />
 
@@ -1242,8 +1228,8 @@ whitespace-nowrap
                           font-bold
                           text-black
                           bg-gray-50
-                          p-3.5
-                          rounded-2xl
+                          h-11 px-3
+                          rounded-xl
                         "
                       >
                         <Package
@@ -1267,8 +1253,8 @@ whitespace-nowrap
                           font-bold
                           text-black
                           bg-gray-50
-                          p-3.5
-                          rounded-2xl
+                          h-11 px-3
+rounded-xl
                         "
                       >
                         <div className="flex items-center gap-3">
@@ -1316,8 +1302,8 @@ whitespace-nowrap
                           w-full
                           bg-black
                           text-white
-                          py-3.5
-                          rounded-2xl
+                          h-11
+rounded-xl
                           font-black
                           uppercase
                           text-xs
@@ -1353,18 +1339,28 @@ whitespace-nowrap
                           setMenuOpen(false)
                         }
                         className="
-                          flex
-                          items-center
-                          justify-between
-                          text-base
-                          font-black
-                          italic
-                          border-b
-                          border-gray-100
-                          py-3
-                        "
+flex
+items-center
+justify-between
+h-12
+px-3
+rounded-xl
+hover:bg-gray-50
+transition-all
+"
                       >
-                        {filter.label}
+                        <div className="flex items-center gap-3">
+
+                          <filter.icon
+                            size={17}
+                            className="text-gray-500"
+                          />
+
+                          <span className="text-sm font-semibold">
+                            {filter.label}
+                          </span>
+
+                        </div>
 
                         <span className="text-gray-300">
                           →
@@ -1376,10 +1372,7 @@ whitespace-nowrap
 
                 <div
                   className="
-                    pt-2
-                    border-t
-                    border-gray-100
-                    space-y-3
+                    px-4 py-4 border-t border-gray-100 space-y-3 bg-gray-50/40
                   "
                 >
                   {navLinks.map((link) => (
@@ -1425,10 +1418,10 @@ whitespace-nowrap
                         justify-center
                         gap-2
                         w-full
-                        bg-amber-600
+                        bg-black
                         text-white
-                        py-3.5
-                        rounded-2xl
+                        h-11
+rounded-xl
                         text-xs
                         font-black
                         uppercase
@@ -1451,11 +1444,12 @@ whitespace-nowrap
                         flex
                         items-center
                         gap-3
-                        bg-gray-50
-                        p-3
-                        rounded-xl
-                        border
-                        border-gray-100
+                       bg-white
+p-3
+rounded-2xl
+border
+border-gray-200
+shadow-sm
                       "
                     >
                       <UserButton afterSignOutUrl="/" />

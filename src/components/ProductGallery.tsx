@@ -345,8 +345,8 @@ backdrop-blur-md
         {/* MAIN IMAGE */}
         <div
           onClick={() => {
-            setZoom(1)
-            setLightboxOpen(true)
+            setZoom(1);
+            setLightboxOpen(true);
           }}
           className="
 relative
@@ -504,7 +504,7 @@ border-gray-200
                 <img
                   src={image.url}
                   alt={`Product ${index + 1}`}
-                  className="w-full h-full object-contain bg-white p-1"a
+                  className="w-full h-full object-contain bg-white p-1"
                 />
               </button>
             ))}
