@@ -63,7 +63,7 @@ function SidebarContent({
                 {isActive && (
                   <motion.div
                     layoutId="admin-active"
-                    className="absolute inset-0 bg-black rounded-xl"
+                    className="absolute inset-0 bg-gradient-to-r from-black to-neutral-800 rounded-2xl shadow-lg"
                     transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
                   />
                 )}
@@ -118,7 +118,7 @@ export default function AdminSidebar() {
       </button>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-64 shrink-0 h-screen sticky top-0 bg-white border-r border-gray-100 flex-col shadow-sm">
+      <aside className="hidden md:flex w-72 shrink-0 h-screen sticky top-0 bg-white border-r border-gray-100 flex-col shadow-xl">
         <SidebarContent pathname={pathname} onClose={() => {}} />
       </aside>
 
@@ -138,7 +138,7 @@ export default function AdminSidebar() {
               animate={{ x: 0 }}
               exit={{ x: -280 }}
               transition={{ type: "spring", damping: 28, stiffness: 300 }}
-              className="fixed top-0 left-0 bottom-0 z-50 w-64 bg-white border-r border-gray-100 md:hidden shadow-2xl"
+              className="fixed top-0 left-0 bottom-0 z-50 w-72 bg-white border-r border-gray-100 md:hidden shadow-2xl"
             >
               <SidebarContent pathname={pathname} onClose={() => setMobileOpen(false)} />
             </motion.aside>

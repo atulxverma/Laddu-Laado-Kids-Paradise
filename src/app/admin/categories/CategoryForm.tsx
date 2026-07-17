@@ -75,7 +75,7 @@ export default function CategoryForm({
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm mx-4">
+          <div className="w-full max-w-md rounded-3xl bg-white p-7 shadow-2xl mx-4">
 
             <div className="flex justify-between mb-5">
               <h2 className="font-bold">
@@ -122,7 +122,7 @@ export default function CategoryForm({
           <button
             type="button"
             onClick={() => open()}
-            className="h-20 w-20 border-2 border-dashed rounded-2xl flex items-center justify-center"
+            className="flex h-20 w-20 items-center justify-center rounded-2xl border-2 border-dashed border-neutral-200 transition hover:border-black"
           >
             <ImagePlus />
           </button>

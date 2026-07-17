@@ -1,19 +1,26 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { CldUploadWidget } from "next-cloudinary"
 import { ImagePlus, Trash2, X, Package, Pencil } from "lucide-react"
 import { createProduct, updateProduct } from "@/lib/actions"
+import { createPortal } from "react-dom"
 
-const sizeOptions = [
-  "0-2Y",
-  "2-4Y",
-  "4-6Y",
-  "6-8Y",
-  "8-10Y",
-  "10-12Y",
-  "12-14Y",
-]
+const sizeOptions = ["0-2Y", "2-4Y", "4-6Y", "6-8Y", "8-10Y", "10-12Y", "12-14Y"]
+
+const createEmptyForm = () => ({
+  name: "",
+  description: "",
+  price: "",
+  categoryId: "",
+  size: "",
+  color: "",
+  gender: "Newborn",
+  stock: "10",
+  ageGroup: "0-2Y",
+  isNewArrival: true,
+})
 
 export default function ProductForm({
   categories,
@@ -22,9 +29,10 @@ export default function ProductForm({
   categories: any[]
   product?: any
 }) {
-  const [images, setImages] = useState<string[]>(
-    product?.images?.map((img: any) => img.url) || []
-  )
+  const router = useRouter()
+  const isEdit = Boolean(product)
+  const [open, setOpen] = useState(!isEdit)
+  const [images, setImages] = useState<string[]>(product?.images?.map((img: any) => img.url) || [])
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({
     name: product?.name || "",
@@ -38,566 +46,231 @@ export default function ProductForm({
     ageGroup: product?.ageGroup || "0-2Y",
     isNewArrival: product?.isNewArrival ?? true,
   })
+  const [customDetails, setCustomDetails] = useState(product?.specifications || [{ key: "", value: "" }])
+  const [mounted, setMounted] = useState(false)
 
-  const [customDetails, setCustomDetails] = useState(
-    product?.specifications || [
-      { key: "", value: "" }
-    ]
-  )
+useEffect(() => {
+  setMounted(true)
+}, [])
 
-  const addDetail = () => setCustomDetails([...customDetails, { key: "", value: "" }])
-  const removeDetail = (index: number) => setCustomDetails(customDetails.filter((_, i) => i !== index))
-  const updateDetail = (index: number, field: "key" | "value", val: string) => {
-    const newDetails = [...customDetails]
-    newDetails[index][field] = val
-    setCustomDetails(newDetails)
+  const inputStyle = "w-full rounded-xl border border-gray-100 bg-gray-50/30 px-4 py-3 text-sm font-medium outline-none transition-all focus:border-black"
+
+  const addDetail = () => setCustomDetails((details: { key: string; value: string }[]) => [...details, { key: "", value: "" }])
+
+  const removeDetail = (index: number) => {
+    setCustomDetails((details: { key: string; value: string }[]) => details.filter((_, detailIndex) => detailIndex !== index))
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (images.length === 0) return alert("Please upload images first")
+  const updateDetail = (index: number, field: "key" | "value", value: string) => {
+    setCustomDetails((details: { key: string; value: string }[]) => details.map((detail, detailIndex) => detailIndex === index ? { ...detail, [field]: value } : detail))
+  }
+
+  const closeModal = () => {
+    if (!loading) setOpen(false)
+  }
+
+  const resetCreateForm = () => {
+    setImages([])
+    setForm(createEmptyForm())
+    setCustomDetails([{ key: "", value: "" }])
+  }
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault()
+
+    if (images.length === 0) {
+      alert("Please upload images first")
+      return
+    }
+
     setLoading(true)
 
-    const specifications = customDetails.filter(
-      d => d.key && d.value
-    )
+    const specifications = customDetails.filter((detail: { key: string; value: string }) => detail.key && detail.value)
 
-    const res = product
-      ? await updateProduct(product.id, {
-        ...form,
-        description: form.description,
-        specifications,
-        images,
-      })
-      : await createProduct({
-        ...form,
-        description: form.description,
-        specifications,
-        images,
-      })
+    const response = product
+      ? await updateProduct(product.id, { ...form, description: form.description, specifications, images })
+      : await createProduct({ ...form, description: form.description, specifications, images })
 
-    if (res.success) {
-      alert(
-        product
-          ? "Product updated successfully!"
-          : "Product published successfully!"
-      )
-      window.location.reload()
+    if (response.success) {
+      alert(product ? "Product updated successfully!" : "Product published successfully!")
+
+      if (product) {
+        setOpen(false)
+      } else {
+        resetCreateForm()
+      }
+
+      router.refresh()
     } else {
-      alert(res.error) // Yeh ab sahi error batayega
+      alert(response.error)
     }
+
     setLoading(false)
   }
 
-  const inputStyle = "w-full border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black transition-all bg-gray-50/30 font-medium"
+  const editorForm = (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-3">
+        <p className="text-[10px] font-black uppercase text-gray-400">Media</p>
 
-  // const isEdit = !!product
-  const [open, setOpen] = useState(!product)
-  if (product && !open) {
+        <div className="flex flex-wrap gap-3">
+          {images.map((url, index) => (
+            <div key={url} className="relative h-24 w-20 overflow-hidden rounded-2xl border border-gray-100 shadow-sm">
+              <img src={url} className="h-full w-full object-cover" alt="" />
+              <button type="button" onClick={() => setImages((currentImages) => currentImages.filter((_, imageIndex) => imageIndex !== index))} aria-label="Remove image" className="absolute right-1 top-1 rounded-full bg-red-500 p-1 text-white shadow-lg">
+                <X size={10} />
+              </button>
+            </div>
+          ))}
+
+          <CldUploadWidget uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET} onSuccess={(result: any) => {
+            const imageUrl = result?.info?.secure_url
+            if (imageUrl) setImages((currentImages) => [...currentImages, imageUrl])
+          }}>
+            {({ open: openUpload }) => (
+              <button type="button" onClick={() => openUpload()} className="flex h-24 w-20 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-100 text-gray-300 transition-all hover:border-black hover:text-black">
+                <ImagePlus size={20} />
+                <span className="mt-1 text-[9px] font-bold">ADD</span>
+              </button>
+            )}
+          </CldUploadWidget>
+        </div>
+      </div>
+
+      <input required placeholder="Product Title" value={form.name} className={inputStyle} onChange={(event) => setForm({ ...form, name: event.target.value })} />
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-black uppercase text-gray-400">Price ₹</label>
+          <input required type="number" value={form.price} placeholder="999" className={inputStyle} onChange={(event) => setForm({ ...form, price: event.target.value })} />
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="flex items-center gap-1 text-[10px] font-black uppercase text-gray-400">
+            <Package size={10} />
+            Stock Quantity
+          </label>
+          <input required type="number" value={form.stock} className={inputStyle} onChange={(event) => setForm({ ...form, stock: event.target.value })} />
+        </div>
+      </div>
+
+      <select required className={inputStyle} value={form.gender} onChange={(event) => setForm({ ...form, gender: event.target.value })}>
+        <option value="Newborn">Newborn</option>
+        <option value="Boy">Boys</option>
+        <option value="Girl">Girls</option>
+      </select>
+
+      <div className="flex items-center gap-3">
+        <input type="checkbox" checked={form.isNewArrival} onChange={(event) => setForm({ ...form, isNewArrival: event.target.checked })} className="h-4 w-4" />
+        <label className="text-sm font-medium">Mark as New Arrival</label>
+      </div>
+
+      <div className="space-y-3">
+        <p className="text-[10px] font-black uppercase text-gray-400">Category</p>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+          {categories.map((category) => {
+            const active = form.categoryId === category.id
+
+            return (
+              <button key={category.id} type="button" onClick={() => setForm({ ...form, categoryId: category.id })} className={`h-11 sm:h-14 rounded-xl sm:rounded-2xl border-2 text-xs sm:text-sm font-bold transition-all ${active ? "border-black bg-black text-white" : "border-gray-200 bg-white hover:border-black"}`}>
+                {category.name}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <p className="text-[10px] font-black uppercase text-gray-400">Available Sizes</p>
+        <div className="grid grid-cols-3 gap-3 md:grid-cols-4">
+          {sizeOptions.map((size) => {
+            const selectedSizes = form.size ? form.size.split(",") : []
+            const checked = selectedSizes.includes(size)
+
+            return (
+              <button key={size} type="button" onClick={() => {
+                const updatedSizes = checked ? selectedSizes.filter((selectedSize) => selectedSize !== size) : [...selectedSizes, size]
+                setForm({ ...form, size: updatedSizes.join(",") })
+              }} className={`h-10 sm:h-12 rounded-xl border-2 text-xs sm:text-sm font-bold transition-all ${checked ? "border-black bg-black text-white" : "border-gray-200 bg-white"}`}>
+                {size}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <p className="text-[10px] font-black uppercase text-gray-400">Specifications</p>
+          <button type="button" onClick={addDetail} className="rounded-full bg-black px-4 py-2 text-[10px] font-bold text-white">Add Row</button>
+        </div>
+
+        {customDetails.map((detail: { key: string; value: string }, index: number) => (
+          <div key={index} className="grid grid-cols-[1fr_1fr_auto] gap-3">
+            <input placeholder="Title (Fabric)" value={detail.key} className={inputStyle} onChange={(event) => updateDetail(index, "key", event.target.value)} />
+            <input placeholder="Value (Cotton)" value={detail.value} className={inputStyle} onChange={(event) => updateDetail(index, "value", event.target.value)} />
+            <button type="button" onClick={() => removeDetail(index)} aria-label="Remove specification" className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-50 text-red-500">
+              <Trash2 size={16} />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <textarea placeholder="Description..." value={form.description} rows={isEdit ? 4 : 3} className={`${inputStyle} resize-none`} onChange={(event) => setForm({ ...form, description: event.target.value })} />
+
+      <button disabled={loading} className="w-full rounded-full bg-black py-3 sm:py-4 text-[11px] sm:text-xs text-xs font-black uppercase tracking-[0.2em] text-white shadow-xl transition-all active:scale-95 disabled:opacity-50">
+        {loading ? "Saving..." : isEdit ? "Update Product" : "Publish Product"}
+      </button>
+    </form>
+  )
+
+  if (!isEdit) return editorForm
+
+  if (!open) {
     return (
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="p-2 rounded-full bg-white hover:bg-gray-100 shadow"
+        aria-label={`Edit ${product.name}`}
+        className="relative z-50 flex h-7 w-7 items-center justify-center rounded-full bg-white text-neutral-800 shadow-md transition hover:bg-gray-100 sm:h-8 sm:w-8"
       >
         <Pencil size={14} />
       </button>
     )
   }
 
-  return (
-    <>
-      {!product && (
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Media */}
-          <div className="space-y-3">
-            <p className="text-[10px] font-black uppercase text-gray-400">Media</p>
-            <div className="flex flex-wrap gap-3">
-              {images.map((url, i) => (
-                <div key={i} className="relative h-24 w-20 rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
-                  <img src={url} className="h-full w-full object-cover" alt="" />
-                  <button type="button" onClick={() => setImages(images.filter((_, idx) => idx !== i))} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 shadow-lg"><X size={10} /></button>
-                </div>
-              ))}
-              <CldUploadWidget uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET} onSuccess={(res: any) => setImages([...images, res.info.secure_url])}>
-                {({ open }) => (
-                  <button type="button" onClick={() => open()} className="h-24 w-20 border-2 border-dashed border-gray-100 rounded-2xl flex flex-col items-center justify-center text-gray-300 hover:border-black hover:text-black transition-all">
-                    <ImagePlus size={20} /><span className="text-[9px] mt-1 font-bold">ADD</span>
-                  </button>
-                )}
-              </CldUploadWidget>
-            </div>
-          </div>
-
-          <input required placeholder="Product Title" value={form.name} className={inputStyle} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase text-gray-400">Price ₹</label>
-              <input required type="number" value={form.price} placeholder="999" className={inputStyle} onChange={(e) => setForm({ ...form, price: e.target.value })} />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase text-gray-400 flex items-center gap-1"><Package size={10} /> <span
-                className={`text-[10px] font-black uppercase ${(product?.stock ?? 0) > 0 ? "text-emerald-500" : "text-red-500"
-                  }`}
-              >
-                {(product?.stock ?? 0) > 0 ? "In Stock" : "Sold Out"}
-              </span></label>
-              <input required type="number" value={form.stock} className={inputStyle} onChange={(e) => setForm({ ...form, stock: e.target.value })} />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              checked={form.isNewArrival}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  isNewArrival: e.target.checked,
-                })
-              }
-              className="h-4 w-4"
-            />
-
-            <label className="text-sm font-medium">
-              Mark as New Arrival
-            </label>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <select required className={inputStyle} value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })}>
-              <option value="Newborn">Newborn</option>
-              <option value="Boy">Boys</option>
-              <option value="Girl">Girls</option>
-            </select>
-
-          </div>
-
-          <div className="space-y-3">
-            <p className="text-[10px] font-black uppercase text-gray-400">
-              Category
-            </p>
-
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {categories.map((cat) => {
-                const active = form.categoryId === cat.id
-
-                return (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() =>
-                      setForm({
-                        ...form,
-                        categoryId: cat.id,
-                      })
-                    }
-                    className={`h-14 rounded-2xl border-2 transition-all font-bold text-sm ${active
-                      ? "bg-black text-white border-black"
-                      : "bg-white border-gray-200 hover:border-black"
-                      }`}
-                  >
-                    {cat.name}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <p className="text-[10px] font-black uppercase text-gray-400">
-              Available Sizes
-            </p>
-
-            <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
-
-              {sizeOptions.map((size) => {
-                const selectedSizes = form.size
-                  ? form.size.split(",")
-                  : []
-
-                const checked = selectedSizes.includes(size)
-
-                return (
-                  <button
-                    key={size}
-                    type="button"
-                    onClick={() => {
-                      let updatedSizes
-
-                      if (checked) {
-                        updatedSizes = selectedSizes.filter(
-                          (s) => s !== size
-                        )
-                      } else {
-                        updatedSizes = [...selectedSizes, size]
-                      }
-
-                      setForm({
-                        ...form,
-                        size: updatedSizes.join(","),
-                      })
-                    }}
-                    className={`h-12 rounded-xl border-2 font-bold transition-all ${checked
-                      ? "bg-black text-white border-black"
-                      : "border-gray-200 bg-white"
-                      }`}
-                  >
-                    {size}
-                  </button>
-                )
-              })}
-
-            </div>
-          </div>
-          <div className="space-y-4">
-
-            <div className="flex justify-between items-center">
-              <p className="text-[10px] font-black uppercase text-gray-400">
-                Specifications
-              </p>
-
-              <button
-                type="button"
-                onClick={addDetail}
-                className="px-4 py-2 rounded-full bg-black text-white text-[10px] font-bold"
-              >
-                Add Row
-              </button>
-            </div>
-
-            {customDetails.map((detail, index) => (
-
-              <div key={index} className="grid grid-cols-[1fr_1fr_auto] gap-3">
-
-                <input
-                  placeholder="Title (Fabric)"
-                  value={detail.key}
-                  className={inputStyle}
-                  onChange={(e) =>
-                    updateDetail(index, "key", e.target.value)
-                  }
-                />
-
-                <input
-                  placeholder="Value (Cotton)"
-                  value={detail.value}
-                  className={inputStyle}
-                  onChange={(e) =>
-                    updateDetail(index, "value", e.target.value)
-                  }
-                />
-
-                <button
-                  type="button"
-                  onClick={() => removeDetail(index)}
-                  className="h-12 w-12 rounded-xl bg-red-50 text-red-500 flex items-center justify-center"
-                >
-                  <Trash2 size={16} />
-                </button>
-
-              </div>
-
-            ))}
-          </div>
-          <textarea placeholder="Description..." value={form.description} rows={3} className={`${inputStyle} resize-none`} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-
-
-          <button disabled={loading} className="w-full bg-black text-white py-5 rounded-full text-xs font-black uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all disabled:opacity-50">
-            {
-              loading
-                ? "SAVING..."
-                : product
-                  ? "UPDATE PRODUCT"
-                  : "PUBLISH PRODUCT"
-            }
-          </button>
-        </form>
-      )}
-
-      {product && open && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-
-          <div className="bg-white rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-8 relative">
-
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="absolute top-4 right-4 h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center"
-            >
-              <X size={18} />
-            </button>
-
-            <h2 className="text-2xl font-black mb-8">
-              Edit Product
-            </h2>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-
-              {/* Media */}
-              <div className="space-y-3">
-                <p className="text-[10px] font-black uppercase text-gray-400">
-                  Media
-                </p>
-
-                <div className="flex flex-wrap gap-3">
-                  {images.map((url, i) => (
-                    <div
-                      key={i}
-                      className="relative h-24 w-20 rounded-2xl overflow-hidden border border-gray-100 shadow-sm"
-                    >
-                      <img
-                        src={url}
-                        className="h-full w-full object-cover"
-                        alt=""
-                      />
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setImages(images.filter((_, idx) => idx !== i))
-                        }
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"
-                      >
-                        <X size={10} />
-                      </button>
-                    </div>
-                  ))}
-
-                  <CldUploadWidget
-                    uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
-                    onSuccess={(res: any) =>
-                      setImages([...images, res.info.secure_url])
-                    }
-                  >
-                    {({ open }) => (
-                      <button
-                        type="button"
-                        onClick={() => open()}
-                        className="h-24 w-20 border-2 border-dashed border-gray-100 rounded-2xl flex flex-col items-center justify-center"
-                      >
-                        <ImagePlus size={20} />
-                      </button>
-                    )}
-                  </CldUploadWidget>
-                </div>
-              </div>
-
-              <input
-                required
-                placeholder="Product Title"
-                value={form.name}
-                className={inputStyle}
-                onChange={(e) =>
-                  setForm({ ...form, name: e.target.value })
-                }
-              />
-
-              <div className="grid grid-cols-2 gap-4">
-                <input
-                  required
-                  type="number"
-                  value={form.price}
-                  placeholder="999"
-                  className={inputStyle}
-                  onChange={(e) =>
-                    setForm({ ...form, price: e.target.value })
-                  }
-                />
-
-                <input
-                  required
-                  type="number"
-                  value={form.stock}
-                  className={inputStyle}
-                  onChange={(e) =>
-                    setForm({ ...form, stock: e.target.value })
-                  }
-                />
-              </div>
-
-              <select
-                required
-                className={inputStyle}
-                value={form.gender}
-                onChange={(e) =>
-                  setForm({ ...form, gender: e.target.value })
-                }
-              >
-                <option value="Newborn">Newborn</option>
-                <option value="Boy">Boys</option>
-                <option value="Girl">Girls</option>
-              </select>
-
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  checked={form.isNewArrival}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      isNewArrival: e.target.checked,
-                    })
-                  }
-                  className="h-4 w-4"
-                />
-
-                <label className="text-sm font-medium">
-                  Mark as New Arrival
-                </label>
-              </div>
-
-              <div className="space-y-3">
-                <p className="text-[10px] font-black uppercase text-gray-400">
-                  Category
-                </p>
-
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {categories.map((cat) => {
-                    const active = form.categoryId === cat.id
-
-                    return (
-                      <button
-                        key={cat.id}
-                        type="button"
-                        onClick={() =>
-                          setForm({
-                            ...form,
-                            categoryId: cat.id,
-                          })
-                        }
-                        className={`h-14 rounded-2xl border-2 transition-all font-bold text-sm ${active
-                          ? "bg-black text-white border-black"
-                          : "bg-white border-gray-200 hover:border-black"
-                          }`}
-                      >
-                        {cat.name}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <p className="text-[10px] font-black uppercase text-gray-400">
-                  Available Sizes
-                </p>
-
-                <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
-
-                  {sizeOptions.map((size) => {
-                    const selectedSizes = form.size
-                      ? form.size.split(",")
-                      : []
-
-                    const checked = selectedSizes.includes(size)
-
-                    return (
-                      <button
-                        key={size}
-                        type="button"
-                        onClick={() => {
-                          let updatedSizes
-
-                          if (checked) {
-                            updatedSizes = selectedSizes.filter(
-                              (s) => s !== size
-                            )
-                          } else {
-                            updatedSizes = [...selectedSizes, size]
-                          }
-
-                          setForm({
-                            ...form,
-                            size: updatedSizes.join(","),
-                          })
-                        }}
-                        className={`h-12 rounded-xl border-2 font-bold transition-all ${checked
-                          ? "bg-black text-white border-black"
-                          : "border-gray-200 bg-white"
-                          }`}
-                      >
-                        {size}
-                      </button>
-                    )
-                  })}
-
-                </div>
-              </div>
-              <div className="space-y-4">
-
-                <div className="flex justify-between items-center">
-                  <p className="text-[10px] font-black uppercase text-gray-400">
-                    Specifications
-                  </p>
-
-                  <button
-                    type="button"
-                    onClick={addDetail}
-                    className="px-4 py-2 rounded-full bg-black text-white text-[10px] font-bold"
-                  >
-                    Add Row
-                  </button>
-                </div>
-
-                {customDetails.map((detail, index) => (
-
-                  <div
-                    key={index}
-                    className="grid grid-cols-[1fr_1fr_auto] gap-3"
-                  >
-
-                    <input
-                      placeholder="Title (Fabric)"
-                      value={detail.key}
-                      className={inputStyle}
-                      onChange={(e) =>
-                        updateDetail(index, "key", e.target.value)
-                      }
-                    />
-
-                    <input
-                      placeholder="Value (Cotton)"
-                      value={detail.value}
-                      className={inputStyle}
-                      onChange={(e) =>
-                        updateDetail(index, "value", e.target.value)
-                      }
-                    />
-
-                    <button
-                      type="button"
-                      onClick={() => removeDetail(index)}
-                      className="h-12 w-12 rounded-xl bg-red-50 text-red-500 flex items-center justify-center"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-
-                  </div>
-
-                ))}
-              </div>
-              <textarea
-                value={form.description}
-                rows={4}
-                className={inputStyle}
-                onChange={(e) =>
-                  setForm({ ...form, description: e.target.value })
-                }
-              />
-
-              <button
-                disabled={loading}
-                className="w-full bg-black text-white py-4 rounded-full"
-              >
-                {loading ? "Saving..." : "Update Product"}
-              </button>
-
-            </form>
-          </div>
-        </div>
-      )}
-    </>
-  )
+  if (!mounted) return null
+
+return createPortal(
+  <div
+    className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+    onMouseDown={closeModal}
+  >
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="edit-product-title"
+      onMouseDown={(event) => event.stopPropagation()}
+      className="relative w-full max-w-5xl max-h-[92vh] overflow-y-auto rounded-3xl bg-white p-5 sm:p-7 lg:p-8 shadow-2xl"
+    >
+      <button
+        type="button"
+        onClick={closeModal}
+        className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200"
+      >
+        <X size={18} />
+      </button>
+
+      <h2
+        id="edit-product-title"
+        className="mb-8 text-2xl font-black"
+      >
+        Edit Product
+      </h2>
+
+      {editorForm}
+    </div>
+  </div>,
+  document.body
+)
 }

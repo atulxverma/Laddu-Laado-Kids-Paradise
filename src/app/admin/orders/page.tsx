@@ -25,7 +25,7 @@ export default async function OrdersPage() {
   }
 
   return (
-    <div className="p-6 md:p-10 space-y-10 bg-[#fafafa] min-h-screen">
+    <div className="p-6 md:p-10 space-y-10 bg-neutral-50 min-h-screen">
       <div className="pt-8 md:pt-0">
         <h1 className="text-3xl font-black italic tracking-tighter uppercase">Order Management</h1>
         <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-1">
@@ -35,7 +35,7 @@ export default async function OrdersPage() {
 
       <div className="space-y-6">
         {orders?.map((order) => (
-          <div key={order.id} className="bg-white border border-gray-100 rounded-[2rem] overflow-hidden shadow-sm">
+          <div key={order.id} className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300">
             <div className="p-6 border-b border-gray-50 flex flex-wrap justify-between items-center gap-4 bg-gray-50/30">
               <div className="flex gap-8">
                 <div>
@@ -85,10 +85,10 @@ export default async function OrdersPage() {
 
                       <div
                         key={item.id}
-                        className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100"
+                        className="flex items-center gap-3 bg-neutral-50 p-3 rounded-2xl border border-neutral-100 transition hover:bg-white"
                       >
 
-                        <div className="h-10 w-8 rounded-md overflow-hidden bg-gray-200 shrink-0">
+                        <div className="h-10 w-8 rounded-lg overflow-hidden bg-gray-200 shrink-0">
 
                           <img
                             src={

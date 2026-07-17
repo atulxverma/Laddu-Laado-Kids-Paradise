@@ -64,7 +64,7 @@ export default async function DashboardPage() {
   ]
 
   return (
-    <div className="p-6 md:p-10 space-y-10 bg-[#fafafa] min-h-screen">
+    <div className="min-h-screen space-y-10 bg-neutral-50 p-6 md:p-10">
       <div className="pt-8 md:pt-0 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="text-4xl font-black italic tracking-tighter uppercase leading-none text-black">Insights</h1>
@@ -85,7 +85,7 @@ export default async function DashboardPage() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((s) => (
-          <div key={s.label} className="bg-white border border-gray-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-xl hover:translate-y-[-4px] transition-all duration-500">
+          <div key={s.label} className="bg-white border border-gray-100 p-6 rounded-3xl shadow-md hover:shadow-xl hover:translate-y-[-4px] transition-all duration-500">
             <div className={`${s.bg} w-fit p-3 rounded-2xl mb-6`}>
               <s.icon size={20} className={s.color} />
             </div>
@@ -97,7 +97,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Chart */}
-      <div className="bg-white border border-gray-100 rounded-[3rem] p-6 md:p-10 shadow-sm">
+      <div className="bg-white border border-gray-100 rounded-3xl p-6 md:p-10 shadow-md">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-xl font-black italic uppercase tracking-tighter">Revenue Flow</h2>
@@ -112,7 +112,7 @@ export default async function DashboardPage() {
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-10">
         {/* Recent Sales */}
-        <div className="bg-white border border-gray-100 rounded-[2.5rem] shadow-sm flex flex-col overflow-hidden">
+        <div className="bg-white border border-gray-100 rounded-3xl shadow-md flex flex-col overflow-hidden">
           <div className="p-6 border-b border-gray-50 flex items-center justify-between bg-gray-50/30">
             <h2 className="text-xs font-black uppercase tracking-[0.2em] text-black italic">Recent Sales</h2>
             <Link href="/admin/orders" className="p-2 hover:bg-white rounded-full transition-all group">
@@ -126,7 +126,7 @@ export default async function DashboardPage() {
               recentOrders.map((order) => (
                 <div key={order.id} className="p-6 border-b border-gray-50 last:border-0 flex items-center justify-between hover:bg-gray-50/50 transition-colors">
                   <div className="flex items-center gap-4">
-                    <div className="h-12 w-10 bg-gray-100 rounded-xl overflow-hidden shadow-sm shrink-0 border border-gray-200">
+                    <div className="h-12 w-10 bg-gray-100 rounded-xl overflow-hidden shadow-md shrink-0 border border-gray-200">
                       {order.orderItems[0]?.product?.images[0]?.url && (
                         <img src={order.orderItems[0].product.images[0].url} className="h-full w-full object-cover" alt="" />
                       )}
@@ -149,7 +149,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Low Stock */}
-        <div className="bg-white border border-gray-100 rounded-[2.5rem] shadow-sm flex flex-col overflow-hidden">
+        <div className="bg-white border border-gray-100 rounded-3xl shadow-md flex flex-col overflow-hidden">
           <div className="p-6 border-b border-gray-50 flex items-center justify-between bg-rose-50/20">
             <h2 className="text-xs font-black uppercase tracking-[0.2em] text-rose-600 italic">Inventory Critical</h2>
             <div className="h-2 w-2 rounded-full bg-rose-500 animate-ping" />

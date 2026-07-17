@@ -20,20 +20,36 @@ export default function BannerForm({ type, initialData }: { type: string, initia
   }
 
   const handleRemove = async () => {
-    if (!confirm("Are you sure you want to remove this banner? This will reset the UI to default.")) return
-    setLoading(true)
-    const res = await deleteBanner(type) // Deleting by ID (which is the type)
-    if (res.success) {
-      alert("Banner removed.")
-      window.location.reload()
-    }
-    setLoading(false)
+  if (
+    !confirm(
+      "Are you sure you want to remove this banner?"
+    )
+  )
+    return
+
+  setLoading(true)
+
+  const res = await deleteBanner(type)
+
+  if (res.success) {
+    setImageUrl("")
+    setTitle("")
+    setLabel("")
+
+    alert("Banner removed successfully!")
+
+    window.location.reload()
+  } else {
+    alert(res.error)
   }
+
+  setLoading(false)
+}
 
   return (
     <div className="space-y-6">
       {/* PREVIEW BOX */}
-      <div className="relative aspect-[16/8] rounded-[2rem] bg-gray-50 border border-gray-100 overflow-hidden group shadow-inner">
+      <div className="relative aspect-[16/8] rounded-3xl bg-gray-50 border border-gray-100 overflow-hidden group shadow-inner">
         {imageUrl ? (
           <img src={imageUrl} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Banner Preview" />
         ) : (

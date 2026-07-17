@@ -731,12 +731,9 @@ export async function updateProduct(id: string, data: any) {
   }
 }
 
-export async function updateOrderStatus(
-  orderId: string,
-  status: string
-) {
+export async function updateOrderStatus(orderId: string, status: string) {
   try {
-    await checkAdmin()
+    await checkAdmin();
 
     const allowedStatuses = [
       "Pending",
@@ -744,12 +741,12 @@ export async function updateOrderStatus(
       "Shipped",
       "Delivered",
       "Cancelled",
-    ]
+    ];
 
     if (!allowedStatuses.includes(status)) {
       return {
         error: "Invalid order status",
-      }
+      };
     }
 
     const order = await db.order.findUnique({
@@ -759,21 +756,18 @@ export async function updateOrderStatus(
       select: {
         status: true,
       },
-    })
+    });
 
     if (!order) {
       return {
         error: "Order not found",
-      }
+      };
     }
 
-    if (
-      order.status === "Delivered" ||
-      order.status === "Cancelled"
-    ) {
+    if (order.status === "Delivered" || order.status === "Cancelled") {
       return {
         error: `${order.status} orders cannot be modified`,
-      }
+      };
     }
 
     await db.order.update({
@@ -783,59 +777,55 @@ export async function updateOrderStatus(
       data: {
         status,
       },
-    })
+    });
 
-    revalidatePath("/admin/orders")
-    revalidatePath("/orders")
+    revalidatePath("/admin/orders");
+    revalidatePath("/orders");
 
     return {
       success: true,
-    }
+    };
   } catch (error) {
-    console.error("UPDATE_ORDER_STATUS_ERROR", error)
+    console.error("UPDATE_ORDER_STATUS_ERROR", error);
 
     return {
       error: "Failed to update status",
-    }
+    };
   }
 }
 
 export async function createReview(data: {
-  productId: string
-  rating: number
-  comment: string
+  productId: string;
+  rating: number;
+  comment: string;
 }) {
   try {
-    const user = await currentUser()
+    const user = await currentUser();
 
     if (!user) {
       return {
         error: "Please sign in to submit a review.",
-      }
+      };
     }
 
-    const cleanComment = data.comment.trim()
+    const cleanComment = data.comment.trim();
 
     if (!cleanComment) {
       return {
         error: "Review cannot be empty.",
-      }
+      };
     }
 
     if (cleanComment.length < 10) {
       return {
         error: "Review must be at least 10 characters long.",
-      }
+      };
     }
 
-    if (
-      !Number.isInteger(data.rating) ||
-      data.rating < 1 ||
-      data.rating > 5
-    ) {
+    if (!Number.isInteger(data.rating) || data.rating < 1 || data.rating > 5) {
       return {
         error: "Invalid rating.",
-      }
+      };
     }
 
     const product = await db.product.findUnique({
@@ -846,12 +836,12 @@ export async function createReview(data: {
         id: true,
         isArchived: true,
       },
-    })
+    });
 
     if (!product || product.isArchived) {
       return {
         error: "This product is no longer available.",
-      }
+      };
     }
 
     const existingReview = await db.review.findFirst({
@@ -859,12 +849,12 @@ export async function createReview(data: {
         productId: data.productId,
         clerkId: user.id,
       },
-    })
+    });
 
     if (existingReview) {
       return {
         error: "You have already reviewed this product.",
-      }
+      };
     }
 
     await db.review.create({
@@ -876,19 +866,19 @@ export async function createReview(data: {
         userName: user.fullName || "Valued Customer",
         userImage: user.imageUrl || null,
       },
-    })
+    });
 
-    revalidatePath(`/product/${data.productId}`)
+    revalidatePath(`/product/${data.productId}`);
 
     return {
       success: true,
-    }
+    };
   } catch (error) {
-    console.error("Create review error:", error)
+    console.error("Create review error:", error);
 
     return {
       error: "Review failed.",
-    }
+    };
   }
 }
 
@@ -938,6 +928,7 @@ export async function upsertBanner(data: any) {
         label: data.label,
         subtitle: data.subtitle,
         link: data.link,
+        active: true,
       },
 
       create: {
@@ -947,10 +938,12 @@ export async function upsertBanner(data: any) {
         label: data.label,
         subtitle: data.subtitle,
         link: data.link,
+        active: true,
       },
     });
 
     revalidatePath("/");
+    revalidatePath("/admin/banners");
 
     return { success: true };
   } catch (error: any) {
@@ -1076,43 +1069,60 @@ export async function getNavCategories() {
   }
 }
 
-export async function deleteBanner(id: string) {
+export async function deleteBanner(type: string) {
   try {
-    await checkAdmin();
-    await db.banner.delete({ where: { id } });
+    await db.banner.update({
+      where: {
+        type,
+      },
+      data: {
+        imageUrl: "",
+        title: "",
+        label: "",
+        active: false,
+      },
+    });
+
     revalidatePath("/");
+    revalidatePath("/admin/banners");
+
     return { success: true };
   } catch (error) {
-    return { error: "Failed to delete banner" };
+    console.error(error);
+
+    return {
+      success: false,
+      error: "Failed to remove banner.",
+    };
   }
 }
 
 export async function syncCartWithDb(items: any[]) {
   try {
-    const user = await currentUser()
+    const user = await currentUser();
 
     if (!user) {
       return {
         error: "Unauthorized",
-      }
+      };
     }
 
     if (!Array.isArray(items)) {
       return {
         error: "Invalid cart data",
-      }
+      };
     }
 
-    const clerkId = user.id
+    const clerkId = user.id;
 
     const mergedItems = new Map<
       string,
       {
-        id: string
-        size: string
-        quantity: number
+        id: string;
+        size: string;
+        quantity: number;
       }
-    >()
+    >();
 
     for (const item of items) {
       if (
@@ -1121,25 +1131,25 @@ export async function syncCartWithDb(items: any[]) {
         !Number.isInteger(item.quantity) ||
         item.quantity < 1
       ) {
-        continue
+        continue;
       }
 
-      const key = `${item.id}-${item.size}`
+      const key = `${item.id}-${item.size}`;
 
-      const existing = mergedItems.get(key)
+      const existing = mergedItems.get(key);
 
       if (existing) {
-        existing.quantity += item.quantity
+        existing.quantity += item.quantity;
       } else {
         mergedItems.set(key, {
           id: item.id,
           size: item.size,
           quantity: item.quantity,
-        })
+        });
       }
     }
 
-    const validItems = []
+    const validItems = [];
 
     for (const item of mergedItems.values()) {
       const product = await db.product.findUnique({
@@ -1151,25 +1161,18 @@ export async function syncCartWithDb(items: any[]) {
           stock: true,
           isArchived: true,
         },
-      })
+      });
 
-      if (
-        !product ||
-        product.isArchived ||
-        product.stock <= 0
-      ) {
-        continue
+      if (!product || product.isArchived || product.stock <= 0) {
+        continue;
       }
 
       validItems.push({
         clerkId,
         productId: product.id,
-        quantity: Math.min(
-          item.quantity,
-          product.stock
-        ),
+        quantity: Math.min(item.quantity, product.stock),
         size: item.size,
-      })
+      });
     }
 
     await db.$transaction(async (tx) => {
@@ -1177,33 +1180,33 @@ export async function syncCartWithDb(items: any[]) {
         where: {
           clerkId,
         },
-      })
+      });
 
       if (validItems.length > 0) {
         await tx.cartItem.createMany({
           data: validItems,
-        })
+        });
       }
-    })
+    });
 
     return {
       success: true,
-    }
+    };
   } catch (error) {
-    console.error("DB_SYNC_FAIL", error)
+    console.error("DB_SYNC_FAIL", error);
 
     return {
       error: "Failed to sync cart",
-    }
+    };
   }
 }
 
 export async function getDbCart() {
   try {
-    const user = await currentUser()
+    const user = await currentUser();
 
     if (!user) {
-      return []
+      return [];
     }
 
     const cartItems = await db.cartItem.findMany({
@@ -1218,16 +1221,14 @@ export async function getDbCart() {
           },
         },
       },
-    })
+    });
 
     return cartItems.filter(
       (item) =>
-        item.product &&
-        !item.product.isArchived &&
-        item.product.stock > 0
-    )
+        item.product && !item.product.isArchived && item.product.stock > 0,
+    );
   } catch (error) {
-    console.error("GET_CART_FAIL", error)
-    return []
+    console.error("GET_CART_FAIL", error);
+    return [];
   }
 }

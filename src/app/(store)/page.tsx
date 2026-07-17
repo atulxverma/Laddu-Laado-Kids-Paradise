@@ -57,6 +57,10 @@ export default async function HomePage() {
   href: string
   products: any[]
 }) {
+
+  console.log(banners)
+console.log(promo1)
+console.log(promo2)
   return (
     <section className="max-w-7xl mx-auto px-4 py-5">
 
@@ -151,21 +155,22 @@ export default async function HomePage() {
   ])
 
   // Fallback data agar DB khali ho
-  const heroBanner = banners.find(b => b.type === "HERO") || {
+  const heroBanner =
+  banners.find(
+    (b) => b.type === "HERO" && b.active
+  ) || {
     imageUrl: "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=2148",
     title: "Summer Arrival of Outfit",
     label: "New Collection"
   }
 
-  const promo1 = banners.find(b => b.type === "SIDE_1") || {
-    imageUrl: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=960",
-    title: "Where dreams meet couture"
-  }
+  const promo1 = banners.find(
+  (b) => b.type === "SIDE_1" && b.active
+)
 
-  const promo2 = banners.find(b => b.type === "SIDE_2") || {
-    imageUrl: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?q=80&w=960",
-    title: "Enchanting styles for girls"
-  }
+const promo2 = banners.find(
+  (b) => b.type === "SIDE_2" && b.active
+)
 
 
 
@@ -268,7 +273,67 @@ hover:scale-105
   </div>
 
 </section>
+<section className="max-w-7xl mx-auto px-4 pb-6">
 
+  <div className="grid gap-5 md:grid-cols-2">
+
+    {promo1 && (
+  <div className="group relative h-64 overflow-hidden rounded-3xl">
+
+    <img
+      src={promo1.imageUrl}
+      alt={promo1.title}
+      className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+    />
+
+    <div className="absolute inset-0 bg-black/30" />
+
+    <div className="absolute bottom-6 left-6">
+      <h3 className="text-2xl font-black text-white">
+        {promo1.title}
+      </h3>
+
+      <Link
+        href="/shop"
+        className="mt-4 inline-flex rounded-full bg-white px-5 py-2 text-[10px] font-black uppercase tracking-widest text-black"
+      >
+        Shop Now →
+      </Link>
+    </div>
+
+  </div>
+)}
+
+    {promo2 && (
+  <div className="group relative h-64 overflow-hidden rounded-3xl">
+
+    <img
+      src={promo2.imageUrl}
+      alt={promo2.title}
+      className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+    />
+
+    <div className="absolute inset-0 bg-black/30" />
+
+    <div className="absolute bottom-6 left-6">
+      <h3 className="text-2xl font-black text-white">
+        {promo2.title}
+      </h3>
+
+      <Link
+        href="/shop"
+        className="mt-4 inline-flex rounded-full bg-white px-5 py-2 text-[10px] font-black uppercase tracking-widest text-black"
+      >
+        Shop Now →
+      </Link>
+    </div>
+
+  </div>
+)}
+
+  </div>
+
+</section>
 
 
       {/* ── TRUST FEATURES ── */}
