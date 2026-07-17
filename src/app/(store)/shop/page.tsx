@@ -16,6 +16,9 @@ export default async function ShopPage({
     new?: string;
   }>;
 }) {
+//   await new Promise((resolve) =>
+//   setTimeout(resolve, 3000)
+// );
   const { category, q, gender, age, sort, new: isNew } = await searchParams;
 
   const products = await db.product.findMany({

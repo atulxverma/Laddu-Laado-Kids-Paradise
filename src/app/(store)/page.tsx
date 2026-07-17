@@ -11,6 +11,7 @@ RefreshCcw
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
+  // throw new Error("Testing Error Page");
 
   const [boysProducts, girlsProducts, newbornProducts] =
     await Promise.all([
