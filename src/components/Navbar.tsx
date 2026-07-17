@@ -296,16 +296,13 @@ export default function Navbar() {
 
         <motion.div
           animate={{
-            y: scrolled ? -80 : 0,
             opacity: scrolled ? 0 : 1,
           }}
           transition={{
-            duration: 0.35,
-            ease: [0.4, 0, 0.2, 1],
+            type: "tween",
+            duration: 0.22,
           }}
-          className={`bg-white border-b border-gray-100 ${scrolled
-            ? "pointer-events-none"
-            : ""
+          className={`bg-white border-b border-gray-100 transition-opacity duration-200 ${scrolled ? "pointer-events-none" : ""
             }`}
         >
           <div
@@ -997,7 +994,42 @@ whitespace-nowrap
                   >
                     <Search size={20} />
                   </button>
+                  <Link
+                    href="/wishlist"
+                    className="
+    relative
+    h-10
+    w-10
+    flex
+    items-center
+    justify-center
+  "
+                  >
+                    <Heart size={19} />
 
+                    {mounted && wishlist.items.length > 0 && (
+                      <span
+                        className="
+        absolute
+        top-0
+        right-0
+        min-w-[16px]
+        h-4
+        px-1
+        bg-red-500
+        text-white
+        text-[8px]
+        font-black
+        rounded-full
+        flex
+        items-center
+        justify-center
+      "
+                      >
+                        {wishlist.items.length}
+                      </span>
+                    )}
+                  </Link>
                   <Link
                     href="/cart"
                     className="
@@ -1057,15 +1089,19 @@ whitespace-nowrap
         {menuOpen && (
           <>
             <motion.div
-              initial={{
-                opacity: 0,
-              }}
+              initial={false}
               animate={{
                 opacity: 1,
+                y: 0,
               }}
               exit={{
                 opacity: 0,
+                y: -8,
               }}
+              transition={{
+                duration: 0.18,
+              }}
+
               onClick={() =>
                 setMenuOpen(false)
               }

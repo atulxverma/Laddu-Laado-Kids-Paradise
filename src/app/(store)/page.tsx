@@ -176,10 +176,10 @@ const promo2 = banners.find(
 
 
   return (
-    <div className="bg-white">
+    <div className="bg-white pb-24 md:pb-0">
       {/* ── PREMIUM HERO ── */}
 
-<section className="max-w-7xl mx-auto px-3 md:px-4 pt-3 pb-5">
+<section className="max-w-7xl mx-auto px-3 md:px-4 pt-3 pb-24 md:pb-5">
 
   <div className="relative overflow-hidden rounded-[28px] md:rounded-[42px] h-[240px] sm:h-[320px] md:h-[560px] bg-neutral-100 shadow-xl">
 
