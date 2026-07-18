@@ -36,7 +36,7 @@ export default async function ProductsPage() {
           <div className="flex flex-col gap-3 sm:flex-row">
             <a href="#add-product" className="inline-flex items-center justify-center gap-2 rounded-full bg-black px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-white transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
               <Plus size={15} />
-              Add Product
+              
             </a>
             <Link href="/" className="inline-flex items-center justify-center gap-2 rounded-full border border-neutral-200 bg-white px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-neutral-800 transition-all duration-300 hover:-translate-y-1 hover:border-neutral-900 hover:shadow-sm">
               View Store
