@@ -16,10 +16,23 @@ export default async function ShopPage({
     new?: string;
   }>;
 }) {
-//   await new Promise((resolve) =>
-//   setTimeout(resolve, 3000)
-// );
+  //   await new Promise((resolve) =>
+  //   setTimeout(resolve, 3000)
+  // );
   const { category, q, gender, age, sort, new: isNew } = await searchParams;
+  const createSortLink = (sortValue: string) => {
+    const params = new URLSearchParams();
+
+    params.set("sort", sortValue);
+
+    if (q) params.set("q", q);
+    if (category) params.set("category", category);
+    if (gender) params.set("gender", gender);
+    if (age) params.set("age", age);
+    if (isNew === "true") params.set("new", "true");
+
+    return `/shop?${params.toString()}`;
+  };
 
   const products = await db.product.findMany({
     where: {
@@ -200,30 +213,30 @@ export default async function ShopPage({
           <div className="flex overflow-x-auto no-scrollbar gap-2">
 
             <Link
-              href={`/shop?sort=newest${gender ? `&gender=${gender}` : age ? `&age=${age}` : ""}`}
+              href={createSortLink("newest")}
               className={`whitespace-nowrap px-5 py-3 rounded-2xl text-[10px] font-bold transition ${!sort || sort === "newest"
-                  ? "bg-black text-white"
-                  : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                ? "bg-black text-white"
+                : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
                 }`}
             >
               Newest
             </Link>
 
             <Link
-              href={`/shop?sort=price-asc${gender ? `&gender=${gender}` : age ? `&age=${age}` : ""}`}
+              href={createSortLink("price-asc")}
               className={`whitespace-nowrap px-4 py-2 rounded-full text-[10px] font-bold transition ${sort === "price-asc"
-                  ? "bg-black text-white"
-                  : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                ? "bg-black text-white"
+                : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
                 }`}
             >
               Low Price
             </Link>
 
             <Link
-              href={`/shop?sort=price-desc${gender ? `&gender=${gender}` : age ? `&age=${age}` : ""}`}
+              href={createSortLink("price-desc")}
               className={`whitespace-nowrap px-4 py-2 rounded-full text-[10px] font-bold transition ${sort === "price-desc"
-                  ? "bg-black text-white"
-                  : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                ? "bg-black text-white"
+                : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
                 }`}
             >
               High Price

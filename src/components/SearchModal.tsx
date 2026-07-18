@@ -60,7 +60,9 @@ export default function SearchModal({
 
     params.set("q", q.trim())
 
-    if (activeFilter !== "All") {
+    if (activeFilter === "Newborn") {
+      params.set("age", "0-2Y")
+    } else if (activeFilter !== "All") {
       params.set("gender", activeFilter)
     }
 
@@ -108,7 +110,7 @@ export default function SearchModal({
                     placeholder="Search for products, categories..."
                     className="flex-1 text-base md:text-lg font-medium text-black placeholder:text-neutral-300 outline-none bg-transparent"
                   />
-                 
+
                   {query && (
                     <button
                       type="button"
@@ -119,9 +121,9 @@ export default function SearchModal({
                     </button>
                   )}
                   <button
-  type="button"
-  onClick={onClose}
-  className="
+                    type="button"
+                    onClick={onClose}
+                    className="
     flex h-9 w-9 md:h-auto md:w-auto
     items-center justify-center
     rounded-full border border-neutral-200
@@ -130,13 +132,13 @@ export default function SearchModal({
     hover:bg-neutral-100
     transition-all
   "
->
-  <X className="h-4 w-4 md:hidden" />
+                  >
+                    <X className="h-4 w-4 md:hidden" />
 
-  <span className="hidden md:block text-xs font-bold uppercase tracking-wider">
-    Close
-  </span>
-</button>
+                    <span className="hidden md:block text-xs font-bold uppercase tracking-wider">
+                      Close
+                    </span>
+                  </button>
                 </div>
               </form>
 
@@ -151,8 +153,8 @@ export default function SearchModal({
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setActiveFilter(f)}
                     className={`shrink-0 px-4 py-2 rounded-2xl text-xs font-bold transition-all ${activeFilter === f
-                        ? "bg-black text-white"
-                        : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                      ? "bg-black text-white"
+                      : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
                       }`}
                   >
                     {f}

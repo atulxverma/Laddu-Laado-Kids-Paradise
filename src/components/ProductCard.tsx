@@ -11,12 +11,16 @@ export default function ProductCard({ product }: { product: any }) {
   return (
     <div className="group relative flex flex-col">
       <Link href={`/product/${product.id}`} className="flex flex-col h-full">
-        
+
         {/* Image Container — Amazon/Flipkart style: taller on mobile */}
         <div className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden bg-gray-100 shadow-sm group-hover:shadow-lg transition-all duration-300">
           {product.images?.[0]?.url ? (
             <img
+              loading="eager"
               src={product.images[0].url}
+              onError={(e) => {
+                e.currentTarget.src = "/placeholder.png";
+              }}
               alt={product.name}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
@@ -38,7 +42,10 @@ export default function ProductCard({ product }: { product: any }) {
           {/* Wishlist button — always visible on mobile, hover on desktop */}
           <button
             onClick={(e) => { e.preventDefault(); toggleItem(product) }}
-            className="absolute top-2.5 right-2.5 h-9 w-9 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center shadow-lg md:opacity-0 md:group-hover:opacity-100 transition-all"
+            className={`absolute top-2.5 right-2.5 h-9 w-9 rounded-full backdrop-blur-md flex items-center justify-center shadow-lg transition-all md:opacity-0 md:group-hover:opacity-100 ${isLiked
+              ? "bg-red-50 border border-red-200"
+              : "bg-white/90"
+              }`}
           >
             <Heart size={16} className={isLiked ? "fill-red-500 text-red-500" : "text-gray-400"} />
           </button>
@@ -59,7 +66,7 @@ export default function ProductCard({ product }: { product: any }) {
           {/* Price + Rating row */}
           <div className="flex items-center justify-between mt-1">
             <span className="text-[15px] md:text-lg font-black text-black">
-              ₹{product.price.toLocaleString("en-IN")}
+              ₹{(product.price ?? 0).toLocaleString("en-IN")}
             </span>
             <div className="flex items-center gap-0.5">
               <span className="text-yellow-400 text-[10px]">★</span>

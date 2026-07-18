@@ -14,8 +14,11 @@ export default function AddToCartButton({ product }: { product: any }) {
   const [mounted, setMounted] = useState(false)
 
   const availableSizes: string[] = product?.size
-    ? product.size.split(",").map((s: string) => s.trim().toUpperCase())
-    : []
+    ? product.size
+      .split(",")
+      .map((s: string) => s.trim().toUpperCase())
+      .filter(Boolean)
+    : [];
 
   const isOutOfStock = (product?.stock ?? 0) <= 0
 
