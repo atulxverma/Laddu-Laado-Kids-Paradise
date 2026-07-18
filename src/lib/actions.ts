@@ -192,166 +192,171 @@ export async function createOrder(data: {
       };
     }
 
-    // if (
-    //   !data.payment?.razorpayOrderId ||
-    //   !data.payment?.razorpayPaymentId ||
-    //   !data.payment?.razorpaySignature
-    // ) {
-    //   return {
-    //     error: "Payment verification details are missing.",
-    //   };
-    // }
+    if (
+      !data.payment?.razorpayOrderId ||
+      !data.payment?.razorpayPaymentId ||
+      !data.payment?.razorpaySignature
+    ) {
+      return {
+        error: "Payment verification details are missing.",
+      };
+    }
 
-    // const razorpaySecret = process.env.RAZORPAY_KEY_SECRET;
+    const razorpaySecret = process.env.RAZORPAY_KEY_SECRET;
 
-    // if (!razorpaySecret) {
-    //   throw new Error("Razorpay secret is not configured.");
-    // }
+    if (!razorpaySecret) {
+      throw new Error("Razorpay secret is not configured.");
+    }
 
-    // const generatedSignature = crypto
-    //   .createHmac("sha256", razorpaySecret)
-    //   .update(
-    //     `${data.payment.razorpayOrderId}|${data.payment.razorpayPaymentId}`,
-    //   )
-    //   .digest("hex");
+    const generatedSignature = crypto
+      .createHmac("sha256", razorpaySecret)
+      .update(
+        `${data.payment.razorpayOrderId}|${data.payment.razorpayPaymentId}`,
+      )
+      .digest("hex");
 
-    // const receivedSignature = data.payment.razorpaySignature;
+    const receivedSignature = data.payment.razorpaySignature;
 
-    // const generatedBuffer = Buffer.from(generatedSignature, "utf8");
+    const generatedBuffer = Buffer.from(generatedSignature, "utf8");
 
-    // const receivedBuffer = Buffer.from(receivedSignature, "utf8");
+    const receivedBuffer = Buffer.from(receivedSignature, "utf8");
 
-    // const isSignatureValid =
-    //   generatedBuffer.length === receivedBuffer.length &&
-    //   crypto.timingSafeEqual(generatedBuffer, receivedBuffer);
+    const isSignatureValid =
+      generatedBuffer.length === receivedBuffer.length &&
+      crypto.timingSafeEqual(generatedBuffer, receivedBuffer);
 
-    // if (!isSignatureValid) {
-    //   return {
-    //     error: "Payment verification failed.",
-    //   };
-    // }
+    if (!isSignatureValid) {
+      return {
+        error: "Payment verification failed.",
+      };
+    }
 
-    // const existingOrder = await db.order.findFirst({
-    //   where: {
-    //     razorpayPaymentId: data.payment.razorpayPaymentId,
-    //   },
-    // });
+    const existingOrder = await db.order.findFirst({
+      where: {
+        razorpayPaymentId: data.payment.razorpayPaymentId,
+      },
+    });
 
-    // if (existingOrder) {
-    //   return {
-    //     success: true,
-    //     orderId: existingOrder.id,
-    //   };
-    // }
+    if (existingOrder) {
+      return {
+        success: true,
+        orderId: existingOrder.id,
+      };
+    }
 
-    // const razorpayPayment = await razorpay.payments.fetch(
-    //   data.payment.razorpayPaymentId,
-    // );
+    const razorpayPayment = await razorpay.payments.fetch(
+      data.payment.razorpayPaymentId,
+    );
 
-    // if (razorpayPayment.order_id !== data.payment.razorpayOrderId) {
-    //   return {
-    //     error: "Payment order verification failed.",
-    //   };
-    // }
+    if (razorpayPayment.order_id !== data.payment.razorpayOrderId) {
+      return {
+        error: "Payment order verification failed.",
+      };
+    }
 
-    // if (razorpayPayment.status !== "captured") {
-    //   return {
-    //     error: "Payment has not been successfully captured.",
-    //   };
-    // }
-
-    // const productIds = [...new Set(data.items.map((item) => item.id))];
-
-    // const products = await db.product.findMany({
-    //   where: {
-    //     id: {
-    //       in: productIds,
-    //     },
-    //     isArchived: false,
-    //   },
-    //   select: {
-    //     id: true,
-    //     name: true,
-    //     price: true,
-    //     stock: true,
-    //   },
-    // });
-
-    // if (products.length !== productIds.length) {
-    //   return {
-    //     error: "Some products are no longer available.",
-    //   };
-    // }
-
-    // let serverTotal = 0;
-
-    // for (const item of data.items) {
-    //   if (!Number.isInteger(item.quantity) || item.quantity < 1) {
-    //     return {
-    //       error: "Invalid product quantity.",
-    //     };
-    //   }
-
-    //   const product = products.find((product) => product.id === item.id);
-
-    //   if (!product) {
-    //     return {
-    //       error: "Product no longer exists.",
-    //     };
-    //   }
-
-    //   if (product.stock < item.quantity) {
-    //     return {
-    //       error: `${product.name} has only ${product.stock} item(s) left.`,
-    //     };
-    //   }
-
-    //   serverTotal += product.price * item.quantity;
-    // }
-
-    // const razorpayOrder = await razorpay.orders.fetch(
-    //   data.payment.razorpayOrderId,
-    // );
-
-    // const expectedAmount = Math.round(serverTotal * 100);
-
-    // if (
-    //   Number(razorpayOrder.amount) !== expectedAmount ||
-    //   razorpayOrder.currency !== "INR"
-    // ) {
-    //   return {
-    //     error: "Payment amount verification failed.",
-    //   };
-    // }
+    if (razorpayPayment.status !== "captured") {
+      return {
+        error: "Payment has not been successfully captured.",
+      };
+    }
 
     const productIds = [...new Set(data.items.map((item) => item.id))];
 
-const products = await db.product.findMany({
-  where: {
-    id: {
-      in: productIds,
-    },
-    isArchived: false,
-  },
-  select: {
-    id: true,
-    name: true,
-    price: true,
-    stock: true,
-  },
-});
+    const products = await db.product.findMany({
+      where: {
+        id: {
+          in: productIds,
+        },
+        isArchived: false,
+      },
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        stock: true,
+      },
+    });
 
-let serverTotal = 0;
+    if (products.length !== productIds.length) {
+      return {
+        error: "Some products are no longer available.",
+      };
+    }
 
-for (const item of data.items) {
-  const product = products.find((p) => p.id === item.id);
+    let serverTotal = 0;
 
-  if (!product) {
-    return { error: "Product not found." };
-  }
+    for (const item of data.items) {
+      if (!Number.isInteger(item.quantity) || item.quantity < 1) {
+        return {
+          error: "Invalid product quantity.",
+        };
+      }
 
-  serverTotal += product.price * item.quantity;
-}
+      const product = products.find((product) => product.id === item.id);
+
+      if (!product) {
+        return {
+          error: "Product no longer exists.",
+        };
+      }
+
+      if (product.stock < item.quantity) {
+        return {
+          error: `${product.name} has only ${product.stock} item(s) left.`,
+        };
+      }
+
+      serverTotal += product.price * item.quantity;
+    }
+
+    const razorpayOrder = await razorpay.orders.fetch(
+      data.payment.razorpayOrderId,
+    );
+
+    const expectedAmount = Math.round(serverTotal * 100);
+
+    if (
+      Number(razorpayOrder.amount) !== expectedAmount ||
+      razorpayOrder.currency !== "INR"
+    ) {
+      return {
+        error: "Payment amount verification failed.",
+      };
+    }
+
+
+    //without razorpay code 
+
+//     const productIds = [...new Set(data.items.map((item) => item.id))];
+
+// const products = await db.product.findMany({
+//   where: {
+//     id: {
+//       in: productIds,
+//     },
+//     isArchived: false,
+//   },
+//   select: {
+//     id: true,
+//     name: true,
+//     price: true,
+//     stock: true,
+//   },
+// });
+
+// let serverTotal = 0;
+
+// for (const item of data.items) {
+//   const product = products.find((p) => p.id === item.id);
+
+//   if (!product) {
+//     return { error: "Product not found." };
+//   }
+
+//   serverTotal += product.price * item.quantity;
+// }
+
+//till there
 
 
     const order = await db.$transaction(async (tx) => {

@@ -119,77 +119,85 @@ export default function CheckoutPage() {
         size: item.size,
       }))
 
-      // const res = await initiateRazorpayPayment(checkoutItems)
+      const res = await initiateRazorpayPayment(checkoutItems)
 
-      // if (!res.success) {
-      //   alert("Payment Gateway Error")
-      //   setLoading(false)
-      //   return
-      // }
+      if (!res.success) {
+        alert("Payment Gateway Error")
+        setLoading(false)
+        return
+      }
 
-      // const options = {
-      //   key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-      //   amount: res.amount,
-      //   currency: "INR",
-      //   name: "laddu LAADO",
-      //   description: "Premium Couture Order",
-      //   order_id: res.orderId,
-      //   handler: async function (response: any) {
-      //     setLoading(true)
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: res.amount,
+        currency: "INR",
+        name: "laddu LAADO",
+        description: "Premium Couture Order",
+        order_id: res.orderId,
+        handler: async function (response: any) {
+          setLoading(true)
 
-      //     const orderRes = await createOrder({
-      //       phone: form.phone,
-      //       address: fullAddress,
-      //       items: checkoutItems,
-      //       payment: {
-      //         razorpayOrderId: response.razorpay_order_id,
-      //         razorpayPaymentId: response.razorpay_payment_id,
-      //         razorpaySignature: response.razorpay_signature,
-      //       },
-      //     })
+          const orderRes = await createOrder({
+            phone: form.phone,
+            address: fullAddress,
+            items: checkoutItems,
+            payment: {
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+            },
+          })
 
-      //     if (orderRes.success) {
-      //       setIsSuccess(true)
-      //       clearCart()
-      //       setTimeout(() => router.push("/"), 4000)
-      //     } else {
-      //       alert(orderRes.error || "Order failed")
-      //     }
+          if (orderRes.success) {
+            setIsSuccess(true)
+            clearCart()
+            setTimeout(() => router.push("/"), 4000)
+          } else {
+            alert(orderRes.error || "Order failed")
+          }
 
-      //     setLoading(false)
-      //   },
-      //   prefill: {
-      //     name: user.fullName,
-      //     email: user.primaryEmailAddress?.emailAddress,
-      //     contact: form.phone,
-      //   },
-      //   theme: { color: "#000000" },
-      //   modal: { ondismiss: () => setLoading(false) }
-      // }
+          setLoading(false)
+        },
+        prefill: {
+          name: user.fullName,
+          email: user.primaryEmailAddress?.emailAddress,
+          contact: form.phone,
+        },
+        theme: { color: "#000000" },
+        modal: { ondismiss: () => setLoading(false) }
+      }
 
-      // const paymentObject = new (window as any).Razorpay(options)
-      // paymentObject.open()
-      const orderRes = await createOrder({
-  phone: form.phone,
-  address: fullAddress,
-  items: checkoutItems,
-  payment: {
-    razorpayOrderId: "DEV_ORDER",
-    razorpayPaymentId: "DEV_PAYMENT",
-    razorpaySignature: "DEV_SIGNATURE",
-  },
-});
+      const paymentObject = new (window as any).Razorpay(options)
+      paymentObject.open()
 
-if (orderRes.success) {
-  setIsSuccess(true);
-  clearCart();
-  setTimeout(() => router.push("/"), 4000);
-} else {
-  alert(orderRes.error || "Order failed");
-}
 
-setLoading(false);
-return;
+      //without razorpay code 
+
+
+//       const orderRes = await createOrder({
+//   phone: form.phone,
+//   address: fullAddress,
+//   items: checkoutItems,
+//   payment: {
+//     razorpayOrderId: "DEV_ORDER",
+//     razorpayPaymentId: "DEV_PAYMENT",
+//     razorpaySignature: "DEV_SIGNATURE",
+//   },
+// });
+
+// if (orderRes.success) {
+//   setIsSuccess(true);
+//   clearCart();
+//   setTimeout(() => router.push("/"), 4000);
+// } else {
+//   alert(orderRes.error || "Order failed");
+// }
+
+// setLoading(false);
+// return;
+
+//till there without razorpay
+
     } catch (err) {
       setLoading(false)
     }
