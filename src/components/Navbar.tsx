@@ -13,7 +13,7 @@ import {
 import { useCart } from "@/hooks/use-cart"
 import { useWishlist } from "@/hooks/use-wishlist"
 import { useEffect, useRef, useState } from "react"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import {
   SignInButton,
   UserButton,
@@ -890,7 +890,432 @@ whitespace-nowrap
         }
       />
 
+      {/* MOBILE DRAWER */}
+
+      <AnimatePresence>
+        {menuOpen && (
+          <>
+            <motion.div
+              initial={false}
+              animate={{
+                opacity: 1,
+                y: 0,
+              }}
+              exit={{
+                opacity: 0,
+                y: -8,
+              }}
+              transition={{
+                duration: 0.18,
+              }}
+
+
+              onClick={() =>
+                setMenuOpen(false)
+              }
+              className="
+                fixed
+                inset-0
+                z-[60]
+                bg-black/50
+                backdrop-blur-sm
+                md:hidden
+              "
+            />
+
+            <motion.aside
+              initial={{
+                x: "-100%",
+              }}
+              animate={{
+                x: 0,
+              }}
+              exit={{
+                x: "-100%",
+              }}
+              transition={{
+                type: "spring",
+                damping: 25,
+                stiffness: 200,
+              }}
+              className="
+                fixed
+                top-0
+                left-0
+                bottom-0
+                z-[70]
+                w-[300px]
+                max-w-[85vw]
+                bg-white
+                shadow-2xl
+                flex
+                flex-col
+                md:hidden
+              "
+            >
+              <div
+                className="
+    px-5 py-5
+    border-b
+    border-gray-100
+    flex
+    items-center
+    justify-between
+  "
+              >
+                <Link
+                  href="/"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center"
+                >
+                  <img
+                    src="/logo1.jpeg"
+                    alt="Laddoo Laado"
+                    className="h-17 w-auto object-contain"
+                  />
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen(false)}
+                  className="
+    h-10
+    w-10
+    rounded-full
+    border
+    border-gray-200
+    bg-white
+    hover:bg-gray-100
+    transition-all
+    flex
+    items-center
+    justify-center
+  "
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div
+                className="
+  flex-1
+  overflow-y-auto
+  px-4 py-4
+  space-y-4
+  no-scrollbar
+"
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false)
+                    setSearchOpen(true)
+                  }}
+                  className="w-full h-11 flex items-center gap-2.5 rounded-xl border border-gray-200 bg-gray-50 px-3 text-gray-500 text-sm hover:bg-white transition-all"
+                >
+                  <Search size={18} />
+
+                  <span className="text-sm font-medium">
+                    Search items...
+                  </span>
+                </button>
+
+                <div className="space-y-2">
+                  <p
+                    className="
+                      text-[10px]
+                      font-black
+                      text-gray-300
+                      uppercase
+                      tracking-widest
+                    "
+                  >
+                    Account
+                  </p>
+
+                  {isSignedIn ? (
+                    <>
+                      <Link
+                        href="/orders"
+                        onClick={() =>
+                          setMenuOpen(false)
+                        }
+                        className="
+                          flex
+                          items-center
+                          gap-3
+                          text-sm
+                          font-bold
+                          text-black
+                          bg-gray-50
+                          h-11 px-3
+                          rounded-xl
+                        "
+                      >
+                        <Package
+                          size={18}
+                          className="text-gray-400"
+                        />
+
+                        My Orders
+                      </Link>
+
+                      <Link
+                        href="/wishlist"
+                        onClick={() =>
+                          setMenuOpen(false)
+                        }
+                        className="
+                          flex
+                          items-center
+                          justify-between
+                          text-sm
+                          font-bold
+                          text-black
+                          bg-gray-50
+                          h-11 px-3
+rounded-xl
+                        "
+                      >
+                        <div className="flex items-center gap-3">
+                          <Heart
+                            size={18}
+                            className="text-gray-400"
+                          />
+
+                          Wishlist
+                        </div>
+
+                        {mounted &&
+                          wishlist.items
+                            .length > 0 && (
+                            <span
+                              className="
+                                min-w-[20px]
+                                h-5
+                                px-1.5
+                                bg-red-500
+                                text-white
+                                rounded-full
+                                text-[9px]
+                                font-black
+                                flex
+                                items-center
+                                justify-center
+                              "
+                            >
+                              {
+                                wishlist.items
+                                  .length
+                              }
+                            </span>
+                          )}
+                      </Link>
+                    </>
+                  ) : (
+                    <SignInButton mode="modal">
+                      <button
+                        onClick={() =>
+                          setMenuOpen(false)
+                        }
+                        className="
+                          w-full
+                          bg-black
+                          text-white
+                          h-11
+rounded-xl
+                          font-black
+                          uppercase
+                          text-xs
+                          tracking-widest
+                        "
+                      >
+                        Login / Register
+                      </button>
+                    </SignInButton>
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  <p
+                    className="
+                      text-[10px]
+                      font-black
+                      text-gray-300
+                      uppercase
+                      tracking-widest
+                      mb-2
+                    "
+                  >
+                    Shop
+                  </p>
+
+                  {genderFilters.map(
+                    (filter) => (
+                      <Link
+                        key={filter.label}
+                        href={filter.href}
+                        onClick={() =>
+                          setMenuOpen(false)
+                        }
+                        className="
+flex
+items-center
+justify-between
+h-12
+px-3
+rounded-xl
+hover:bg-gray-50
+transition-all
+"
+                      >
+                        <div className="flex items-center gap-3">
+
+                          <filter.icon
+                            size={17}
+                            className="text-gray-500"
+                          />
+
+                          <span className="text-sm font-semibold">
+                            {filter.label}
+                          </span>
+
+                        </div>
+
+                        <span className="text-gray-300">
+                          →
+                        </span>
+                      </Link>
+                    )
+                  )}
+                </div>
+
+                <div
+                  className="
+                    px-4 py-4 border-t border-gray-100 space-y-3 bg-gray-50/40
+                  "
+                >
+                  {navLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() =>
+                        setMenuOpen(false)
+                      }
+                      className="
+                        block
+                        text-sm
+                        font-bold
+                        text-gray-500
+                        uppercase
+                        tracking-widest
+                      "
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              <div
+                className="
+                  p-5
+                  border-t
+                  border-gray-100
+                  space-y-3
+                "
+              >
+                {mounted &&
+                  isAdmin && (
+                    <Link
+                      href="/admin/dashboard"
+                      onClick={() =>
+                        setMenuOpen(false)
+                      }
+                      className="
+                        flex
+                        items-center
+                        justify-center
+                        gap-2
+                        w-full
+                        bg-black
+                        text-white
+                        h-11
+rounded-xl
+                        text-xs
+                        font-black
+                        uppercase
+                        tracking-widest
+                      "
+                    >
+                      <LayoutDashboard
+                        size={14}
+                      />
+
+                      Admin Dashboard
+                    </Link>
+                  )}
+
+                {mounted &&
+                  isSignedIn &&
+                  user && (
+                    <div
+                      className="
+                        flex
+                        items-center
+                        gap-3
+                       bg-white
+p-3
+rounded-2xl
+border
+border-gray-200
+shadow-sm
+                      "
+                    >
+                      <UserButton afterSignOutUrl="/" />
+
+                      <div
+                        className="
+                          flex
+                          flex-col
+                          overflow-hidden
+                          min-w-0
+                        "
+                      >
+                        <span
+                          className="
+                            text-xs
+                            font-black
+                            truncate
+                            text-black
+                          "
+                        >
+                          {user.fullName ||
+                            "User"}
+                        </span>
+
+                        <span
+                          className="
+                            text-[10px]
+                            font-bold
+                            text-emerald-500
+                            uppercase
+                          "
+                        >
+                          Active
+                        </span>
+                      </div>
+                    </div>
+                  )}
+              </div>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+
 
     </>
+
+
   )
 }

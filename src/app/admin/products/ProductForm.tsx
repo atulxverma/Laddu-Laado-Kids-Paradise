@@ -7,6 +7,20 @@ import { ImagePlus, Trash2, X, Package, Pencil } from "lucide-react"
 import { createProduct, updateProduct } from "@/lib/actions"
 import { createPortal } from "react-dom"
 
+const sizeOptions = [
+  "0-1Y",
+  "1-2Y",
+  "2-3Y",
+  "3-4Y",
+  "4-5Y",
+  "5-6Y",
+  "6-7Y",
+  "7-8Y",
+  "8-9Y",
+  "9-10Y",
+  "10-11Y",
+  "11-12Y",
+]
 const createEmptyForm = () => ({
   name: "",
   description: "",
@@ -47,9 +61,9 @@ export default function ProductForm({
   const [customDetails, setCustomDetails] = useState(product?.specifications || [{ key: "", value: "" }])
   const [mounted, setMounted] = useState(false)
 
-useEffect(() => {
-  setMounted(true)
-}, [])
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const inputStyle = "w-full rounded-xl border border-gray-100 bg-gray-50/30 px-4 py-3 text-sm font-medium outline-none transition-all focus:border-black"
 
@@ -239,36 +253,36 @@ useEffect(() => {
 
   if (!mounted) return null
 
-return createPortal(
-  <div
-    className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-    onMouseDown={closeModal}
-  >
+  return createPortal(
     <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="edit-product-title"
-      onMouseDown={(event) => event.stopPropagation()}
-      className="relative w-full max-w-5xl max-h-[92vh] overflow-y-auto rounded-3xl bg-white p-5 sm:p-7 lg:p-8 shadow-2xl"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+      onMouseDown={closeModal}
     >
-      <button
-        type="button"
-        onClick={closeModal}
-        className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200"
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="edit-product-title"
+        onMouseDown={(event) => event.stopPropagation()}
+        className="relative w-full max-w-5xl max-h-[92vh] overflow-y-auto rounded-3xl bg-white p-5 sm:p-7 lg:p-8 shadow-2xl"
       >
-        <X size={18} />
-      </button>
+        <button
+          type="button"
+          onClick={closeModal}
+          className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200"
+        >
+          <X size={18} />
+        </button>
 
-      <h2
-        id="edit-product-title"
-        className="mb-8 text-2xl font-black"
-      >
-        Edit Product
-      </h2>
+        <h2
+          id="edit-product-title"
+          className="mb-8 text-2xl font-black"
+        >
+          Edit Product
+        </h2>
 
-      {editorForm}
-    </div>
-  </div>,
-  document.body
-)
+        {editorForm}
+      </div>
+    </div>,
+    document.body
+  )
 }

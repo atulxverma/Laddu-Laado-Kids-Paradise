@@ -16,7 +16,6 @@ const footerCols = [
       { name: "Boys", href: "/shop?gender=Boy" },
       { name: "Girls", href: "/shop?gender=Girl" },
       { name: "New Arrivals", href: "/shop?new=true" },
-      { name: "Sale", href: "/shop" },
     ],
   },
   {
@@ -208,11 +207,11 @@ export default function Footer() {
               © 2026 <span className="font-semibold text-black">Laddoo Laado</span>. Crafted with ❤️ for every little star.
             </p>
 
-            <div className="flex flex-wrap items-center gap-6 text-sm">
+            <div className="flex flex-wrap items-center gap-4 text-sm">
 
               <Link
-                href="/privacy"
-                className="text-neutral-500 transition hover:text-black"
+                href="/privacy-policy"
+                className="hover:text-black transition-colors"
               >
                 Privacy Policy
               </Link>
@@ -225,10 +224,10 @@ export default function Footer() {
               </Link>
 
               <Link
-                href="/returns"
+                href="/refund-policy"
                 className="text-neutral-500 transition hover:text-black"
               >
-                Returns
+                Refund Policy
               </Link>
 
             </div>
