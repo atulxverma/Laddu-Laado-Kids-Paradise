@@ -33,11 +33,11 @@ const footerCols = [
 
 export default function Footer() {
   return (
-    <footer className="mt-28 border-t border-neutral-200 bg-[#fafafa]">
+    <footer className="mt-16 md:mt-28 border-t border-neutral-200 bg-[#fafafa]">
 
-      <div className="max-w-7xl mx-auto px-5 py-16">
+      <div className="max-w-7xl mx-auto px-5 py-10 md:py-16">
 
-        <div className="grid grid-cols-1 md:grid-cols-[1.6fr_1fr_1fr_1.5fr] gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-[1.6fr_1fr_1fr_1.5fr] gap-8 md:gap-12">
 
           {/* ---------------- BRAND ---------------- */}
 
@@ -48,12 +48,12 @@ export default function Footer() {
               <img
                 src="/logo.jpeg"
                 alt="Laddu Laado"
-                className="h-14 w-14 rounded-full object-cover border border-neutral-200 shadow-sm"
+                className="h-12 w-12 md:h-14 md:w-14 rounded-full object-cover border border-neutral-200 shadow-sm"
               />
 
               <div>
 
-                <h2 className="text-2xl font-black tracking-tight uppercase">
+                <h2 className="text-xl md:text-2xl font-black tracking-tight uppercase">
                   Laddu Laado
                 </h2>
 
@@ -65,14 +65,14 @@ export default function Footer() {
 
             </div>
 
-            <p className="mt-6 text-[15px] leading-7 text-neutral-500 max-w-sm">
+            <p className="mt-4 md:mt-4 md:mt-6 text-[15px] leading-7 text-neutral-500 max-w-sm">
               Beautiful clothing crafted with comfort, softness and timeless
               style for every little star.
             </p>
 
             {/* Trust Badges */}
 
-            <div className="flex flex-wrap gap-2 mt-6">
+            <div className="flex flex-wrap gap-2 mt-4 md:mt-4 md:mt-6">
 
               {[
                 "Organic Cotton",
@@ -93,7 +93,7 @@ export default function Footer() {
 
             {/* Social */}
 
-            <div className="flex gap-3 mt-8">
+            <div className="flex gap-3 mt-5 md:mt-8">
 
               <Link
                 href="#"
@@ -126,13 +126,13 @@ export default function Footer() {
 
             <div key={col.title}>
 
-              <h3 className="text-sm font-black uppercase tracking-[0.18em] mb-6">
+              <h3 className="text-sm font-black uppercase tracking-[0.18em] mb-3 md:mb-6">
 
                 {col.title}
 
               </h3>
 
-              <ul className="space-y-3">
+              <ul className="space-y-2 md:space-y-3">
 
                 {col.links.map((link) => (
 
@@ -159,7 +159,7 @@ export default function Footer() {
 
           <div>
 
-            <div className="rounded-[30px] border border-neutral-200 bg-gradient-to-br from-white to-neutral-50 p-7 shadow-sm hover:shadow-xl transition-all duration-300">
+            <div className="rounded-[30px] border border-neutral-200 bg-gradient-to-br from-white to-neutral-50 p-5 md:p-7 shadow-sm hover:shadow-xl transition-all duration-300">
 
               <h3 className="text-lg font-black">
                 Stay Updated
@@ -170,7 +170,7 @@ export default function Footer() {
                 collections.
               </p>
 
-              <div className="mt-6 flex h-12 overflow-hidden rounded-full border border-neutral-300">
+              <div className="mt-4 md:mt-4 md:mt-6 flex h-12 overflow-hidden rounded-full border border-neutral-300">
 
                 <input
                   type="email"
@@ -194,9 +194,9 @@ export default function Footer() {
 
         {/* ---------------- BOTTOM BAR ---------------- */}
 
-        <div className="mt-14 border-t border-neutral-200 pt-8">
+        <div className="mt-8 md:mt-14 border-t border-neutral-200 pt-6 md:pt-8">
 
-          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-3 md:gap-5  md:flex-row md:items-center md:justify-between">
 
             <p className="text-sm text-neutral-500">
               © 2026 <span className="font-semibold text-black">Laddu Laado</span>. Crafted with ❤️ for every little star.

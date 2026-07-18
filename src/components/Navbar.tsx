@@ -296,20 +296,23 @@ export default function Navbar() {
 
         <motion.div
           animate={{
+            y: scrolled ? -80 : 0,
             opacity: scrolled ? 0 : 1,
           }}
           transition={{
             type: "tween",
             duration: 0.22,
           }}
-          className={`bg-white border-b border-gray-100 transition-opacity duration-200 ${scrolled ? "pointer-events-none" : ""
+          className={`bg-white border-b border-gray-100 ${scrolled
+            ? "pointer-events-none"
+            : ""
             }`}
         >
           <div
             className="
               max-w-7xl
               mx-auto
-              px-3
+              px-2
               md:px-6
               h-16
               md:h-16
@@ -329,8 +332,8 @@ export default function Navbar() {
                 }
                 aria-label="Open menu"
                 className="
-                  h-10
-                  w-10
+                  h-8
+                  w-8
                   flex
                   items-center
                   justify-center
@@ -346,25 +349,26 @@ export default function Navbar() {
 
             {/* LOGO */}
 
+
             <Link
-              href="/"
-              className="
-                absolute
-                left-1/2
-                -translate-x-1/2
-                md:static
-                md:translate-x-0
-                flex
-                items-center
-                gap-2
-                group
-              "
-            >
+  href="/"
+  className="
+    absolute
+    left-1/2
+    -translate-x-1/2
+    flex
+    items-center
+    gap-1
+    md:static
+    md:translate-x-0
+  "
+>
+
               <div
                 className="
-                  h-9
-                  w-9
-                  md:h-10
+                  h-8
+                  w-8
+                  md:h-9
                   md:w-10
                   shrink-0
                   rounded-full
@@ -388,7 +392,7 @@ export default function Navbar() {
                 <span
                   className="
                     font-black
-                    text-[13px]
+                    text-[11px]
                     sm:text-[15px]
                     md:text-xl
                     tracking-tighter
@@ -456,7 +460,7 @@ export default function Navbar() {
 
             {/* MOBILE RIGHT */}
 
-            <div className="flex md:hidden items-center gap-0.5 shrink-0">
+            <div className="flex md:hidden items-center gap-2 shrink-0">
               <button
                 type="button"
                 onClick={() =>
@@ -464,59 +468,89 @@ export default function Navbar() {
                 }
                 aria-label="Search"
                 className="
-                  h-10
-                  w-10
-                  flex
-                  items-center
-                  justify-center
-                  rounded-full
-                  text-gray-700
-                  active:scale-90
-                  transition-all
-                "
-              >
-                <Search size={20} />
+h-8
+w-8
+flex
+items-center
+justify-center
+rounded-full
+">
+                <Search size={18} />
               </button>
+
+              <Link
+                href="/wishlist"
+                className="
+relative
+h-8
+w-8
+flex
+items-center
+justify-center
+rounded-full
+"
+              >
+                <Heart size={18} />
+
+                {mounted && wishlist.items.length > 0 && (
+                  <span
+                    className="
+absolute
+-top-1
+-right-1
+min-w-[16px]
+h-4
+px-1
+bg-red-500
+text-white
+text-[8px]
+font-black
+rounded-full
+flex
+items-center
+justify-center
+"
+                  >
+                    {wishlist.items.length}
+                  </span>
+                )}
+              </Link>
 
               <Link
                 href="/cart"
                 aria-label="Cart"
-                className="
-                  relative
-                  h-10
-                  w-10
-                  flex
-                  items-center
-                  justify-center
-                  rounded-full
-                  text-gray-700
-                  active:scale-90
-                  transition-all
-                "
-              >
-                <ShoppingBag size={20} />
+               className="
+relative
+h-8
+w-8
+flex
+items-center
+justify-center
+rounded-full
+">
+                <ShoppingBag size={18} />
 
                 {mounted &&
                   cartCount > 0 && (
                     <span
                       className="
-                        absolute
-                        top-0.5
-                        right-0
-                        min-w-[16px]
-                        h-4
-                        px-1
-                        bg-black
-                        text-white
-                        text-[8px]
-                        font-black
-                        rounded-full
-                        flex
-                        items-center
-                        justify-center
-                        border
-                        border-white
-                      "
+absolute
+-top-1
+-right-1
+min-w-[16px]
+h-4
+px-1
+bg-black
+text-white
+text-[8px]
+font-black
+rounded-full
+flex
+items-center
+justify-center
+border
+border-white
+"
                     >
                       {cartCount > 99
                         ? "99+"
@@ -589,13 +623,14 @@ export default function Navbar() {
               <Link
                 href="/cart"
                 className="
-                  relative
-                  p-2
-                  text-gray-600
-                  hover:bg-gray-100
-                  rounded-full
-                  transition-all
-                "
+relative
+h-8
+w-8
+flex
+items-center
+justify-center
+rounded-full
+"
               >
                 <ShoppingBag size={18} />
 
@@ -603,23 +638,23 @@ export default function Navbar() {
                   cartCount > 0 && (
                     <span
                       className="
-                        absolute
-                        top-1
-                        right-1
-                        min-w-[14px]
-                        h-3.5
-                        px-0.5
-                        bg-black
-                        text-white
-                        text-[8px]
-                        font-black
-                        rounded-full
-                        flex
-                        items-center
-                        justify-center
-                        border
-                        border-white
-                      "
+absolute
+-top-1
+-right-1
+min-w-[16px]
+h-4
+px-1
+bg-black
+text-white
+text-[8px]
+font-black
+rounded-full
+flex
+items-center
+justify-center
+border
+border-white
+"
                     >
                       {cartCount}
                     </span>
@@ -913,12 +948,12 @@ whitespace-nowrap
             >
               <div
                 className="
-                  px-3
-                  h-14
-                  flex
-                  items-center
-                  justify-between
-                "
+    px-2
+    h-14
+    flex
+    items-center
+    justify-between
+  "
               >
                 <button
                   type="button"
@@ -926,15 +961,15 @@ whitespace-nowrap
                     setMenuOpen(true)
                   }
                   className="
-                    h-10
-                    w-10
+                    h-8
+                    w-8
                     flex
                     items-center
                     justify-center
                     rounded-full
                   "
                 >
-                  <Menu size={20} />
+                  <Menu size={18} />
                 </button>
 
                 <Link
@@ -967,7 +1002,7 @@ whitespace-nowrap
 
                   <span
                     className="
-                      text-[13px]
+                      text-[11px]
                       font-black
                       italic
                       tracking-tighter
@@ -978,34 +1013,35 @@ whitespace-nowrap
                   </span>
                 </Link>
 
-                <div className="flex items-center gap-1">
+                <div className="w-1/3 flex justify-end items-center gap-1">
 
                   <button
                     type="button"
                     onClick={() => setSearchOpen(true)}
                     className="
-      h-10
-      w-10
+      h-9
+w-9
+      
       flex
       items-center
       justify-center
       rounded-full
     "
                   >
-                    <Search size={20} />
+                    <Search size={18} />
                   </button>
                   <Link
                     href="/wishlist"
                     className="
     relative
-    h-10
-    w-10
+    h-8
+    w-8
     flex
     items-center
     justify-center
   "
                   >
-                    <Heart size={19} />
+                    <Heart size={18} />
 
                     {mounted && wishlist.items.length > 0 && (
                       <span
@@ -1034,34 +1070,35 @@ whitespace-nowrap
                     href="/cart"
                     className="
       relative
-      h-10
-      w-10
+      h-8
+      w-8
       flex
       items-center
       justify-center
     "
                   >
-                    <ShoppingBag size={19} />
+                    <ShoppingBag size={18} />
 
                     {mounted && cartCount > 0 && (
                       <span
                         className="
-          absolute
-          top-0
-          right-0
-          min-w-[16px]
-          h-4
-          px-1
-          bg-black
-          text-white
-          text-[8px]
-          font-black
-          rounded-full
-          flex
-          items-center
-          justify-center
-        "
-                      >
+absolute
+-top-1
+-right-1
+min-w-[16px]
+h-4
+px-1
+bg-black
+text-white
+text-[8px]
+font-black
+rounded-full
+flex
+items-center
+justify-center
+border
+border-white
+">
                         {cartCount}
                       </span>
                     )}
@@ -1072,9 +1109,9 @@ whitespace-nowrap
             </motion.div>
           )}
         </AnimatePresence>
-      </header>
+      </header >
 
-      <div className="h-16 md:h-28" />
+      <div className="h-[119px] md:h-28" />
 
       <SearchModal
         open={searchOpen}
@@ -1101,6 +1138,7 @@ whitespace-nowrap
               transition={{
                 duration: 0.18,
               }}
+
 
               onClick={() =>
                 setMenuOpen(false)
@@ -1160,12 +1198,12 @@ whitespace-nowrap
                   onClick={() =>
                     setMenuOpen(false)
                   }
-                  className="flex items-center gap-2.5"
+                  className="flex items-center gap-1"
                 >
                   <div
                     className="
-                      h-9
-                      w-9
+                      h-8
+                      w-8
                       rounded-full
                       overflow-hidden
                       border
@@ -1174,7 +1212,7 @@ whitespace-nowrap
                   >
                     <img
                       src="/logo.jpeg"
-                      alt="Logo"
+                      alt="Laddu Laado"
                       className="h-full w-full object-cover"
                     />
                   </div>
@@ -1199,8 +1237,8 @@ whitespace-nowrap
                     setMenuOpen(false)
                   }
                   className="
-                    h-9
-                    w-9
+                    h-8
+                    w-8
                     bg-gray-100
                     rounded-full
                     flex

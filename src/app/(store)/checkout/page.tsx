@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useCart } from "@/hooks/use-cart"
 import { createOrder, initiateRazorpayPayment } from "@/lib/actions"
 import { useUser, SignInButton } from "@clerk/nextjs"
@@ -230,7 +230,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#fafafa] pb-24 pt-16 md:pt-20 lg:pt-24 lg:pb-12">
+    <main className="min-h-screen bg-[#fafafa] pb-24 pt-6 md:pt-8 lg:pt-10 lg:pb-12">
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-0">
@@ -331,8 +331,19 @@ export default function CheckoutPage() {
             </div>
           </section>
 
-          <aside className="h-fit lg:sticky lg:top-28">
-            <div className="rounded-[28px] border border-neutral-200 bg-white p-6 shadow-lg sm:p-7">
+          <aside className="relative h-fit">
+            <div className="
+sticky
+top-28
+rounded-[28px]
+border
+border-neutral-200
+bg-white
+p-6
+shadow-lg
+transition-all
+duration-300
+">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold tracking-tight">Order Summary</h2>
                 <span className="rounded-full bg-neutral-100 text-neutral-700 px-3 py-1 text-xs font-bold">{validItems.length} {validItems.length === 1 ? "item" : "items"}</span>
@@ -551,19 +562,17 @@ export default function CheckoutPage() {
                   form="checkout-form"
                   type="submit"
                   disabled={loading || !form.city}
-                  className="mt-6 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-black text-white font-black hover:shadow-xl transition-all"
+                  className="mt-7 flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-black text-white font-black transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[.98] disabled:opacity-40"
                 >
-
                   {loading ? (
                     "Preparing Payment..."
                   ) : (
                     <>
-                      <LockKeyhole size={18} />
+                      <LockKeyhole size={17} />
                       Proceed to Payment
-                      <ArrowRight size={18} />
+                      <ArrowRight size={17} />
                     </>
                   )}
-
                 </button>
 
                 <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
@@ -593,134 +602,6 @@ export default function CheckoutPage() {
 
               </div>
 
-              <div className="border-t border-white/15 pt-5">
-                <div className="space-y-3 text-sm">
-
-                  <div className="flex justify-between">
-                    <span className="text-neutral-500">
-                      Subtotal
-                    </span>
-
-                    <span className="font-semibold text-black">
-                      ₹{subtotal.toLocaleString("en-IN")}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between">
-
-                    <span className="text-neutral-500">
-                      Delivery Charges
-                    </span>
-
-                    {deliveryCharge === 0 ? (
-
-                      <span className="font-bold text-emerald-600">
-                        FREE
-                      </span>
-
-                    ) : (
-
-                      <span className="font-semibold text-black">
-                        ₹79
-                      </span>
-
-                    )}
-
-                  </div>
-
-                  <div className="flex justify-between">
-
-                    <span className="text-neutral-500">
-                      Taxes
-                    </span>
-
-                    <span className="font-semibold text-black">
-                      Included
-                    </span>
-
-                  </div>
-
-                </div>
-
-                <div className="my-5 h-px bg-neutral-200" />
-
-                <div className="flex items-end justify-between">
-
-                  <div>
-
-                    <p className="text-sm text-neutral-500">
-                      Grand Total
-                    </p>
-
-                    <p className="text-[11px] text-neutral-400 mt-1">
-                      Inclusive of all taxes
-                    </p>
-
-                  </div>
-
-                  <h3 className="text-3xl font-black text-black">
-                    ₹{total.toLocaleString("en-IN")}
-                  </h3>
-
-                </div>
-
-                <div className="mt-5 rounded-2xl bg-white/5 p-4">
-                  <div className="flex items-center gap-3"><div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10"><Truck size={17} className="text-white" /></div><div><p className="text-xs font-semibold text-white">Estimated Delivery</p><p className="mt-0.5 text-xs text-zinc-400">Arrives in 3–5 business days</p></div></div>
-                </div>
-
-                <button
-                  form="checkout-form"
-                  type="submit"
-                  disabled={loading || !form.city}
-                  className="mt-7 flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-black text-white font-black transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[.98] disabled:opacity-40"
-                >
-
-                  {loading ? (
-
-                    "Preparing Payment..."
-
-                  ) : (
-
-                    <>
-
-                      <LockKeyhole size={17} />
-
-                      Proceed to Payment
-
-                      <ArrowRight size={17} />
-
-                    </>
-
-                  )}
-
-                </button>
-
-                <div className="mt-6 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-
-                  <div className="flex items-center gap-3">
-
-                    <ShieldCheck
-                      size={18}
-                      className="text-emerald-600"
-                    />
-
-                    <div>
-
-                      <p className="text-sm font-bold">
-                        Secure Checkout
-                      </p>
-
-                      <p className="text-[11px] text-neutral-500">
-                        SSL encrypted payment powered by Razorpay
-                      </p>
-
-                    </div>
-
-                  </div>
-
-                </div>
-              </div>
-
               <div className="mt-5 rounded-[24px] bg-white p-5 shadow-sm">
                 <div className="flex items-center gap-2 text-sm font-semibold text-zinc-900"><CreditCard size={17} /> Accepted payment methods</div>
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -734,14 +615,7 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-zinc-200 bg-white/95 px-4 py-3 backdrop-blur lg:hidden">
-        <div className="mx-auto flex max-w-lg items-center gap-4">
-          <div className="min-w-0 flex-1"><p className="text-xs text-zinc-500">Total amount</p><p className="text-lg font-semibold tracking-tight text-zinc-950">₹{total.toLocaleString("en-IN")}</p></div>
-          <button form="checkout-form" type="submit" disabled={loading || !form.city} className="flex shrink-0 items-center gap-2 rounded-2xl bg-black px-5 py-3.5 text-sm font-semibold text-white transition-all hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-40">
-            {loading ? "Preparing…" : <><LockKeyhole size={15} /> Pay Securely</>}
-          </button>
-        </div>
-      </div>
+
     </main>
   )
 }

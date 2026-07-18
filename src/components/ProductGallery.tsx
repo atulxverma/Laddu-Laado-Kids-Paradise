@@ -477,7 +477,7 @@ border-gray-200
 
         {/* THUMBNAILS */}
         {safeImages.length > 1 && (
-          <div className="flex justify-center gap-3 overflow-x-auto scroll-smooth pb-1 no-scrollbar">
+          <div className="flex justify-center gap-3 overflow-x-auto scroll-smooth py-2 px-1 no-scrollbar">
             {safeImages.map((image, index) => (
               <button
                 type="button"
@@ -496,8 +496,8 @@ border-gray-200
                   overflow-hidden
                   transition-all
                   ${selectedIndex === index
-                    ? "ring-2 ring-black scale-105 shadow-xl ring-offset-2"
-                    : "opacity-60 hover:opacity-100 hover:scale-105"
+                    ? "border-2 border-black scale-105 shadow-2xl bg-white"
+                    : "border-2 border-transparent opacity-60 hover:opacity-100 hover:scale-105"
                   }
                 `}
               >

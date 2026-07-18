@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { ArrowLeft, Check, ChevronRight, CreditCard, LockKeyhole, Minus, PackageCheck, Plus, ShoppingBag, Trash2, Truck } from "lucide-react"
 import { AnimatePresence, motion } from "framer-motion"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useCart } from "@/hooks/use-cart"
 
 export default function CartPage() {
@@ -14,10 +14,26 @@ export default function CartPage() {
   const clearCart = useCart((state) => state.clearCart)
 
   const [mounted, setMounted] = useState(false)
+  const buttonRef = useRef<HTMLAnchorElement>(null)
+  const [floating, setFloating] = useState(false)
   const freeDeliveryThreshold = 999
 
   useEffect(() => {
     setMounted(true)
+
+    const handleScroll = () => {
+      if (!buttonRef.current) return
+
+      const rect = buttonRef.current.getBoundingClientRect()
+
+      setFloating(rect.bottom < window.innerHeight - 40)
+    }
+
+    handleScroll()
+
+    window.addEventListener("scroll", handleScroll)
+
+    return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
   const validItems = useMemo(() => {
@@ -60,7 +76,7 @@ export default function CartPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#fafafa] pb-28 pt-16 md:pt-20 lg:pb-12">
+    <main className="min-h-screen bg-[#fafafa] pb-28 pt-8 md:pt-10 lg:pt-12 lg:pb-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-0">
         <Link href="/shop" className="mb-5 inline-flex items-center gap-2 text-sm font-medium text-zinc-500 hover:text-black transition-colors">
           <ArrowLeft size={16} />
@@ -271,103 +287,80 @@ export default function CartPage() {
             </section>
           </section>
 
-          <aside className="h-fit lg:sticky lg:top-24">
+          <aside className="h-fit lg:sticky lg:top-16">
 
             <div className="rounded-[30px] border border-neutral-200 bg-white p-6 shadow-[0_10px_35px_rgba(0,0,0,.05)]">
 
               <div>
 
-  <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between">
 
-    <div>
+                  <div>
 
-      <p className="text-[10px] uppercase tracking-[0.22em] text-neutral-400 font-black">
-        ORDER SUMMARY
-      </p>
+                    <p className="text-[10px] uppercase tracking-[0.22em] text-neutral-400 font-black">
+                      ORDER SUMMARY
+                    </p>
 
-      <h2 className="mt-1 text-2xl font-black">
-        Summary
-      </h2>
+                    <h2 className="mt-1 text-2xl font-black">
+                      Summary
+                    </h2>
 
-    </div>
+                  </div>
 
-    <div className="h-12 w-12 rounded-2xl bg-neutral-100 flex items-center justify-center">
-      <CreditCard size={20} />
-    </div>
+                  <div className="h-12 w-12 rounded-2xl bg-neutral-100 flex items-center justify-center">
+                    <CreditCard size={20} />
+                  </div>
 
-  </div>
+                </div>
 
-  <div className="my-6 h-px bg-neutral-200" />
+                <div className="my-6 h-px bg-neutral-200" />
 
-  <div className="space-y-4">
+                <div className="space-y-4">
 
-    <div className="flex justify-between text-sm">
-      <span className="text-neutral-500">Subtotal</span>
-      <span className="font-semibold">
-        ₹{total.toLocaleString("en-IN")}
-      </span>
-    </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-neutral-500">Subtotal</span>
+                    <span className="font-semibold">
+                      ₹{subtotal.toLocaleString("en-IN")}
+                    </span>
+                  </div>
 
-    <div className="flex justify-between text-sm">
-      <span className="text-neutral-500">Delivery</span>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-neutral-500">Delivery</span>
 
-      {deliveryCharge === 0 ? (
-        <span className="font-bold text-emerald-600">
-          FREE
-        </span>
-      ) : (
-        <span className="font-semibold">
-          ₹79
-        </span>
-      )}
+                    {deliveryCharge === 0 ? (
+                      <span className="font-bold text-emerald-600">
+                        FREE
+                      </span>
+                    ) : (
+                      <span className="font-semibold">
+                        ₹79
+                      </span>
+                    )}
 
-    </div>
+                  </div>
 
-    {deliveryCharge !== 0 && (
+                  {deliveryCharge !== 0 && (
 
-      <p className="text-[11px] text-neutral-500">
+                    <p className="text-[11px] text-neutral-500">
 
-        Add{" "}
+                      Add{" "}
 
-        <span className="font-bold">
+                      <span className="font-bold">
 
-          ₹{amountAway.toLocaleString("en-IN")}
+                        ₹{amountAway.toLocaleString("en-IN")}
 
-        </span>
+                      </span>
 
-        {" "}more for Free Delivery.
+                      {" "}more for Free Delivery.
 
-      </p>
+                    </p>
 
-    )}
+                  )}
 
-  </div>
+                </div>
 
-  <div className="my-6 h-px bg-neutral-200" />
+              </div>
 
-  <div className="flex items-end justify-between">
-
-    <div>
-
-      <p className="text-sm text-neutral-500">
-        Grand Total
-      </p>
-
-      <p className="text-[11px] text-neutral-400">
-        Inclusive of all taxes
-      </p>
-
-    </div>
-
-    <h3 className="text-3xl font-black">
-      ₹{total.toLocaleString("en-IN")}
-    </h3>
-
-  </div>
-
-</div>
-
-              <div className="my-6 h-px bg-neutral-200" />
 
 
 
@@ -402,8 +395,25 @@ export default function CartPage() {
               )}
 
               <Link
+                ref={buttonRef}
                 href="/checkout"
-                className="mt-7 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-black text-white font-bold transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                className={`
+hidden lg:flex
+items-center
+justify-center
+gap-2
+mt-7
+h-14
+w-full
+rounded-2xl
+bg-black
+text-white
+font-bold
+transition-all
+duration-300
+hover:-translate-y-1
+hover:shadow-2xl
+`}
               >
                 Proceed to Checkout
                 <ChevronRight size={18} />
