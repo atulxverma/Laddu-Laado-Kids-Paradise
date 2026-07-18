@@ -43,7 +43,9 @@ export default async function HomePage() {
 
       db.product.findMany({
         where: {
-          ageGroup: "0-1Y",
+          size: {
+            contains: "0-1Y",
+          },
         },
         include: {
           category: true,
@@ -51,7 +53,7 @@ export default async function HomePage() {
           reviews: true,
         },
         take: 4,
-      }),
+      })
     ])
 
   function ProductSection({
@@ -597,7 +599,7 @@ hover:scale-105
 
       <ProductSection
         title="Newborn Collection"
-        href="/shop?age=0-1Y"
+        href="/shop?size=0-1Y"
         products={newbornProducts}
       />
 
