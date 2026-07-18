@@ -211,7 +211,7 @@ export default function Footer() {
 
               <Link
                 href="/privacy-policy"
-                className="hover:text-black transition-colors"
+                className="text-neutral-500 transition hover:text-black"
               >
                 Privacy Policy
               </Link>

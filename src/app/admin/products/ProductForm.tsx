@@ -54,6 +54,7 @@ export default function ProductForm({
     size: product?.size || "",
     color: product?.color || "",
     gender: product?.gender || "Newborn",
+
     stock: product?.stock?.toString() || "10",
     ageGroup: product?.ageGroup || "0-1Y",
     isNewArrival: product?.isNewArrival ?? true,
@@ -171,6 +172,35 @@ export default function ProductForm({
         <option value="Boy">Boys</option>
         <option value="Girl">Girls</option>
       </select>
+      <div className="space-y-1.5">
+        <label className="text-[10px] font-black uppercase text-gray-400">
+          Age Group
+        </label>
+
+        <select
+          className={inputStyle}
+          value={form.ageGroup}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              ageGroup: e.target.value,
+            })
+          }
+        >
+          <option value="0-1Y">0-1 Years</option>
+          <option value="1-2Y">1-2 Years</option>
+          <option value="2-3Y">2-3 Years</option>
+          <option value="3-4Y">3-4 Years</option>
+          <option value="4-5Y">4-5 Years</option>
+          <option value="5-6Y">5-6 Years</option>
+          <option value="6-7Y">6-7 Years</option>
+          <option value="7-8Y">7-8 Years</option>
+          <option value="8-9Y">8-9 Years</option>
+          <option value="9-10Y">9-10 Years</option>
+          <option value="10-11Y">10-11 Years</option>
+          <option value="11-12Y">11-12 Years</option>
+        </select>
+      </div>
 
       <div className="flex items-center gap-3">
         <input type="checkbox" checked={form.isNewArrival} onChange={(event) => setForm({ ...form, isNewArrival: event.target.checked })} className="h-4 w-4" />

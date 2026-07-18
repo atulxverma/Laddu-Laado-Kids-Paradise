@@ -20,7 +20,23 @@ export default function ProductCard({ product }: { product: any }) {
         ) / totalReviews
       ).toFixed(1)
       : "0.0";
-      
+      const stock = Number(product.stock ?? 0)
+
+const stockBadge =
+  stock === 0
+    ? {
+        text: "Out of Stock",
+        className: "text-red-600",
+      }
+    : stock <= 5
+    ? {
+        text: `Only ${stock} Left`,
+        className: "text-amber-600",
+      }
+    : {
+        text: "In Stock",
+        className: "text-emerald-600",
+      }
 
   return (
     <div className="group relative flex flex-col">
@@ -103,11 +119,21 @@ export default function ProductCard({ product }: { product: any }) {
           </div>
 
           {/* Size tag if available */}
-          {product.size && (
-            <p className="text-[9px] text-gray-400 font-medium mt-0.5 truncate">
-              Sizes: {product.size}
-            </p>
-          )}
+          <div className="mt-2 flex items-center justify-between">
+
+  <p
+    className={`text-[10px] font-bold ${stockBadge.className}`}
+  >
+    {stockBadge.text}
+  </p>
+
+  {product.size && (
+    <p className="text-[9px] text-gray-400 truncate">
+      {product.size}
+    </p>
+  )}
+
+</div>
         </div>
       </Link>
     </div>

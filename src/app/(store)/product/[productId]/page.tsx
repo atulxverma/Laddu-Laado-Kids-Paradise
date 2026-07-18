@@ -54,6 +54,24 @@ export default async function ProductPage({
         1,
       )
       : "0.0";
+      
+  const stock = Number(product.stock ?? 0)
+
+  const stockBadge =
+    stock === 0
+      ? {
+        text: "OUT OF STOCK",
+        className: "bg-red-50 text-red-600",
+      }
+      : stock <= 5
+        ? {
+          text: `ONLY ${stock} LEFT`,
+          className: "bg-amber-50 text-amber-700",
+        }
+        : {
+          text: "IN STOCK",
+          className: "bg-emerald-50 text-emerald-600",
+        }
 
   return (
     <main className="bg-gradient-to-b from-white via-[#fcfcfc] to-white pb-20">
@@ -105,13 +123,9 @@ export default async function ProductPage({
                 </span>
 
                 <span
-                  className={`px-4 py-2 rounded-full text-[10px] uppercase tracking-[0.22em] font-black
-      ${product.stock > 0
-                      ? "bg-emerald-50 text-emerald-600"
-                      : "bg-red-50 text-red-600"
-                    }`}
+                  className={`px-4 py-2 rounded-full text-[10px] uppercase tracking-[0.22em] font-black ${stockBadge.className}`}
                 >
-                  {product.stock > 0 ? "IN STOCK" : "OUT OF STOCK"}
+                  {stockBadge.text}
                 </span>
               </div>
 
@@ -156,6 +170,18 @@ md:text-5xl
                   <p className="text-sm text-gray-400 mt-1">
                     Inclusive of all taxes
                   </p>
+
+                  {stock > 0 && stock <= 5 && (
+                    <p className="mt-3 text-sm font-semibold text-amber-600">
+                      Hurry! Only {stock} piece{stock > 1 ? "s" : ""} left in stock.
+                    </p>
+                  )}
+
+                  {stock === 0 && (
+                    <p className="mt-3 text-sm font-semibold text-red-600">
+                      This product is currently unavailable.
+                    </p>
+                  )}
                 </div>
 
                 <div className="h-14 w-px bg-gray-200" />

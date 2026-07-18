@@ -26,6 +26,9 @@ const razorpay = new Razorpay({
 // --- SECURITY HELPER ---
 async function checkAdmin() {
   const user = await currentUser();
+
+  const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+
   await sendAdminMail(
     "🚨 Unauthorized Access Attempt",
     `
@@ -33,6 +36,7 @@ async function checkAdmin() {
       <p><b>Email:</b> ${user?.primaryEmailAddress?.emailAddress || "Unknown Email"}</p>
     `
   );
+
   if (!user || user.primaryEmailAddress?.emailAddress !== adminEmail) {
     throw new Error("Unauthorized: Access Denied");
   }
@@ -364,7 +368,7 @@ export async function createOrder(data: {
       });
 
       for (const item of data.items) {
-        const updatedProduct = await tx.product.update({
+        await tx.product.update({
           where: {
             id: item.id,
           },
@@ -374,17 +378,6 @@ export async function createOrder(data: {
             },
           },
         });
-
-        if (updatedProduct.stock <= 0) {
-          await tx.product.update({
-            where: {
-              id: item.id,
-            },
-            data: {
-              isArchived: true,
-            },
-          });
-        }
       }
 
       await tx.cartItem.deleteMany({
@@ -404,8 +397,8 @@ export async function createOrder(data: {
       try {
         if (adminEmail) {
           await sendAdminMail(
-  `✨ New Order [#${orderIdShort}] Received`,
-  `
+            `✨ New Order [#${orderIdShort}] Received`,
+            `
     <h2>New Premium Order!</h2>
 
     ${user.fullName || "Guest User"}
@@ -417,8 +410,8 @@ export async function createOrder(data: {
     <p><b>Order ID:</b> ${orderIdShort}</p>
 
     <p><b>Payment:</b> ${data.payment.razorpayPaymentId}</p>
-  `
-);
+  `,
+          );
         }
 
         const customerEmail = user.primaryEmailAddress?.emailAddress;
@@ -560,7 +553,11 @@ export async function createProduct(data: any) {
 }
 
 // --- OTHER ACTIONS ---
-export async function createCategory(name: string, imageUrl?: string, showOnHome?: boolean) {
+export async function createCategory(
+  name: string,
+  imageUrl?: string,
+  showOnHome?: boolean,
+) {
   try {
     await checkAdmin();
     if (!name || !name.trim()) return { error: "Category name is required" };
@@ -790,36 +787,36 @@ export async function updateOrderStatus(orderId: string, status: string) {
         status,
       },
     });
-    if(status==="Cancelled"){
-
-await sendAdminMail(
-"❌ Order Cancelled",
-`
+    if (status === "Cancelled") {
+      await sendAdminMail(
+        "❌ Order Cancelled",
+        `
 <p><b>Order:</b> ${orderId}</p>
 
 <p>Status : Cancelled</p>
-`
-)
-
-}
-if(status==="Delivered"){
-  await sendAdminMail(
-"✅ Order Delivered",
-`
+`,
+      );
+    }
+    if (status === "Delivered") {
+      await sendAdminMail(
+        "✅ Order Delivered",
+        `
 <p>Order : ${orderId}</p>
 
 <p>Status : Delivered</p>
-`
-)}
-if(status==="Shipped"){
-  await sendAdminMail(
-"🚚 Order Shipped",
-`
+`,
+      );
+    }
+    if (status === "Shipped") {
+      await sendAdminMail(
+        "🚚 Order Shipped",
+        `
 <p>Order : ${orderId}</p>
 
 <p>Status : Shipped</p>
-`
-)}
+`,
+      );
+    }
 
     revalidatePath("/admin/orders");
     revalidatePath("/orders");
@@ -939,15 +936,15 @@ export async function subscribeNewsletter(email: string) {
     });
 
     await sendAdminMail(
-  "📧 New Newsletter Subscriber",
-  `
+      "📧 New Newsletter Subscriber",
+      `
     <h2>New Subscriber</h2>
 
     <p><b>Email:</b> ${email}</p>
 
     <p><b>Time:</b> ${new Date()}</p>
-  `
-);
+  `,
+    );
 
     return { success: true };
   } catch (error: any) {
@@ -1041,7 +1038,7 @@ export async function updateCategory(
   id: string,
   name: string,
   imageUrl?: string,
-  showOnHome?: boolean
+  showOnHome?: boolean,
 ) {
   try {
     await checkAdmin();
@@ -1070,7 +1067,7 @@ export async function updateCategory(
         name,
         slug,
         imageUrl,
-        showOnHome
+        showOnHome,
       },
     });
 
