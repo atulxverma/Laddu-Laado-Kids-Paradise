@@ -470,8 +470,8 @@ export async function createProduct(data: any) {
       color,
       stock,
       gender,
-      ageGroup,
-      specifications, // 👈 NEW
+      
+      specifications,
     } = data;
 
     if (!name.trim()) {
@@ -524,7 +524,7 @@ export async function createProduct(data: any) {
 
         stock: Number(data.stock),
         gender: data.gender,
-        ageGroup: data.ageGroup,
+        
 
         size: data.size,
         color: data.color,
@@ -713,7 +713,7 @@ export async function updateProduct(id: string, data: any) {
         color: data.color,
 
         gender: data.gender,
-        ageGroup: data.ageGroup,
+        
 
         specifications: data.specifications || [],
 

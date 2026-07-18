@@ -46,7 +46,6 @@ model Product {
   updatedAt     DateTime       @updatedAt
 
   gender        String         @default("Newborn")
-  ageGroup      String         @default("0-1Y")
 
   reviews       Review[]
 

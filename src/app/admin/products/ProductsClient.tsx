@@ -83,8 +83,10 @@ export default function ProductsClient({ products, categories }: ProductsClientP
   }
 
   const getStockBadge = (stock: number) => {
-    if (stock === 0) return "border-rose-100 bg-rose-50 text-rose-700"
-    if (stock <= 5) return "border-amber-100 bg-amber-50 text-amber-700"
+    if (stock === 0)
+      return "border-red-100 bg-red-50 text-red-700"
+    if (stock <= 5)
+      return "border-amber-100 bg-amber-50 text-amber-700"
     return "border-emerald-100 bg-emerald-50 text-emerald-700"
   }
 
@@ -181,16 +183,40 @@ export default function ProductsClient({ products, categories }: ProductsClientP
                   )}
 
                   <div className="absolute left-2 right-20 top-2 flex flex-col items-start gap-1.5 sm:left-3 sm:right-24 sm:top-3">
-                    <span className={`max-w-full truncate rounded-full border px-2 py-1 text-[8px] font-bold uppercase tracking-wider sm:px-2.5 sm:py-1.5 sm:text-[9px] ${getStockBadge(stock)}`}>{getStockLabel(stock)}</span>
+                    <span className={`
+rounded-full
+border
+px-2.5
+py-1
+text-[9px]
+font-bold
+uppercase
+tracking-wider
+${getStockBadge(stock)}
+`}>{getStockLabel(stock)}</span>
                     {product.isNewArrival && <span className="max-w-full truncate rounded-full bg-black px-2 py-1 text-[8px] font-bold uppercase tracking-wider text-white sm:px-2.5 sm:py-1.5 sm:text-[9px]">New</span>}
                   </div>
-{stock === 0 && (
-  <div className="absolute inset-0 bg-black/45 flex items-center justify-center">
-    <span className="rounded-full bg-white px-4 py-2 text-xs font-black uppercase tracking-wider text-red-600">
-      OUT OF STOCK
-    </span>
-  </div>
-)}
+                  {stock === 0 && (
+                    <div className="absolute inset-0 bg-black/45 flex items-center justify-center">
+                      <span
+                        className="
+  rounded-full
+  border
+  border-red-100
+  bg-red-50
+  px-2.5
+  py-1
+  text-[9px]
+  font-bold
+  uppercase
+  tracking-wider
+  text-red-700
+  "
+                      >
+                        OUT OF STOCK
+                      </span>
+                    </div>
+                  )}
                   {product.category && <span className="absolute bottom-2 left-2 max-w-[72%] truncate rounded-full bg-white px-2 py-1 text-[8px] font-bold uppercase tracking-wider text-neutral-700 shadow-sm sm:bottom-3 sm:left-3 sm:px-2.5 sm:py-1.5 sm:text-[9px]">{product.category.name}</span>}
 
                   <div className="absolute right-2 top-2 z-20 flex items-center gap-1.5 opacity-100 transition-all duration-200 md:translate-y-1 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100 sm:right-3 sm:top-3 sm:gap-2">
@@ -214,18 +240,17 @@ export default function ProductsClient({ products, categories }: ProductsClientP
                   <div className="mt-auto flex items-center justify-between border-t border-neutral-100 pt-3">
                     <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-neutral-400 sm:text-[10px]">Inventory</span>
                     <span
-  className={`text-[10px] font-bold sm:text-xs
-    ${
-      stock === 0
-        ? "text-red-600"
-        : stock <= 5
-        ? "text-amber-600"
-        : "text-emerald-600"
-    }
+                      className={`text-[10px] font-bold sm:text-xs
+    ${stock === 0
+                          ? "text-red-600"
+                          : stock <= 5
+                            ? "text-amber-600"
+                            : "text-emerald-600"
+                        }
   `}
->
-  {stock} {stock === 1 ? "unit" : "units"}
-</span>
+                    >
+                      {stock} {stock === 1 ? "unit" : "units"}
+                    </span>
                   </div>
                 </div>
               </article>

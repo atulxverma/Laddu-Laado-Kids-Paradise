@@ -68,19 +68,19 @@ export default async function ShopPage({
         ],
       }),
 
-      ...(gender && {
-        gender: {
-          equals: gender,
-          mode: "insensitive",
-        },
-      }),
+      ...(age && {
+  size: {
+    contains: age,
+    mode: "insensitive",
+  },
+}),
 
       ...(age && {
-        ageGroup: {
-          equals: age,
-          mode: "insensitive",
-        },
-      }),
+  size: {
+    contains: age,
+    mode: "insensitive",
+  },
+}),
 
       isArchived: false,
     },
