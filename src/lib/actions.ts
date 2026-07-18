@@ -1221,6 +1221,7 @@ export async function getDbCart() {
           include: {
             images: true,
             category: true,
+            reviews: true,
           },
         },
       },

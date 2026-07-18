@@ -24,6 +24,7 @@ export default async function HomePage() {
         include: {
           category: true,
           images: true,
+          reviews: true,
         },
         take: 4,
       }),
@@ -35,6 +36,7 @@ export default async function HomePage() {
         include: {
           category: true,
           images: true,
+          reviews: true,
         },
         take: 4,
       }),
@@ -46,6 +48,7 @@ export default async function HomePage() {
         include: {
           category: true,
           images: true,
+          reviews: true,
         },
         take: 4,
       }),
@@ -115,7 +118,7 @@ export default async function HomePage() {
   const [latestProducts, categories, banners, reviews] =
     await Promise.all([
       db.product.findMany({
-        include: { category: true, images: true },
+        include: { category: true, images: true, reviews: true, },
         take: 8,
         orderBy: { createdAt: "desc" }
       }),
@@ -142,8 +145,22 @@ export default async function HomePage() {
       }),
 
       db.review.findMany({
+        where: {
+          rating: {
+            gte: 4,
+          },
+        },
+        include: {
+          product: {
+            include: {
+              images: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
         take: 3,
-        orderBy: { createdAt: "desc" }
       })
     ])
 
@@ -154,7 +171,8 @@ export default async function HomePage() {
       },
       include: {
         category: true,
-        images: true
+        images: true,
+        reviews: true,
       },
       take: 8,
       orderBy: {
@@ -162,6 +180,43 @@ export default async function HomePage() {
       }
     }),
   ])
+
+  const topRatedProducts = [...latestProducts]
+    .sort((a, b) => {
+      const avgA =
+        a.reviews.length === 0
+          ? 0
+          : a.reviews.reduce((s, r) => s + r.rating, 0) / a.reviews.length;
+
+      const avgB =
+        b.reviews.length === 0
+          ? 0
+          : b.reviews.reduce((s, r) => s + r.rating, 0) / b.reviews.length;
+
+      return avgB - avgA;
+    })
+    .slice(0, 8);
+
+  const totalProducts = await db.product.count({
+    where: {
+      isArchived: false,
+    },
+  });
+
+  const totalOrders = await db.order.count({
+    where: {
+      isPaid: true,
+    },
+  });
+
+  const ratingAggregate = await db.review.aggregate({
+    _avg: {
+      rating: true,
+    },
+  });
+
+  const averageRating =
+    ratingAggregate._avg.rating?.toFixed(1) || "0.0";
 
   // Fallback data agar DB khali ho
   const heroBanner =
@@ -524,8 +579,8 @@ hover:scale-105
 
       <ProductSection
         title="Top Picks"
-        href="/shop"
-        products={latestProducts}
+        href="/shop?sort=top-rated"
+        products={topRatedProducts}
       />
 
       <ProductSection
@@ -573,7 +628,7 @@ hover:scale-105
           <div className="rounded-3xl border border-neutral-200 bg-white p-3 md:p-5 text-center shadow-sm">
 
             <h3 className="text-lg md:text-4xl md:text-4xl font-black">
-              4.9★
+              {averageRating}★
             </h3>
 
             <p className="mt-2 text-[9px] uppercase tracking-widest text-neutral-500">
@@ -585,11 +640,11 @@ hover:scale-105
           <div className="rounded-3xl border border-neutral-200 bg-white p-3 md:p-5 text-center shadow-sm">
 
             <h3 className="text-lg md:text-4xl md:text-4xl font-black">
-              5K+
+              {totalOrders}+
             </h3>
 
             <p className="mt-2 text-[9px] uppercase tracking-widest text-neutral-500">
-              Happy Parents
+              Orders Delivered
             </p>
 
           </div>
@@ -597,7 +652,7 @@ hover:scale-105
           <div className="rounded-3xl border border-neutral-200 bg-white p-3 md:p-5 text-center shadow-sm">
 
             <h3 className="text-lg md:text-4xl md:text-4xl font-black">
-              98%
+              {totalProducts}+
             </h3>
 
             <p className="mt-2 text-[9px] uppercase tracking-widest text-neutral-500">
@@ -658,7 +713,7 @@ hover:scale-105
         </div>
 
       </section>
-      <div className="mt-12 text-center">
+      <div className="mt-5 text-center">
         <Link
           href="/categories"
           className="inline-flex items-center gap-2 rounded-full bg-black px-6 py-3 text-[10px] md:text-sm font-black uppercase tracking-wider text-white hover:scale-105 transition-all"

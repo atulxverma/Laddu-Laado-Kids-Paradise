@@ -35,43 +35,99 @@ export default async function ShopPage({
   };
 
   const products = await db.product.findMany({
-    where: {
-      ...(isNew === "true" && {
-        isNewArrival: true,
-      }),
-      ...(category && {
-        category: { name: { equals: category, mode: "insensitive" } },
-      }),
-      ...(q && {
-        OR: [
-          {
+  where: {
+    ...(isNew === "true" && {
+      isNewArrival: true,
+    }),
+
+    ...(category && {
+      category: {
+        name: {
+          equals: category,
+          mode: "insensitive",
+        },
+      },
+    }),
+
+    ...(q && {
+      OR: [
+        {
+          name: {
+            contains: q,
+            mode: "insensitive",
+          },
+        },
+        {
+          category: {
             name: {
               contains: q,
               mode: "insensitive",
             },
           },
+        },
+      ],
+    }),
 
-          {
-            category: {
-              name: {
-                contains: q,
-                mode: "insensitive",
-              },
-            },
-          },
-        ],
-      }),
-      ...(gender && { gender: { equals: gender, mode: "insensitive" } }),
-      ...(age && { ageGroup: { equals: age, mode: "insensitive" } }),
-    },
-    orderBy:
-      sort === "price-asc"
-        ? { price: "asc" }
-        : sort === "price-desc"
-          ? { price: "desc" }
-          : { createdAt: "desc" },
-    include: { category: true, images: true },
+    ...(gender && {
+      gender: {
+        equals: gender,
+        mode: "insensitive",
+      },
+    }),
+
+    ...(age && {
+      ageGroup: {
+        equals: age,
+        mode: "insensitive",
+      },
+    }),
+
+    isArchived: false,
+  },
+
+  include: {
+    category: true,
+    images: true,
+    reviews: true,
+  },
+});
+
+// ---------- Sorting ----------
+
+if (sort === "price-asc") {
+  products.sort((a, b) => a.price - b.price);
+
+} else if (sort === "price-desc") {
+  products.sort((a, b) => b.price - a.price);
+
+} else if (sort === "top-rated") {
+  products.sort((a, b) => {
+    const avgA =
+      a.reviews.length === 0
+        ? 0
+        : a.reviews.reduce((sum, r) => sum + r.rating, 0) /
+          a.reviews.length;
+
+    const avgB =
+      b.reviews.length === 0
+        ? 0
+        : b.reviews.reduce((sum, r) => sum + r.rating, 0) /
+          b.reviews.length;
+
+    if (avgA === avgB) {
+      return b.reviews.length - a.reviews.length;
+    }
+
+    return avgB - avgA;
   });
+
+} else {
+  products.sort(
+    (a, b) =>
+      new Date(b.createdAt).getTime() -
+      new Date(a.createdAt).getTime()
+  );
+}
 
   return (
     <main className="min-h-screen bg-white pb-20 pt-16 md:pt-20">

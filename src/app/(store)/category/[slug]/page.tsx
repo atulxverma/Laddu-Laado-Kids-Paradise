@@ -27,9 +27,10 @@ export default async function CategoryPage({
       isArchived: false,
     },
     include: {
-      images: true,
-      category: true,
-    },
+  images: true,
+  category: true,
+  reviews: true,
+},
     orderBy: {
       createdAt: "desc",
     },

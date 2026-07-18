@@ -7,6 +7,20 @@ import { useWishlist } from "@/hooks/use-wishlist"
 export default function ProductCard({ product }: { product: any }) {
   const { toggleItem, items } = useWishlist()
   const isLiked = items.some(i => i.id === product.id)
+  const reviews = product.reviews || [];
+
+  const totalReviews = reviews.length;
+
+  const avgRating =
+    totalReviews > 0
+      ? (
+        reviews.reduce(
+          (acc: number, r: any) => acc + r.rating,
+          0
+        ) / totalReviews
+      ).toFixed(1)
+      : "0.0";
+      
 
   return (
     <div className="group relative flex flex-col">
@@ -63,14 +77,28 @@ export default function ProductCard({ product }: { product: any }) {
             {product.name}
           </h3>
 
+          {/* Description */}
+          {product.description && (
+            <p className="mt-1 text-[11px] md:text-[12px] text-gray-500 leading-5 line-clamp-2">
+              {product.description}
+            </p>
+          )}
+
           {/* Price + Rating row */}
-          <div className="flex items-center justify-between mt-1">
+          <div className="flex items-center justify-between mt-2">
             <span className="text-[15px] md:text-lg font-black text-black">
               ₹{(product.price ?? 0).toLocaleString("en-IN")}
             </span>
-            <div className="flex items-center gap-0.5">
+            <div className="flex items-center gap-1">
               <span className="text-yellow-400 text-[10px]">★</span>
-              <span className="text-[9px] md:text-[10px] font-bold text-gray-400">4.5</span>
+
+              <span className="text-[9px] md:text-[10px] font-bold text-gray-500">
+                {avgRating}
+              </span>
+
+              <span className="text-[8px] text-gray-400">
+                ({totalReviews})
+              </span>
             </div>
           </div>
 

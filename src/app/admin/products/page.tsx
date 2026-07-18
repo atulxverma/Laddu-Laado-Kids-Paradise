@@ -7,7 +7,7 @@ import { ArrowUpRight, Boxes, CircleAlert, Plus, Tag, Warehouse } from "lucide-r
 export default async function ProductsPage() {
   const categories = await db.category.findMany()
   const products = await db.product.findMany({
-    include: { category: true, images: true },
+    include: { category: true, images: true, reviews: true },
     orderBy: { createdAt: "desc" },
   })
 
