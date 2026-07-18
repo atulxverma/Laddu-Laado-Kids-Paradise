@@ -20,7 +20,7 @@ export default function NewsletterForm() {
   return (
     <div className="bg-[#111111] rounded-[3rem] p-12 md:p-24 text-center relative overflow-hidden border border-white/5">
       <div className="relative z-10 space-y-8">
-        <h2 className="text-4xl md:text-6xl font-black text-white italic tracking-tighter uppercase leading-[0.9]">
+        <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter uppercase leading-[0.9]">
           Elevate Your <br /> <span className="text-gray-500 font-normal">Wardrobe</span>
         </h2>
         <p className="text-gray-400 text-sm max-w-sm mx-auto font-medium uppercase tracking-widest leading-relaxed">

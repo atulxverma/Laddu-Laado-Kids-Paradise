@@ -67,7 +67,7 @@ export default async function DashboardPage() {
     <div className="min-h-screen space-y-10 bg-neutral-50 p-6 md:p-10">
       <div className="pt-8 md:pt-0 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-black italic tracking-tighter uppercase leading-none text-black">Insights</h1>
+          <h1 className="text-4xl font-black tracking-tighter uppercase leading-none text-black">Insights</h1>
           <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em] mt-2 flex items-center gap-2">
             <Activity size={12} className="text-emerald-500" /> Real-time Store Performance
           </p>
@@ -91,7 +91,7 @@ export default async function DashboardPage() {
             </div>
             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{s.label}</p>
             <h3 className="text-3xl font-black tracking-tighter text-black">{s.value}</h3>
-            <p className="text-[9px] text-gray-300 font-bold uppercase mt-4 italic">{s.desc}</p>
+            <p className="text-[9px] text-gray-300 font-bold uppercase mt-4">{s.desc}</p>
           </div>
         ))}
       </div>
@@ -100,7 +100,7 @@ export default async function DashboardPage() {
       <div className="bg-white border border-gray-100 rounded-3xl p-6 md:p-10 shadow-md">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-xl font-black italic uppercase tracking-tighter">Revenue Flow</h2>
+            <h2 className="text-xl font-black uppercase tracking-tighter">Revenue Flow</h2>
             <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mt-1">Last 7 days</p>
           </div>
           <div className="hidden sm:flex items-center gap-2 text-emerald-500 font-black text-[10px] uppercase bg-emerald-50 px-4 py-2 rounded-full border border-emerald-100">
@@ -114,7 +114,7 @@ export default async function DashboardPage() {
         {/* Recent Sales */}
         <div className="bg-white border border-gray-100 rounded-3xl shadow-md flex flex-col overflow-hidden">
           <div className="p-6 border-b border-gray-50 flex items-center justify-between bg-gray-50/30">
-            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-black italic">Recent Sales</h2>
+            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-black">Recent Sales</h2>
             <Link href="/admin/orders" className="p-2 hover:bg-white rounded-full transition-all group">
               <ArrowRight size={16} className="text-gray-300 group-hover:text-black" />
             </Link>
@@ -151,7 +151,7 @@ export default async function DashboardPage() {
         {/* Low Stock */}
         <div className="bg-white border border-gray-100 rounded-3xl shadow-md flex flex-col overflow-hidden">
           <div className="p-6 border-b border-gray-50 flex items-center justify-between bg-rose-50/20">
-            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-rose-600 italic">Inventory Critical</h2>
+            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-rose-600">Inventory Critical</h2>
             <div className="h-2 w-2 rounded-full bg-rose-500 animate-ping" />
           </div>
           <div className="flex-1 p-4 space-y-3">

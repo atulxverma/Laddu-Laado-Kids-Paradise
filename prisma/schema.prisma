@@ -15,7 +15,7 @@ model Category {
   order       Int       @default(0)
 
   imageUrl    String?
-
+  showOnHome  Boolean   @default(true)
   products    Product[]
   createdAt   DateTime  @default(now())
 }
@@ -46,7 +46,7 @@ model Product {
   updatedAt     DateTime       @updatedAt
 
   gender        String         @default("Newborn")
-  ageGroup      String         @default("0-2Y")
+  ageGroup      String         @default("0-1Y")
 
   reviews       Review[]
 

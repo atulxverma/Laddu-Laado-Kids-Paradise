@@ -27,7 +27,7 @@ export default async function OrdersPage() {
   return (
     <div className="p-6 md:p-10 space-y-10 bg-neutral-50 min-h-screen">
       <div className="pt-8 md:pt-0">
-        <h1 className="text-3xl font-black italic tracking-tighter uppercase">Order Management</h1>
+        <h1 className="text-3xl font-black tracking-tighter uppercase">Order Management</h1>
         <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-1">
           Processing {orders?.length || 0} total shipments
         </p>

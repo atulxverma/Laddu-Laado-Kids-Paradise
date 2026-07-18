@@ -397,7 +397,7 @@ export async function createOrder(data: {
       try {
         if (adminEmail) {
           await resend.emails.send({
-            from: "Laddu Laado <onboarding@resend.dev>",
+            from: "Laddoo Laado <onboarding@resend.dev>",
             to: adminEmail,
             subject: `✨ New Order [#${orderIdShort}] Received`,
             html: `
@@ -414,9 +414,9 @@ export async function createOrder(data: {
 
         if (customerEmail) {
           await resend.emails.send({
-            from: "Laddu Laado <onboarding@resend.dev>",
+            from: "Laddoo Laado <onboarding@resend.dev>",
             to: customerEmail,
-            subject: "Your Laddu Laado Order is Confirmed! ✨",
+            subject: "Your Laddoo Laado Order is Confirmed! ✨",
             html: `
               <div>
                 <h2>Order Confirmed!</h2>
@@ -549,7 +549,7 @@ export async function createProduct(data: any) {
 }
 
 // --- OTHER ACTIONS ---
-export async function createCategory(name: string, imageUrl?: string) {
+export async function createCategory(name: string, imageUrl?: string, showOnHome?: boolean) {
   try {
     await checkAdmin();
     if (!name || !name.trim()) return { error: "Category name is required" };
@@ -568,6 +568,7 @@ export async function createCategory(name: string, imageUrl?: string) {
         imageUrl,
         isCore: false,
         order: count,
+        showOnHome: showOnHome ?? true,
       },
     });
 
@@ -988,6 +989,7 @@ export async function updateCategory(
   id: string,
   name: string,
   imageUrl?: string,
+  showOnHome?: boolean
 ) {
   try {
     await checkAdmin();
@@ -1016,6 +1018,7 @@ export async function updateCategory(
         name,
         slug,
         imageUrl,
+        showOnHome
       },
     });
 

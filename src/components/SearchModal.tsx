@@ -61,7 +61,7 @@ export default function SearchModal({
     params.set("q", q.trim())
 
     if (activeFilter === "Newborn") {
-      params.set("age", "0-2Y")
+      params.set("age", "0-1Y")
     } else if (activeFilter !== "All") {
       params.set("gender", activeFilter)
     }

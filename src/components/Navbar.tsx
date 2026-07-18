@@ -13,7 +13,7 @@ import {
 import { useCart } from "@/hooks/use-cart"
 import { useWishlist } from "@/hooks/use-wishlist"
 import { useEffect, useRef, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import {
   SignInButton,
   UserButton,
@@ -34,7 +34,7 @@ import {
 const genderFilters = [
   {
     label: "Newborn",
-    href: "/shop?age=0-2Y",
+    href: "/shop?age=0-1Y",
     icon: Baby,
   },
   {
@@ -75,7 +75,6 @@ export default function Navbar() {
 
   const [mounted, setMounted] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
 
   const cartCount = cart.items.length
@@ -225,27 +224,6 @@ export default function Navbar() {
 
   useEffect(() => {
     setMounted(true)
-
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 60)
-    }
-
-    handleScroll()
-
-    window.addEventListener(
-      "scroll",
-      handleScroll,
-      {
-        passive: true,
-      }
-    )
-
-    return () => {
-      window.removeEventListener(
-        "scroll",
-        handleScroll
-      )
-    }
   }, [])
 
   useEffect(() => {
@@ -296,17 +274,14 @@ export default function Navbar() {
 
         <motion.div
           animate={{
-            y: scrolled ? -80 : 0,
-            opacity: scrolled ? 0 : 1,
+            y: 0,
+            opacity: 1,
           }}
           transition={{
             type: "tween",
             duration: 0.22,
           }}
-          className={`bg-white border-b border-gray-100 ${scrolled
-            ? "pointer-events-none"
-            : ""
-            }`}
+          className="bg-white border-b border-gray-100"
         >
           <div
             className="
@@ -351,8 +326,8 @@ export default function Navbar() {
 
 
             <Link
-  href="/"
-  className="
+              href="/"
+              className="
     absolute
     left-1/2
     -translate-x-1/2
@@ -362,9 +337,9 @@ export default function Navbar() {
     md:static
     md:translate-x-0
   "
->
+            >
 
-              <div
+              {/* <div
                 className="
                   h-8
                   w-8
@@ -383,12 +358,17 @@ export default function Navbar() {
               >
                 <img
                   src="/logo.jpeg"
-                  alt="Laddu Laado"
+                  alt="Laddoo Laado"
                   className="h-full w-full object-cover"
                 />
-              </div>
+              </div> */}
+              <img
+                src="/logo1.jpeg"
+                alt="Laddoo Laado"
+                className="h-14 md:h-20 w-auto object-contain"
+              />
 
-              <div className="flex flex-col leading-none">
+              {/* <div className="flex flex-col leading-none">
                 <span
                   className="
                     font-black
@@ -397,11 +377,11 @@ export default function Navbar() {
                     md:text-xl
                     tracking-tighter
                     uppercase
-                    italic
+                     
                     whitespace-nowrap
                   "
                 >
-                  LADDU LAADO
+                  Laddoo Laado
                 </span>
 
                 <span
@@ -418,7 +398,7 @@ export default function Navbar() {
                 >
                   Premium Kids Paradise
                 </span>
-              </div>
+              </div> */}
             </Link>
 
             {/* DESKTOP CENTER NAV */}
@@ -519,7 +499,7 @@ justify-center
               <Link
                 href="/cart"
                 aria-label="Cart"
-               className="
+                className="
 relative
 h-8
 w-8
@@ -763,29 +743,17 @@ border-white
 
         {/* DESKTOP SECOND BAR */}
 
-        <motion.div
-          animate={{
-            y: scrolled ? -64 : 0,
-          }}
-          transition={{
-            duration: 0.35,
-            ease: [0.4, 0, 0.2, 1],
-          }}
-          className={`hidden md:block border-b transition-colors duration-300 ${scrolled
-            ? "bg-white/60 backdrop-blur-2xl border-white/20 shadow-lg"
-            : "bg-white/90 backdrop-blur-md border-gray-100"
-            }`}
-        >
+        <div className="hidden md:block border-b bg-white border-gray-100">
           <div
             className="
-              max-w-7xl
-              mx-auto
-              px-6
-              h-11
-              flex
-              items-center
-              gap-10
-            "
+      max-w-7xl
+      mx-auto
+      px-6
+      h-11
+      flex
+      items-center
+      gap-10
+    "
           >
             <div className="flex items-center gap-8 mx-auto">
               {genderFilters.map(
@@ -830,11 +798,7 @@ border-white
                 onClick={() =>
                   setSearchOpen(true)
                 }
-                className={`flex items-center gap-3 w-full max-w-md rounded-xl px-4 py-1.5 transition-all border ${scrolled
-                  ? "bg-white/50 backdrop-blur-md border-white/30 hover:bg-white/80"
-                  : "bg-gray-50 border-gray-200 hover:border-gray-300 hover:bg-gray-100"
-                  }`}
-              >
+                className="flex items-center gap-3 w-full max-w-md rounded-xl px-4 py-1.5 border bg-gray-50 border-gray-200 hover:border-gray-300 hover:bg-gray-100 transition-all">
                 <Search
                   size={13}
                   className="text-gray-400 shrink-0"
@@ -845,7 +809,7 @@ border-white
                     text-xs
                     text-gray-400
                     font-medium
-                    italic
+                     
                     truncate
                   "
                 >
@@ -873,7 +837,7 @@ border-white
               </button>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         <div
           className="md:hidden bg-white border-b border-gray-200 overflow-x-auto no-scrollbar"
@@ -914,201 +878,7 @@ whitespace-nowrap
 
         {/* MOBILE SCROLLED NAVBAR */}
 
-        <AnimatePresence>
-          {scrolled && (
-            <motion.div
-              initial={{
-                opacity: 0,
-                y: -20,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-              }}
-              exit={{
-                opacity: 0,
-                y: -20,
-              }}
-              transition={{
-                duration: 0.25,
-              }}
-              className="
-                fixed
-                top-0
-                left-0
-                right-0
-                z-[55]
-                md:hidden
-                bg-white
-                backdrop-blur-2xl
-                border-b
-                border-gray-100
-                shadow-sm
-              "
-            >
-              <div
-                className="
-    px-2
-    h-14
-    flex
-    items-center
-    justify-between
-  "
-              >
-                <button
-                  type="button"
-                  onClick={() =>
-                    setMenuOpen(true)
-                  }
-                  className="
-                    h-8
-                    w-8
-                    flex
-                    items-center
-                    justify-center
-                    rounded-full
-                  "
-                >
-                  <Menu size={18} />
-                </button>
 
-                <Link
-                  href="/"
-                  className="
-                    absolute
-                    left-1/2
-                    -translate-x-1/2
-                    flex
-                    items-center
-                    gap-2
-                  "
-                >
-                  <div
-                    className="
-                      h-8
-                      w-8
-                      rounded-full
-                      overflow-hidden
-                      border
-                      border-gray-100
-                    "
-                  >
-                    <img
-                      src="/logo.jpeg"
-                      alt="Laddu Laado"
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-
-                  <span
-                    className="
-                      text-[11px]
-                      font-black
-                      italic
-                      tracking-tighter
-                      whitespace-nowrap
-                    "
-                  >
-                    LADDU LAADO
-                  </span>
-                </Link>
-
-                <div className="w-1/3 flex justify-end items-center gap-1">
-
-                  <button
-                    type="button"
-                    onClick={() => setSearchOpen(true)}
-                    className="
-      h-9
-w-9
-      
-      flex
-      items-center
-      justify-center
-      rounded-full
-    "
-                  >
-                    <Search size={18} />
-                  </button>
-                  <Link
-                    href="/wishlist"
-                    className="
-    relative
-    h-8
-    w-8
-    flex
-    items-center
-    justify-center
-  "
-                  >
-                    <Heart size={18} />
-
-                    {mounted && wishlist.items.length > 0 && (
-                      <span
-                        className="
-        absolute
-        top-0
-        right-0
-        min-w-[16px]
-        h-4
-        px-1
-        bg-red-500
-        text-white
-        text-[8px]
-        font-black
-        rounded-full
-        flex
-        items-center
-        justify-center
-      "
-                      >
-                        {wishlist.items.length}
-                      </span>
-                    )}
-                  </Link>
-                  <Link
-                    href="/cart"
-                    className="
-      relative
-      h-8
-      w-8
-      flex
-      items-center
-      justify-center
-    "
-                  >
-                    <ShoppingBag size={18} />
-
-                    {mounted && cartCount > 0 && (
-                      <span
-                        className="
-absolute
--top-1
--right-1
-min-w-[16px]
-h-4
-px-1
-bg-black
-text-white
-text-[8px]
-font-black
-rounded-full
-flex
-items-center
-justify-center
-border
-border-white
-">
-                        {cartCount}
-                      </span>
-                    )}
-                  </Link>
-
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </header >
 
       <div className="h-[119px] md:h-28" />
@@ -1120,452 +890,7 @@ border-white
         }
       />
 
-      {/* MOBILE DRAWER */}
 
-      <AnimatePresence>
-        {menuOpen && (
-          <>
-            <motion.div
-              initial={false}
-              animate={{
-                opacity: 1,
-                y: 0,
-              }}
-              exit={{
-                opacity: 0,
-                y: -8,
-              }}
-              transition={{
-                duration: 0.18,
-              }}
-
-
-              onClick={() =>
-                setMenuOpen(false)
-              }
-              className="
-                fixed
-                inset-0
-                z-[60]
-                bg-black/50
-                backdrop-blur-sm
-                md:hidden
-              "
-            />
-
-            <motion.aside
-              initial={{
-                x: "-100%",
-              }}
-              animate={{
-                x: 0,
-              }}
-              exit={{
-                x: "-100%",
-              }}
-              transition={{
-                type: "spring",
-                damping: 25,
-                stiffness: 200,
-              }}
-              className="
-                fixed
-                top-0
-                left-0
-                bottom-0
-                z-[70]
-                w-[300px]
-                max-w-[85vw]
-                bg-white
-                shadow-2xl
-                flex
-                flex-col
-                md:hidden
-              "
-            >
-              <div
-                className="
-                  px-4 py-4
-                  border-b
-                  border-gray-100
-                  flex
-                  items-center
-                  justify-between
-                "
-              >
-                <Link
-                  href="/"
-                  onClick={() =>
-                    setMenuOpen(false)
-                  }
-                  className="flex items-center gap-1"
-                >
-                  <div
-                    className="
-                      h-8
-                      w-8
-                      rounded-full
-                      overflow-hidden
-                      border
-                      border-gray-100
-                    "
-                  >
-                    <img
-                      src="/logo.jpeg"
-                      alt="Laddu Laado"
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-
-                  <span
-                    className="
-                      font-black
-                      text-sm
-                      italic
-                      text-black
-                      uppercase
-                      whitespace-nowrap
-                    "
-                  >
-                    LADDU LAADO
-                  </span>
-                </Link>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setMenuOpen(false)
-                  }
-                  className="
-                    h-8
-                    w-8
-                    bg-gray-100
-                    rounded-full
-                    flex
-                    items-center
-                    justify-center
-                  "
-                >
-                  <X size={18} />
-                </button>
-              </div>
-
-              <div
-                className="
-  flex-1
-  overflow-y-auto
-  px-4 py-4
-  space-y-4
-  no-scrollbar
-"
-              >
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMenuOpen(false)
-                    setSearchOpen(true)
-                  }}
-                  className="w-full h-11 flex items-center gap-2.5 rounded-xl border border-gray-200 bg-gray-50 px-3 text-gray-500 text-sm hover:bg-white transition-all"
-                >
-                  <Search size={18} />
-
-                  <span className="text-sm font-medium">
-                    Search items...
-                  </span>
-                </button>
-
-                <div className="space-y-2">
-                  <p
-                    className="
-                      text-[10px]
-                      font-black
-                      text-gray-300
-                      uppercase
-                      tracking-widest
-                    "
-                  >
-                    Account
-                  </p>
-
-                  {isSignedIn ? (
-                    <>
-                      <Link
-                        href="/orders"
-                        onClick={() =>
-                          setMenuOpen(false)
-                        }
-                        className="
-                          flex
-                          items-center
-                          gap-3
-                          text-sm
-                          font-bold
-                          text-black
-                          bg-gray-50
-                          h-11 px-3
-                          rounded-xl
-                        "
-                      >
-                        <Package
-                          size={18}
-                          className="text-gray-400"
-                        />
-
-                        My Orders
-                      </Link>
-
-                      <Link
-                        href="/wishlist"
-                        onClick={() =>
-                          setMenuOpen(false)
-                        }
-                        className="
-                          flex
-                          items-center
-                          justify-between
-                          text-sm
-                          font-bold
-                          text-black
-                          bg-gray-50
-                          h-11 px-3
-rounded-xl
-                        "
-                      >
-                        <div className="flex items-center gap-3">
-                          <Heart
-                            size={18}
-                            className="text-gray-400"
-                          />
-
-                          Wishlist
-                        </div>
-
-                        {mounted &&
-                          wishlist.items
-                            .length > 0 && (
-                            <span
-                              className="
-                                min-w-[20px]
-                                h-5
-                                px-1.5
-                                bg-red-500
-                                text-white
-                                rounded-full
-                                text-[9px]
-                                font-black
-                                flex
-                                items-center
-                                justify-center
-                              "
-                            >
-                              {
-                                wishlist.items
-                                  .length
-                              }
-                            </span>
-                          )}
-                      </Link>
-                    </>
-                  ) : (
-                    <SignInButton mode="modal">
-                      <button
-                        onClick={() =>
-                          setMenuOpen(false)
-                        }
-                        className="
-                          w-full
-                          bg-black
-                          text-white
-                          h-11
-rounded-xl
-                          font-black
-                          uppercase
-                          text-xs
-                          tracking-widest
-                        "
-                      >
-                        Login / Register
-                      </button>
-                    </SignInButton>
-                  )}
-                </div>
-
-                <div className="space-y-1">
-                  <p
-                    className="
-                      text-[10px]
-                      font-black
-                      text-gray-300
-                      uppercase
-                      tracking-widest
-                      mb-2
-                    "
-                  >
-                    Shop
-                  </p>
-
-                  {genderFilters.map(
-                    (filter) => (
-                      <Link
-                        key={filter.label}
-                        href={filter.href}
-                        onClick={() =>
-                          setMenuOpen(false)
-                        }
-                        className="
-flex
-items-center
-justify-between
-h-12
-px-3
-rounded-xl
-hover:bg-gray-50
-transition-all
-"
-                      >
-                        <div className="flex items-center gap-3">
-
-                          <filter.icon
-                            size={17}
-                            className="text-gray-500"
-                          />
-
-                          <span className="text-sm font-semibold">
-                            {filter.label}
-                          </span>
-
-                        </div>
-
-                        <span className="text-gray-300">
-                          →
-                        </span>
-                      </Link>
-                    )
-                  )}
-                </div>
-
-                <div
-                  className="
-                    px-4 py-4 border-t border-gray-100 space-y-3 bg-gray-50/40
-                  "
-                >
-                  {navLinks.map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      onClick={() =>
-                        setMenuOpen(false)
-                      }
-                      className="
-                        block
-                        text-sm
-                        font-bold
-                        text-gray-500
-                        uppercase
-                        tracking-widest
-                      "
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-
-              <div
-                className="
-                  p-5
-                  border-t
-                  border-gray-100
-                  space-y-3
-                "
-              >
-                {mounted &&
-                  isAdmin && (
-                    <Link
-                      href="/admin/dashboard"
-                      onClick={() =>
-                        setMenuOpen(false)
-                      }
-                      className="
-                        flex
-                        items-center
-                        justify-center
-                        gap-2
-                        w-full
-                        bg-black
-                        text-white
-                        h-11
-rounded-xl
-                        text-xs
-                        font-black
-                        uppercase
-                        tracking-widest
-                      "
-                    >
-                      <LayoutDashboard
-                        size={14}
-                      />
-
-                      Admin Dashboard
-                    </Link>
-                  )}
-
-                {mounted &&
-                  isSignedIn &&
-                  user && (
-                    <div
-                      className="
-                        flex
-                        items-center
-                        gap-3
-                       bg-white
-p-3
-rounded-2xl
-border
-border-gray-200
-shadow-sm
-                      "
-                    >
-                      <UserButton afterSignOutUrl="/" />
-
-                      <div
-                        className="
-                          flex
-                          flex-col
-                          overflow-hidden
-                          min-w-0
-                        "
-                      >
-                        <span
-                          className="
-                            text-xs
-                            font-black
-                            truncate
-                            text-black
-                          "
-                        >
-                          {user.fullName ||
-                            "User"}
-                        </span>
-
-                        <span
-                          className="
-                            text-[10px]
-                            font-bold
-                            text-emerald-500
-                            uppercase
-                          "
-                        >
-                          Active
-                        </span>
-                      </div>
-                    </div>
-                  )}
-              </div>
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
     </>
   )
 }

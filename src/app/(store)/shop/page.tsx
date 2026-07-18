@@ -92,7 +92,7 @@ export default async function ShopPage({
                   ? "Boys Collection"
                   : gender === "Girl"
                     ? "Girls Collection"
-                    : age === "0-2Y"
+                    : age === "0-1Y"
                       ? "Newborn Collection"
                       : "All Collection"}
 
@@ -149,7 +149,7 @@ export default async function ShopPage({
 
         <div className="grid grid-cols-3 gap-3 md:gap-5 mb-10">
 
-          <Link href="/shop?age=0-2Y">
+          <Link href="/shop?age=0-1Y">
 
             <div className="rounded-2xl border border-neutral-200 bg-gradient-to-b from-orange-50 to-white px-3 py-5 md:p-6 flex flex-col items-center justify-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
 

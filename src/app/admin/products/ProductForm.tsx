@@ -7,8 +7,6 @@ import { ImagePlus, Trash2, X, Package, Pencil } from "lucide-react"
 import { createProduct, updateProduct } from "@/lib/actions"
 import { createPortal } from "react-dom"
 
-const sizeOptions = ["0-2Y", "2-4Y", "4-6Y", "6-8Y", "8-10Y", "10-12Y", "12-14Y"]
-
 const createEmptyForm = () => ({
   name: "",
   description: "",
@@ -18,7 +16,7 @@ const createEmptyForm = () => ({
   color: "",
   gender: "Newborn",
   stock: "10",
-  ageGroup: "0-2Y",
+  ageGroup: "0-1Y",
   isNewArrival: true,
 })
 
@@ -43,7 +41,7 @@ export default function ProductForm({
     color: product?.color || "",
     gender: product?.gender || "Newborn",
     stock: product?.stock?.toString() || "10",
-    ageGroup: product?.ageGroup || "0-2Y",
+    ageGroup: product?.ageGroup || "0-1Y",
     isNewArrival: product?.isNewArrival ?? true,
   })
   const [customDetails, setCustomDetails] = useState(product?.specifications || [{ key: "", value: "" }])

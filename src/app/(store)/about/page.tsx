@@ -73,14 +73,14 @@ export default function AboutPage() {
               className="text-4xl md:text-6xl lg:text-7xl font-bold text-black leading-tight max-w-3xl"
             >
               Fashion that tells{" "}
-              <span className="italic font-serif">your story</span>
+              <span className="  font-serif">your story</span>
             </motion.h1>
 
             <motion.p
               variants={fadeUp}
               className="text-gray-500 text-base md:text-lg max-w-xl leading-relaxed"
             >
-              laddu Laado is more than a clothing brand — it&apos;s a celebration
+              Laddoo Laado is more than a clothing brand — it&apos;s a celebration
               of individuality, culture, and modern elegance.
             </motion.p>
 
@@ -146,10 +146,10 @@ export default function AboutPage() {
             </span>
             <h2 className="text-3xl md:text-4xl font-bold text-black leading-tight">
               Born from a passion for{" "}
-              <span className="italic font-serif">timeless style</span>
+              <span className="  font-serif">timeless style</span>
             </h2>
             <p className="text-gray-500 leading-relaxed">
-              Founded in 2024, laddu Laado started as a small dream — to bring
+              Founded in 2024, Laddoo Laado started as a small dream — to bring
               premium, culturally-inspired fashion to everyday people. We blend
               traditional craftsmanship with modern design to create pieces that
               are both beautiful and meaningful.
@@ -169,10 +169,10 @@ export default function AboutPage() {
             className="grid grid-cols-2 gap-3"
           >
             {[
-              "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=600",
-              "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600",
-              "https://images.unsplash.com/photo-1469334031218-e382a71b716b?q=80&w=600",
-              "https://images.unsplash.com/photo-1503341504253-dff4815485f1?q=80&w=600",
+              "https: images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=600",
+              "https: images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600",
+              "https: images.unsplash.com/photo-1469334031218-e382a71b716b?q=80&w=600",
+              "https: images.unsplash.com/photo-1503341504253-dff4815485f1?q=80&w=600",
             ].map((src, i) => (
               <div
                 key={i}
@@ -256,7 +256,7 @@ export default function AboutPage() {
             </p>
             <h2 className="text-3xl md:text-5xl font-bold mb-4 leading-tight">
               Ready to find your{" "}
-              <span className="italic font-serif">perfect look?</span>
+              <span className="  font-serif">perfect look?</span>
             </h2>
             <p className="text-white/60 text-sm mb-8 max-w-md mx-auto">
               Explore our latest collection and discover fashion that speaks to who you are.

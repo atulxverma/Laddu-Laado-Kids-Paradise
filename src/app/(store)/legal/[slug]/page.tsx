@@ -13,10 +13,10 @@ export default async function LegalPage({ params }: { params: Promise<{ slug: st
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-32">
-      <h1 className="text-4xl font-black italic tracking-tighter uppercase mb-10">{policy.title}</h1>
+      <h1 className="text-4xl font-black tracking-tighter uppercase mb-10">{policy.title}</h1>
       <div className="prose prose-sm font-medium text-gray-600 leading-loose">
         {policy.content}
-        <p className="mt-10 italic">Last updated: Oct 2024</p>
+        <p className="mt-10">Last updated: Oct 2024</p>
       </div>
     </main>
   )

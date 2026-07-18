@@ -10,6 +10,7 @@ interface Category {
   id: string
   name: string
   imageUrl?: string
+  showOnHome?: boolean
 }
 
 export default function CategoryForm({
@@ -21,8 +22,12 @@ export default function CategoryForm({
   const [name, setName] = useState(category?.name || "")
   const [loading, setLoading] = useState(false)
   const [imageUrl, setImageUrl] = useState(
-  category?.imageUrl || ""
-)
+    category?.imageUrl || ""
+  )
+
+  const [showOnHome, setShowOnHome] = useState(
+    category?.showOnHome ?? true
+  )
 
   const isEdit = !!category
 
@@ -34,15 +39,17 @@ export default function CategoryForm({
     setLoading(true)
 
     const res = isEdit
-  ? await updateCategory(
-      category.id,
-      name.trim(),
-      imageUrl
-    )
-  : await createCategory(
-      name.trim(),
-      imageUrl
-    )
+      ? await updateCategory(
+        category.id,
+        name.trim(),
+        imageUrl,
+        showOnHome
+      )
+      : await createCategory(
+        name.trim(),
+        imageUrl,
+        showOnHome
+      )
 
     if (res.success) {
       setOpen(false)
@@ -89,62 +96,77 @@ export default function CategoryForm({
 
             <form onSubmit={handleSubmit} className="space-y-4">
 
-  <input
-    value={name}
-    onChange={(e) => setName(e.target.value)}
-    placeholder="Category name"
-    className="w-full border rounded-xl px-4 py-3"
-  />
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Category name"
+                className="w-full border rounded-xl px-4 py-3"
+              />
 
-  {/* IMAGE UPLOAD */}
-  <div className="space-y-3">
-    <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
-      Category Thumbnail
-    </label>
+              {/* IMAGE UPLOAD */}
+              <div className="space-y-3">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                  Category Thumbnail
+                </label>
 
-    <div className="flex gap-3 items-center">
+                <div className="flex gap-3 items-center">
 
-      {imageUrl && (
-        <img
-          src={imageUrl}
-          className="h-20 w-20 rounded-2xl object-cover border"
-          alt=""
-        />
-      )}
+                  {imageUrl && (
+                    <img
+                      src={imageUrl}
+                      className="h-20 w-20 rounded-2xl object-cover border"
+                      alt=""
+                    />
+                  )}
 
-      <CldUploadWidget
-        uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
-        onSuccess={(result: any) =>
-          setImageUrl(result.info.secure_url)
-        }
-      >
-        {({ open }) => (
-          <button
-            type="button"
-            onClick={() => open()}
-            className="flex h-20 w-20 items-center justify-center rounded-2xl border-2 border-dashed border-neutral-200 transition hover:border-black"
-          >
-            <ImagePlus />
-          </button>
-        )}
-      </CldUploadWidget>
+                  <CldUploadWidget
+                    uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
+                    onSuccess={(result: any) =>
+                      setImageUrl(result.info.secure_url)
+                    }
+                  >
+                    {({ open }) => (
+                      <button
+                        type="button"
+                        onClick={() => open()}
+                        className="flex h-20 w-20 items-center justify-center rounded-2xl border-2 border-dashed border-neutral-200 transition hover:border-black"
+                      >
+                        <ImagePlus />
+                      </button>
+                    )}
+                  </CldUploadWidget>
 
-    </div>
-  </div>
+                </div>
+              </div>
 
-  {/* BUTTON HAMESHA LAST */}
-  <button
-    disabled={loading}
-    className="w-full bg-black text-white py-3 rounded-full"
-  >
-    {loading
-      ? "Saving..."
-      : isEdit
-        ? "Update Category"
-        : "Create Category"}
-  </button>
+              <div className="flex items-center gap-3">
 
-</form>
+                <input
+                  type="checkbox"
+                  checked={showOnHome}
+                  onChange={(e) => setShowOnHome(e.target.checked)}
+                  className="h-4 w-4 accent-black"
+                />
+
+                <label>
+                  Show on Home Page
+                </label>
+
+              </div>
+
+              {/* BUTTON HAMESHA LAST */}
+              <button
+                disabled={loading}
+                className="w-full bg-black text-white py-3 rounded-full"
+              >
+                {loading
+                  ? "Saving..."
+                  : isEdit
+                    ? "Update Category"
+                    : "Create Category"}
+              </button>
+
+            </form>
           </div>
         </div>
       )}

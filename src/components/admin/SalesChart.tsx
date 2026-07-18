@@ -18,7 +18,7 @@ interface SalesChartProps {
   }[]
 }
 
-// --- CUSTOM PREMIUM TOOLTIP ---
+  //--- CUSTOM PREMIUM TOOLTIP ---
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (

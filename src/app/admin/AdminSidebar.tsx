@@ -31,13 +31,18 @@ function SidebarContent({
       {/* Brand */}
       <div className="flex items-center justify-between px-2 pt-2">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full overflow-hidden shadow-md border border-gray-100 bg-white">
+          {/* <div className="h-10 w-10 rounded-full overflow-hidden shadow-md border border-gray-100 bg-white">
             <img src="/logo.jpeg" alt="Logo" className="h-full w-full object-cover" />
-          </div>
+          </div> */}
+          <img
+            src="/logo1.jpeg"
+            alt="Laddoo Laado"
+            className="h-16 w-auto object-contain"
+          />
           <div>
-            <p className="text-sm font-black text-black tracking-tight uppercase italic leading-none">
-              laddu LAADO
-            </p>
+            {/* <p className="text-sm font-black text-black tracking-tight uppercase leading-none">
+              Laddoo Laado
+            </p> */}
             <p className="text-[9px] text-gray-400 uppercase tracking-widest font-bold mt-1">
               Admin Panel
             </p>
@@ -69,11 +74,10 @@ function SidebarContent({
                 )}
               </AnimatePresence>
               <div
-                className={`relative z-10 flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
-                  isActive
+                className={`relative z-10 flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${isActive
                     ? "text-white"
                     : "text-gray-500 hover:text-black hover:bg-gray-100"
-                }`}
+                  }`}
               >
                 <item.icon size={16} />
                 {item.label}
@@ -119,7 +123,7 @@ export default function AdminSidebar() {
 
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-72 shrink-0 h-screen sticky top-0 bg-white border-r border-gray-100 flex-col shadow-xl">
-        <SidebarContent pathname={pathname} onClose={() => {}} />
+        <SidebarContent pathname={pathname} onClose={() => { }} />
       </aside>
 
       {/* Mobile Sidebar */}

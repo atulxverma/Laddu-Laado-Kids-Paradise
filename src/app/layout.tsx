@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" })
 
 export const metadata = {
-  title: "Laddu Laado | Premium Kids Wear Couture",
+  title: "Laddoo Laado | Premium Kids Wear Couture",
   description: "Handcrafted with love for your little ones. Luxury clothes, premium quality.",
   icons: { icon: "/favicon.ico" }
 }

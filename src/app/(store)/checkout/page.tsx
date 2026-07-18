@@ -131,7 +131,7 @@ export default function CheckoutPage() {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: res.amount,
         currency: "INR",
-        name: "laddu LAADO",
+        name: "Laddoo Laado",
         description: "Premium Couture Order",
         order_id: res.orderId,
         handler: async function (response: any) {

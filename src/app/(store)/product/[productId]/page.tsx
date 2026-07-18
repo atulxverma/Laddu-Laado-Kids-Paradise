@@ -321,7 +321,7 @@ tracking-wide text-gray-600 pb-5 whitespace-pre-wrap font-medium"
         <section className="mt-16 md:mt-24 border-t border-gray-100 pt-12 md:pt-16">
           <div className="flex flex-col lg:flex-row gap-10 lg:gap-16">
             <div className="lg:w-1/3 space-y-10">
-              <h2 className="text-2xl md:text-5xl font-black italic tracking-tighter uppercase leading-[0.8]">
+              <h2 className="text-2xl md:text-5xl font-black tracking-tighter uppercase leading-[0.8]">
                 What Souls <br />{" "}
                 <span className="text-gray-300">Are Saying</span>
               </h2>
@@ -360,7 +360,7 @@ tracking-wide text-gray-600 pb-5 whitespace-pre-wrap font-medium"
             <div className="flex-1 space-y-6">
               {reviews.length === 0 ? (
                 <div className="h-full flex items-center justify-center py-20 bg-gray-50 rounded-[3rem] border-2 border-dashed border-gray-200">
-                  <p className="text-gray-400 font-bold uppercase tracking-widest text-xs italic">
+                  <p className="text-gray-400 font-bold uppercase tracking-widest text-xs ">
                     Be the first to tell a story...
                   </p>
                 </div>

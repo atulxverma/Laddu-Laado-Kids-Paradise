@@ -12,7 +12,7 @@ const footerCols = [
   {
     title: "Shop",
     links: [
-      { name: "Newborn", href: "/shop?age=0-2Y" },
+      { name: "Newborn", href: "/shop?age=0-1Y" },
       { name: "Boys", href: "/shop?gender=Boy" },
       { name: "Girls", href: "/shop?gender=Girl" },
       { name: "New Arrivals", href: "/shop?new=true" },
@@ -33,7 +33,7 @@ const footerCols = [
 
 export default function Footer() {
   return (
-    <footer className="mt-16 md:mt-28 border-t border-neutral-200 bg-[#fafafa]">
+    <footer className="mt-16 md:mt-28 border-t border-neutral-200 bg-white">
 
       <div className="max-w-7xl mx-auto px-5 py-10 md:py-16">
 
@@ -45,17 +45,23 @@ export default function Footer() {
 
             <div className="flex items-center gap-3">
 
-              <img
+              {/* <img
                 src="/logo.jpeg"
-                alt="Laddu Laado"
+                alt="Laddoo Laado"
                 className="h-12 w-12 md:h-14 md:w-14 rounded-full object-cover border border-neutral-200 shadow-sm"
+              /> */}
+
+              <img
+                src="/logo1.jpeg"
+                alt="Laddoo Laado"
+                className="h-20 md:h-24 w-auto object-contain"
               />
 
               <div>
 
-                <h2 className="text-xl md:text-2xl font-black tracking-tight uppercase">
-                  Laddu Laado
-                </h2>
+                {/* <h2 className="text-xl md:text-2xl font-black tracking-tight uppercase">
+                  Laddoo Laado
+                </h2> */}
 
                 <p className="text-[11px] uppercase tracking-[0.25em] text-neutral-400">
                   Premium Kids Fashion
@@ -155,7 +161,7 @@ export default function Footer() {
 
           ))}
 
-                    {/* ---------------- NEWSLETTER ---------------- */}
+          {/* ---------------- NEWSLETTER ---------------- */}
 
           <div>
 
@@ -199,7 +205,7 @@ export default function Footer() {
           <div className="flex flex-col gap-3 md:gap-5  md:flex-row md:items-center md:justify-between">
 
             <p className="text-sm text-neutral-500">
-              © 2026 <span className="font-semibold text-black">Laddu Laado</span>. Crafted with ❤️ for every little star.
+              © 2026 <span className="font-semibold text-black">Laddoo Laado</span>. Crafted with ❤️ for every little star.
             </p>
 
             <div className="flex flex-wrap items-center gap-6 text-sm">

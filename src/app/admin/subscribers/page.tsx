@@ -6,7 +6,7 @@ export default async function SubscribersPage() {
 
   return (
     <div className="p-10 bg-white min-h-screen">
-      <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-10 text-black">Email Subscribers</h1>
+      <h1 className="text-3xl font-black uppercase tracking-tighter mb-10 text-black">Email Subscribers</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {subs.map((s) => (
           <div key={s.id} className="flex items-center gap-4 p-5 border border-gray-100 rounded-2xl bg-gray-50/50">
