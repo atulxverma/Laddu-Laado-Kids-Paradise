@@ -196,9 +196,6 @@ export default async function ShopPage({
           <h2 className="text-xl md:text-3xl font-black">
             Explore Collection
           </h2>
-          <p className="mt-1 text-sm text-neutral-500">
-            Showing {products.length} Products
-          </p>
 
           <div className="flex overflow-x-auto no-scrollbar gap-2">
 

@@ -59,9 +59,6 @@ export default async function HomePage() {
   products: any[]
 }) {
 
-  console.log(banners)
-console.log(promo1)
-console.log(promo2)
   return (
     <section className="max-w-7xl mx-auto px-4 py-5">
 
@@ -279,7 +276,7 @@ hover:scale-105
   <div className="grid gap-5 md:grid-cols-2">
 
     {promo1 && (
-  <div className="group relative h-64 overflow-hidden rounded-3xl">
+  <div className="group relative h-48 md:h-64 overflow-hidden rounded-3xl">
 
     <img
       src={promo1.imageUrl}
@@ -306,7 +303,7 @@ hover:scale-105
 )}
 
     {promo2 && (
-  <div className="group relative h-64 overflow-hidden rounded-3xl">
+  <div className="group relative h-48 md:h-64 overflow-hidden rounded-3xl">
 
     <img
       src={promo2.imageUrl}
@@ -343,7 +340,7 @@ hover:scale-105
 
   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 
-    <div className="rounded-[28px] bg-gradient-to-br from-orange-50 to-amber-50 p-6 border border-orange-100">
+    <div className="rounded-[28px] bg-gradient-to-br from-orange-50 to-amber-50 p-4 md:p-4 md:p-6 border border-orange-100">
 
       <div className="h-12 w-12 rounded-2xl bg-white flex items-center justify-center shadow-sm">
         <Truck size={26}/>
@@ -359,7 +356,7 @@ hover:scale-105
 
     </div>
 
-    <div className="rounded-[28px] bg-gradient-to-br from-sky-50 to-cyan-50 p-6 border border-sky-100">
+    <div className="rounded-[28px] bg-gradient-to-br from-sky-50 to-cyan-50 p-4 md:p-6 border border-sky-100">
 
       <div className="h-12 w-12 rounded-2xl bg-white flex items-center justify-center shadow-sm">
         <ShieldCheck size={26}/>
@@ -375,7 +372,7 @@ hover:scale-105
 
     </div>
 
-    <div className="rounded-[28px] bg-gradient-to-br from-pink-50 to-rose-50 p-6 border border-pink-100">
+    <div className="rounded-[28px] bg-gradient-to-br from-pink-50 to-rose-50 p-4 md:p-6 border border-pink-100">
 
       <div className="h-12 w-12 rounded-2xl bg-white flex items-center justify-center shadow-sm">
       <Leaf size={26}/>
@@ -391,7 +388,7 @@ hover:scale-105
 
     </div>
 
-    <div className="rounded-[28px] bg-gradient-to-br from-emerald-50 to-green-50 p-6 border border-emerald-100">
+    <div className="rounded-[28px] bg-gradient-to-br from-emerald-50 to-green-50 p-4 md:p-6 border border-emerald-100">
 
       <div className="h-12 w-12 rounded-2xl bg-white flex items-center justify-center shadow-sm">
         <RefreshCcw size={26}/>
@@ -455,7 +452,7 @@ hover:scale-105
 
       <ProductSection
         title="Newborn Collection"
-        href="/shop?ageGroup=0-2Y"
+        href="/shop?age=0-2Y"
         products={newbornProducts}
       />
 
@@ -481,7 +478,7 @@ hover:scale-105
 
   {/* Stats */}
 
-  <div className="grid grid-cols-3 gap-3 md:gap-6 mb-12">
+  <div className="grid grid-cols-3 gap-3 md:gap-4 md:p-6 mb-12">
 
     <div className="rounded-3xl border border-neutral-200 bg-white p-3 md:p-5 text-center shadow-sm">
 
@@ -523,13 +520,13 @@ hover:scale-105
 
   {/* Reviews */}
 
-  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:p-6">
 
     {reviews.slice(0, 3).map((review) => (
 
       <div
         key={review.id}
-        className="rounded-[30px] border border-neutral-200 bg-white p-4 md:p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+        className="rounded-[30px] border border-neutral-200 bg-white p-4 md:p-4 md:p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
       >
 
         <div className="flex items-center gap-4">

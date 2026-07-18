@@ -108,11 +108,7 @@ export default function SearchModal({
                     placeholder="Search for products, categories..."
                     className="flex-1 text-base md:text-lg font-medium text-black placeholder:text-neutral-300 outline-none bg-transparent"
                   />
-                  {query && (
-                    <p className="mt-2 px-5 text-[11px] text-neutral-400">
-                      Press <span className="font-bold">Enter</span> to search
-                    </p>
-                  )}
+                 
                   {query && (
                     <button
                       type="button"
@@ -207,7 +203,7 @@ export default function SearchModal({
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: i * 0.04 }}
                             onClick={() => handleSearch(term)}
-                            className="w-full flex items-center gap-4 px-3 py-2.5 rounded-xl hover:bg-neutral-50 hover:translate-x-1 transition-colors text-left group"
+                            className="w-full flex items-center gap-4 px-3 py-2.5 rounded-xl hover:bg-neutral-50 hover:translate-x-1 hover:bg-neutral-100 transition-colors text-left group"
                           >
                             <div className="h-7 w-7 bg-gray-100 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-gray-200 transition-colors">
                               <TrendingUp size={11} className="text-gray-400" />
@@ -234,7 +230,7 @@ export default function SearchModal({
                             key={cat}
                             href={`/shop?gender=${cat}`}
                             onClick={onClose}
-                            className="flex items-center gap-2 p-4 rounded-xl border border-neutral-200 hover:border-gray-200 hover:bg-neutral-50 hover:translate-x-1 transition-all group"
+                            className="flex items-center gap-2 p-4 rounded-xl border border-neutral-200 hover:border-gray-200 hover:bg-neutral-50 hover:translate-x-1 hover:bg-neutral-100 transition-all group"
                           >
                             <span className="text-sm font-medium text-gray-700 group-hover:text-black transition-colors">
                               {cat}

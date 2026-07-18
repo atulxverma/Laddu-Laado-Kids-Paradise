@@ -51,7 +51,7 @@ export default function AddToCartButton({ product }: { product: any }) {
       stock: product.stock,
     })
     setAdded(true)
-    setTimeout(() => setAdded(false), 2000)
+    setTimeout(() => setAdded(false), 2500)
   }
 
   return (
@@ -59,73 +59,75 @@ export default function AddToCartButton({ product }: { product: any }) {
       {/* Size Selector */}
       <div>
         <div className="flex items-center justify-between mb-4">
-  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
-    Select Size
-  </p>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+            Select Size
+          </p>
 
-  <span
-    className={`text-[10px] font-bold uppercase ${
-      isOutOfStock ? "text-red-500" : "text-emerald-500"
-    }`}
-  >
-    {isOutOfStock ? "Sold Out" : "Ready to Ship"}
-  </span>
-</div>
+          <span
+            className={`text-[10px] font-bold uppercase ${isOutOfStock ? "text-red-500" : "text-emerald-500"
+              }`}
+          >
+            {isOutOfStock ? "Sold Out" : "Ready to Ship"}
+          </span>
+        </div>
 
-       <div className="grid grid-cols-4 md:grid-cols-5 gap-2 md:gap-3">
-  {availableSizes.map((size) => (
-    <button
-      key={size}
-      type="button"
-      onClick={() => setSelectedSize(size)}
-      className={`h-12 md:h-14 rounded-2xl border-2 text-[13px] md:text-sm font-black transition-all duration-300
-      ${
-        selectedSize === size
-          ? "bg-black text-white border-black shadow-lg scale-105"
-          : "bg-white border-gray-200 hover:border-black hover:bg-gray-50"
-      }`}
-    >
-      {size}
-    </button>
-  ))}
-</div>
+        <div className="grid grid-cols-4 md:grid-cols-5 gap-2 md:gap-3">
+          {availableSizes.map((size) => (
+            <button
+              key={size}
+              type="button"
+              onClick={() => setSelectedSize(size)}
+              className={`h-12 md:h-14 rounded-2xl border-2 text-[13px] md:text-sm font-black transition-all duration-300
+      ${selectedSize === size
+                  ? "bg-black text-white border-black shadow-lg scale-105"
+                  : "bg-white border-gray-200 hover:border-black hover:bg-gray-50"
+                }`}
+            >
+              {size}
+            </button>
+          ))}
+        </div>
       </div>
 
 
       {/* Actions */}
       <div className="mt-2 flex gap-3 rounded-3xl border border-gray-200 bg-white p-2 shadow-lg">
 
-  <button
-    type="button"
-    onClick={handleAdd}
-    disabled={!selectedSize || isOutOfStock}
-    className="flex-1 h-14 rounded-2xl bg-black text-white text-[11px] md:text-xs font-black uppercase tracking-[0.18em] transition-all hover:bg-neutral-800 active:scale-95 disabled:opacity-40"
-  >
-    {isOutOfStock
-      ? "OUT OF STOCK"
-      : !selectedSize
-      ? "CHOOSE SIZE"
-      : added
-      ? "ADDED ✓"
-      : "ADD TO CART"}
-  </button>
+        <button
+          type="button"
+          onClick={handleAdd}
+          disabled={!selectedSize || isOutOfStock}
+          className="flex-1 h-14 rounded-2xl bg-black text-white text-[11px] md:text-xs font-black uppercase tracking-[0.18em] transition-all hover:bg-neutral-800 active:scale-95 disabled:opacity-40"
+        >
+          {isOutOfStock
+            ? "OUT OF STOCK"
+            : !selectedSize
+              ? "CHOOSE SIZE"
+              : added
+                ? "ADDED ✓"
+                : "ADD TO CART"}
+        </button>
 
-  <button
-    type="button"
-    onClick={() => toggleItem(product)}
-    className="h-14 w-14 rounded-2xl border border-gray-200 bg-white flex items-center justify-center hover:bg-black hover:text-white transition-all"
-  >
-    <Heart
-      size={22}
-      className={
-        isLiked
-          ? "fill-red-500 text-red-500"
-          : "text-gray-500"
-      }
-    />
-  </button>
+        <button
+          type="button"
+          onClick={() => toggleItem(product)}
+          className={`h-14 w-14 rounded-2xl border flex items-center justify-center transition-all
+${isLiked
+              ? "border-red-200 bg-red-50"
+              : "border-gray-200 bg-white hover:bg-black hover:text-white"
+            }`}
+        >
+          <Heart
+            size={22}
+            className={
+              isLiked
+                ? "fill-red-500 text-red-500"
+                : "text-gray-500"
+            }
+          />
+        </button>
 
-</div>
+      </div>
     </div>
   )
 }
