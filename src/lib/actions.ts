@@ -1,5 +1,6 @@
 "use server";
 
+import { sendAdminMail } from "@/lib/sendAdminMail";
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { currentUser } from "@clerk/nextjs/server";
@@ -25,7 +26,13 @@ const razorpay = new Razorpay({
 // --- SECURITY HELPER ---
 async function checkAdmin() {
   const user = await currentUser();
-  const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+  await sendAdminMail(
+    "🚨 Unauthorized Access Attempt",
+    `
+      <p><b>User:</b> ${user?.fullName || "Unknown User"}</p>
+      <p><b>Email:</b> ${user?.primaryEmailAddress?.emailAddress || "Unknown Email"}</p>
+    `
+  );
   if (!user || user.primaryEmailAddress?.emailAddress !== adminEmail) {
     throw new Error("Unauthorized: Access Denied");
   }
@@ -396,18 +403,22 @@ export async function createOrder(data: {
     if (process.env.RESEND_API_KEY) {
       try {
         if (adminEmail) {
-          await resend.emails.send({
-            from: "Laddoo Laado <onboarding@resend.dev>",
-            to: adminEmail,
-            subject: `✨ New Order [#${orderIdShort}] Received`,
-            html: `
-              <div>
-                <h2>New Premium Order!</h2>
-                <p>Total Revenue: ₹${serverTotal}</p>
-                <p>Customer: ${user.fullName || "Guest User"}</p>
-              </div>
-            `,
-          });
+          await sendAdminMail(
+  `✨ New Order [#${orderIdShort}] Received`,
+  `
+    <h2>New Premium Order!</h2>
+
+    ${user.fullName || "Guest User"}
+
+    <p><b>Email:</b> ${user.primaryEmailAddress?.emailAddress || "N/A"}</p>
+
+    <p><b>Total:</b> ₹${serverTotal}</p>
+
+    <p><b>Order ID:</b> ${orderIdShort}</p>
+
+    <p><b>Payment:</b> ${data.payment.razorpayPaymentId}</p>
+  `
+);
         }
 
         const customerEmail = user.primaryEmailAddress?.emailAddress;
@@ -779,6 +790,36 @@ export async function updateOrderStatus(orderId: string, status: string) {
         status,
       },
     });
+    if(status==="Cancelled"){
+
+await sendAdminMail(
+"❌ Order Cancelled",
+`
+<p><b>Order:</b> ${orderId}</p>
+
+<p>Status : Cancelled</p>
+`
+)
+
+}
+if(status==="Delivered"){
+  await sendAdminMail(
+"✅ Order Delivered",
+`
+<p>Order : ${orderId}</p>
+
+<p>Status : Delivered</p>
+`
+)}
+if(status==="Shipped"){
+  await sendAdminMail(
+"🚚 Order Shipped",
+`
+<p>Order : ${orderId}</p>
+
+<p>Status : Shipped</p>
+`
+)}
 
     revalidatePath("/admin/orders");
     revalidatePath("/orders");
@@ -896,6 +937,17 @@ export async function subscribeNewsletter(email: string) {
     await db.newsletter.create({
       data: { email },
     });
+
+    await sendAdminMail(
+  "📧 New Newsletter Subscriber",
+  `
+    <h2>New Subscriber</h2>
+
+    <p><b>Email:</b> ${email}</p>
+
+    <p><b>Time:</b> ${new Date()}</p>
+  `
+);
 
     return { success: true };
   } catch (error: any) {
