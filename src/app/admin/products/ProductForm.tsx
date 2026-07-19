@@ -26,10 +26,8 @@ const createEmptyForm = () => ({
   description: "",
   price: "",
   categoryId: "",
-  size: "",
   color: "",
   gender: "Newborn",
-  stock: "10",
   isNewArrival: true,
 })
 
@@ -50,13 +48,16 @@ export default function ProductForm({
     description: product?.description || "",
     price: product?.price?.toString() || "",
     categoryId: product?.categoryId || "",
-    size: product?.size || "",
     color: product?.color || "",
     gender: product?.gender || "Newborn",
-
-    stock: product?.stock?.toString() || "10",
     isNewArrival: product?.isNewArrival ?? true,
   })
+
+  const [variants, setVariants] = useState(
+    product?.variants?.length
+      ? product.variants
+      : []
+  )
   const [customDetails, setCustomDetails] = useState(product?.specifications || [{ key: "", value: "" }])
   const [mounted, setMounted] = useState(false)
 
@@ -99,8 +100,20 @@ export default function ProductForm({
     const specifications = customDetails.filter((detail: { key: string; value: string }) => detail.key && detail.value)
 
     const response = product
-      ? await updateProduct(product.id, { ...form, description: form.description, specifications, images })
-      : await createProduct({ ...form, description: form.description, specifications, images })
+      ? await updateProduct(product.id, {
+        ...form,
+        variants,
+        description: form.description,
+        specifications,
+        images,
+      })
+      : await createProduct({
+        ...form,
+        variants,
+        description: form.description,
+        specifications,
+        images,
+      })
 
     if (response.success) {
       alert(product ? "Product updated successfully!" : "Product published successfully!")
@@ -156,13 +169,7 @@ export default function ProductForm({
           <input required type="number" value={form.price} placeholder="999" className={inputStyle} onChange={(event) => setForm({ ...form, price: event.target.value })} />
         </div>
 
-        <div className="space-y-1.5">
-          <label className="flex items-center gap-1 text-[10px] font-black uppercase text-gray-400">
-            <Package size={10} />
-            Stock Quantity
-          </label>
-          <input required type="number" value={form.stock} className={inputStyle} onChange={(event) => setForm({ ...form, stock: event.target.value })} />
-        </div>
+
       </div>
 
       <select
@@ -177,7 +184,7 @@ export default function ProductForm({
         <option value="Boy">Boys</option>
         <option value="Girl">Girls</option>
       </select>
-      
+
 
       <div className="flex items-center gap-3">
         <input type="checkbox" checked={form.isNewArrival} onChange={(event) => setForm({ ...form, isNewArrival: event.target.checked })} className="h-4 w-4" />
@@ -199,23 +206,68 @@ export default function ProductForm({
         </div>
       </div>
 
-      <div className="space-y-3">
-        <p className="text-[10px] font-black uppercase text-gray-400">Available Sizes</p>
-        <div className="grid grid-cols-3 gap-3 md:grid-cols-4">
-          {sizeOptions.map((size) => {
-            const selectedSizes = form.size ? form.size.split(",") : []
-            const checked = selectedSizes.includes(size)
+      <div className="space-y-4">
+        <p className="text-[10px] font-black uppercase text-gray-400">
+          Size Inventory
+        </p>
 
-            return (
-              <button key={size} type="button" onClick={() => {
-                const updatedSizes = checked ? selectedSizes.filter((selectedSize) => selectedSize !== size) : [...selectedSizes, size]
-                setForm({ ...form, size: updatedSizes.join(",") })
-              }} className={`h-10 sm:h-12 rounded-xl border-2 text-xs sm:text-sm font-bold transition-all ${checked ? "border-black bg-black text-white" : "border-gray-200 bg-white"}`}>
+        {sizeOptions.map((size) => {
+          const variant = variants.find((v: any) => v.size === size)
+
+          return (
+            <div
+              key={size}
+              className="flex items-center gap-3"
+            >
+              <input
+                type="checkbox"
+                checked={!!variant}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setVariants([
+                      ...variants,
+                      {
+                        size,
+                        stock: 0
+                      }
+                    ])
+                  } else {
+                    setVariants(
+                      variants.filter((v: any) => v.size !== size)
+                    )
+                  }
+                }}
+              />
+
+              <div className="w-20 font-semibold">
                 {size}
-              </button>
-            )
-          })}
-        </div>
+              </div>
+
+              {variant && (
+                <input
+                  type="number"
+                  min={0}
+                  className={inputStyle}
+                  value={variant.stock}
+                  onChange={(e) => {
+                    setVariants(
+                      variants.map((v: any) =>
+                        v.size === size
+                          ? {
+                            ...v,
+                            stock: Number(e.target.value)
+                          }
+                          : v
+                      )
+                    )
+                  }}
+                  placeholder="Stock"
+                />
+              )}
+            </div>
+          )
+        })}
+
       </div>
 
       <div className="space-y-4">

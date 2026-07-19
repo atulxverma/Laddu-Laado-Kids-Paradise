@@ -4,11 +4,11 @@ import Link from "next/link";
 import { Mail } from "lucide-react";
 import {
   FaInstagram,
-  FaFacebookF,
   FaWhatsapp,
 } from "react-icons/fa";
 import { useState } from "react";
 import { subscribeNewsletter } from "@/lib/actions";
+import { siteConfig } from "@/lib/site";
 
 const footerCols = [
   {
@@ -23,8 +23,9 @@ const footerCols = [
   {
     title: "Customer",
     links: [
+      { name: "About Us", href: "/about" },
       { name: "Contact Us", href: "/contact" },
-      { name: "FAQs", href: "/faq" },
+      { name: "FAQs", href: "/faqs" },
       { name: "Shipping", href: "/shipping" },
       { name: "Returns", href: "/returns" },
       { name: "Track Order", href: "/orders" },
@@ -123,21 +124,18 @@ export default function Footer() {
             <div className="flex gap-3 mt-5 md:mt-8">
 
               <Link
-                href="#"
+                href={siteConfig.instagram}
+                target="_blank"
                 className="h-11 w-11 rounded-full border border-neutral-200 bg-white flex items-center justify-center text-neutral-600 hover:bg-black hover:text-white hover:scale-110 hover:-translate-y-1 hover:shadow-lg transition-all duration-300"
               >
                 <FaInstagram size={18} />
               </Link>
 
-              <Link
-                href="#"
-                className="h-11 w-11 rounded-full border border-neutral-200 bg-white flex items-center justify-center text-neutral-600 hover:bg-black hover:text-white hover:scale-110 hover:-translate-y-1 hover:shadow-lg transition-all duration-300"
-              >
-                <FaFacebookF size={17} />
-              </Link>
+
 
               <Link
-                href="#"
+                href={`https://wa.me/${siteConfig.whatsapp.replace(/\D/g, "")}`}
+                target="_blank"
                 className="h-11 w-11 rounded-full border border-neutral-200 bg-white flex items-center justify-center text-neutral-600 hover:bg-black hover:text-white hover:scale-110 hover:-translate-y-1 hover:shadow-lg transition-all duration-300"
               >
                 <FaWhatsapp size={18} />
@@ -241,7 +239,7 @@ export default function Footer() {
           <div className="flex flex-col gap-3 md:gap-5  md:flex-row md:items-center md:justify-between">
 
             <p className="text-sm text-neutral-500">
-              © 2026 <span className="font-semibold text-black">Laddoo Laado</span>. Crafted with ❤️ for every little star.
+              © {new Date().getFullYear()}<span className="font-semibold text-black">Laddoo Laado</span>. Crafted with ❤️ for every little star.
             </p>
 
             <div className="flex flex-wrap items-center gap-4 text-sm">

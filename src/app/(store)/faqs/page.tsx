@@ -1,23 +1,86 @@
 "use client"
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Plus } from "lucide-react"
 import Link from "next/link"
-
+import { ArrowLeft, Plus } from "lucide-react"
 const faqs = [
-  { category: "Orders", items: [{ q: "How do I place an order?", a: "Browse our collection, select your size, add to cart and checkout." }, { q: "Can I cancel my order?", a: "You can cancel within 24 hours of placing it." }, { q: "How will I know order is confirmed?", a: "You will receive a confirmation notification." }] },
-  { category: "Shipping", items: [{ q: "How long does delivery take?", a: "Standard delivery takes 3-5 business days." }, { q: "Do you offer free shipping?", a: "Free shipping on all orders above Rs 999." }, { q: "Can I track my order?", a: "Yes, you will receive a tracking link after shipment." }] },
-  { category: "Returns", items: [{ q: "What is your return policy?", a: "Hassle-free returns within 7 days of delivery." }, { q: "How do I exchange a product?", a: "Contact support with your order ID." }, { q: "When will I get my refund?", a: "Within 5-7 business days after receiving the item." }] },
-  { category: "Payments", items: [{ q: "What payment methods do you accept?", a: "UPI, credit/debit cards, net banking, and COD." }, { q: "Is it safe to pay here?", a: "Yes, we use SSL encryption." }, { q: "Can I use multiple payment methods?", a: "Only one payment method per order." }] },
+  {
+    category: "Orders",
+    items: [
+      {
+        q: "How do I place an order?",
+        a: "Browse your favorite products, select the appropriate size, add them to your cart and proceed to checkout."
+      },
+      {
+        q: "Can I cancel my order?",
+        a: "Yes. Orders can usually be cancelled before they are shipped. Please contact our support team as soon as possible."
+      },
+      {
+        q: "How will I know my order is confirmed?",
+        a: "Once your payment is successful, you'll receive an order confirmation email along with your Order ID."
+      }
+    ]
+  },
+  {
+    category: "Shipping",
+    items: [
+      {
+        q: "How long does delivery take?",
+        a: "Most orders are delivered within 3–7 business days depending on your location."
+      },
+      {
+        q: "Do you offer free shipping?",
+        a: "Yes. Free shipping is available on orders above ₹999."
+      },
+      {
+        q: "Can I track my order?",
+        a: "Absolutely. A tracking link will be shared with you once your order has been shipped."
+      }
+    ]
+  },
+  {
+    category: "Returns",
+    items: [
+      {
+        q: "What is your return policy?",
+        a: "Eligible products can be returned within 7 days of delivery if they are unused and in their original condition."
+      },
+      {
+        q: "How do I request an exchange?",
+        a: "Simply contact our support team with your Order ID and we'll guide you through the exchange process."
+      },
+      {
+        q: "When will I receive my refund?",
+        a: "Refunds are usually processed within 5–7 business days after your returned product has been inspected."
+      }
+    ]
+  },
+  {
+    category: "Payments",
+    items: [
+      {
+        q: "Which payment methods are accepted?",
+        a: "We accept UPI, Debit Cards, Credit Cards, Net Banking and Cash on Delivery (where available)."
+      },
+      {
+        q: "Is my payment secure?",
+        a: "Yes. Every transaction is protected using industry-standard SSL encryption."
+      },
+      {
+        q: "Can I split my payment?",
+        a: "Currently, only one payment method can be used for each order."
+      }
+    ]
+  },
 ]
 
 function FAQItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false)
   return (
-    <div className="border border-gray-100 rounded-2xl overflow-hidden hover:border-gray-200 transition-colors">
+    <div className="rounded-3xl border border-neutral-200 bg-white shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
       <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left">
         <span className="text-sm font-semibold text-black">{q}</span>
-        <motion.div animate={{ rotate: open ? 45 : 0 }} transition={{ duration: 0.2 }} className="shrink-0 h-7 w-7 rounded-full bg-gray-100 flex items-center justify-center">
+        <motion.div animate={{ rotate: open ? 45 : 0 }} transition={{ duration: 0.2 }} className="shrink-0 h-7 w-7 rounded-full bg-neutral-100 group-hover:bg-black group-hover:text-white flex items-center justify-center">
           <Plus size={14} className="text-gray-600" />
         </motion.div>
       </button>
@@ -39,11 +102,17 @@ export default function FAQsPage() {
   const current = faqs.find((f) => f.category === active)
   return (
     <div className="bg-white min-h-screen pb-20">
-      <div className="max-w-3xl mx-auto px-4 py-16 text-center">
+      <div className="max-w-3xl mx-auto px-4 py-16">
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-4 text-center"
+        ></motion.div>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
           <span className="text-xs font-bold uppercase tracking-widest text-gray-400 border border-gray-200 px-4 py-1.5 rounded-full inline-block">Help Center</span>
           <h1 className="text-4xl md:text-5xl font-bold text-black">Frequently Asked Questions</h1>
-          <p className="text-gray-500 text-sm max-w-md mx-auto">Cannot find what you are looking for? Reach out to our support team.</p>
+          <p className="text-gray-500 text-sm max-w-md mx-auto">Need help with your order, shipping or payments? We've answered the most common questions to make your shopping experience simple and hassle-free.</p>
         </motion.div>
       </div>
       <div className="max-w-3xl mx-auto px-4">
@@ -62,11 +131,17 @@ export default function FAQsPage() {
           </motion.div>
         </AnimatePresence>
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mt-16 bg-gray-50 border border-gray-100 rounded-3xl p-8 text-center">
-          <h3 className="font-bold text-lg text-black mb-2">Still have questions?</h3>
-          <p className="text-sm text-gray-500 mb-6">Our support team is here to help you 7 days a week.</p>
+          <h3 className="font-bold text-lg text-black mb-2">Need More Help?</h3>
+          <p className="text-sm text-gray-500 mb-6">Our friendly support team is always ready to assist you with your orders, shipping or returns.</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <a href="mailto:support@laddulaado.com" className="bg-black text-white px-6 py-3 rounded-full text-sm font-bold hover:opacity-80 transition-opacity">Email Us</a>
+
             <Link href="/shop" className="border border-gray-200 text-black px-6 py-3 rounded-full text-sm font-bold hover:bg-gray-50 transition-colors">Browse Shop</Link>
+            <Link
+              href="/contact"
+              className="border border-black px-6 py-3 rounded-full text-sm font-bold hover:bg-black hover:text-white transition"
+            >
+              Contact Support
+            </Link>
           </div>
         </motion.div>
       </div>

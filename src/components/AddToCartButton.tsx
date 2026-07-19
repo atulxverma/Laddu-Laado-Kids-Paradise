@@ -19,16 +19,21 @@ export default function AddToCartButton({ product }: { product: any }) {
 
   if (!mounted || !product) return null
 
-  const availableSizes =
-    product?.size
-      ?.split(",")
-      .map((s: string) => s.trim().toUpperCase())
-      .filter(Boolean) || []
+  const variants = product.variants || []
 
-  const stock = Number(product.stock ?? 0)
+  
 
-  const isOutOfStock = stock === 0
-  const isLowStock = stock > 0 && stock <= 5
+  const selectedVariant = variants.find(
+  (v: any) => v.size === selectedSize
+)
+
+const stock = selectedVariant?.stock ?? 0
+
+const isOutOfStock = variants.every(
+  (v: any) => v.stock === 0
+)
+
+const isLowStock = stock > 0 && stock <= 5
 
   const currentItem = cart.items.find(
     (item: any) =>
@@ -104,22 +109,25 @@ export default function AddToCartButton({ product }: { product: any }) {
 
         <div className="grid grid-cols-4 md:grid-cols-5 gap-2 md:gap-3">
 
-          {availableSizes.map((size: string) => (
+          {variants.map((variant: any) => (
             <button
-              key={size}
+              key={variant.size}
               type="button"
-              disabled={isOutOfStock}
-              onClick={() => setSelectedSize(size)}
+              disabled={variant.stock === 0}
+              onClick={() => setSelectedSize(variant.size)}
               className={`h-12 md:h-14 rounded-2xl border-2 text-[13px] md:text-sm font-black transition-all
-              ${
-                selectedSize === size
+              ${selectedSize === variant.size
                   ? "bg-black text-white border-black"
                   : "bg-white border-gray-200 hover:border-black"
-              }
-              ${isOutOfStock ? "opacity-40 cursor-not-allowed" : ""}
+                }
+              ${
+  variant.stock === 0
+    ? "opacity-40 cursor-not-allowed"
+    : ""
+}
               `}
             >
-              {size}
+              {variant.size}
             </button>
           ))}
 
@@ -145,21 +153,20 @@ export default function AddToCartButton({ product }: { product: any }) {
           {isOutOfStock
             ? "OUT OF STOCK"
             : !selectedSize
-            ? "SELECT SIZE"
-            : added
-            ? "ADDED ✓"
-            : "ADD TO CART"}
+              ? "SELECT SIZE"
+              : added
+                ? "ADDED ✓"
+                : "ADD TO CART"}
         </button>
 
         <button
           type="button"
           onClick={() => toggleItem(product)}
           className={`h-14 w-14 rounded-2xl border flex items-center justify-center transition-all
-          ${
-            isLiked
+          ${isLiked
               ? "border-red-200 bg-red-50"
               : "border-gray-200 hover:bg-black hover:text-white"
-          }`}
+            }`}
         >
           <Heart
             size={22}

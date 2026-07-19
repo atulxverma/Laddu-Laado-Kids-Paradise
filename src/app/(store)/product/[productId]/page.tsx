@@ -32,9 +32,14 @@ export default async function ProductPage({
     include: {
       category: true,
       images: true,
-      reviews: { orderBy: { createdAt: "desc" } },
+      reviews: {
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+      variants: true,
     },
-  });
+  })
 
   if (!product) notFound();
 
@@ -54,7 +59,7 @@ export default async function ProductPage({
         1,
       )
       : "0.0";
-      
+
   const stock = Number(product.stock ?? 0)
 
   const stockBadge =

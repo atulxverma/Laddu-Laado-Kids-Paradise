@@ -69,18 +69,18 @@ export default async function ShopPage({
       }),
 
       ...(age && {
-  size: {
-    contains: age,
-    mode: "insensitive",
-  },
-}),
+        size: {
+          contains: age,
+          mode: "insensitive",
+        },
+      }),
 
       ...(age && {
-  size: {
-    contains: age,
-    mode: "insensitive",
-  },
-}),
+        size: {
+          contains: age,
+          mode: "insensitive",
+        },
+      }),
 
       isArchived: false,
     },
@@ -162,10 +162,10 @@ export default async function ShopPage({
 
             {(gender || age) && (
               <Link
-                href="/shop"
-                className="text-xs font-bold text-neutral-500 hover:text-black transition"
+                href="/shop?new=true"
+                className="flex items-center gap-1 text-[11px] font-black uppercase tracking-wider hover:gap-2 transition-all"
               >
-                View All →
+                View New Arrivals →
               </Link>
             )}
 
@@ -312,8 +312,8 @@ export default async function ShopPage({
             </p>
 
             <h2 className="mt-3 text-2xl md:text-3xl font-black tracking-tight">
-  Nothing matches your search
-</h2>
+              Nothing matches your search
+            </h2>
 
             <p className="mt-3 max-w-sm text-center text-neutral-500">
               Try changing your filters or browse all collections.

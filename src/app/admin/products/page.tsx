@@ -18,7 +18,8 @@ export default async function ProductsPage() {
 
   const newArrivalProducts = inventoryProducts.filter((product) => product.isNewArrival).length
   const lowStockProducts = inventoryProducts.filter((product) => {
-    const stock = Number(product.stock ?? 0)
+    const stock =
+  product.variants?.reduce((sum, v) => sum + v.stock, 0) ?? product.stock ?? 0
     return stock > 0 && stock <= 5
   }).length
   const outOfStockProducts = inventoryProducts.filter((product) => Number(product.stock ?? 0) === 0).length

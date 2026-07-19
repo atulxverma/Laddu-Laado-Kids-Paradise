@@ -202,7 +202,11 @@ export default function CartPage() {
                               <span className="rounded-full bg-neutral-100 px-3 py-1 text-[10px] font-bold">
                                 Size {item.size}
                               </span>
-
+{typeof item.stock === "number" && (
+  <span className="rounded-full bg-neutral-100 px-3 py-1 text-[10px] font-bold">
+    {item.stock} Left
+  </span>
+)}
                               {item.color && item.color !== "Standard" && (
                                 <span className="rounded-full bg-neutral-100 px-3 py-1 text-[10px] font-bold">
                                   {item.color}
@@ -257,7 +261,10 @@ export default function CartPage() {
                           </span>
 
                           <button
-                            disabled={item.quantity >= 10}
+                            disabled={
+  typeof item.stock === "number" &&
+  item.quantity >= item.stock
+}
                             onClick={() => increaseQuantity(item.id, item.size)}
                             className="h-9 w-9 rounded-full hover:bg-neutral-100 transition disabled:opacity-40"
                           >

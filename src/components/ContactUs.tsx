@@ -1,5 +1,6 @@
 "use client";
 
+import { siteConfig } from "@/lib/site";
 import { Mail, Phone, MapPin, Clock } from "lucide-react";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -15,25 +16,25 @@ export default function ContactUs() {
                 {/* Header */}
                 <div className="relative mb-12">
 
-  <button
-    onClick={() => router.back()}
-    className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 bg-white shadow-sm hover:bg-pink-50"
-  >
-    <ArrowLeft size={18} />
-  </button>
+                    <button
+                        onClick={() => router.back()}
+                        className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 bg-white shadow-sm hover:bg-pink-50"
+                    >
+                        <ArrowLeft size={18} />
+                    </button>
 
-  <div className="text-center px-12">
-    <h1 className="text-3xl md:text-4xl font-bold text-pink-600">
-      Contact Us
-    </h1>
+                    <div className="text-center px-12">
+                        <h1 className="text-3xl md:text-4xl font-bold text-pink-600">
+                            Contact Us
+                        </h1>
 
-    <p className="mt-4 text-gray-600 max-w-2xl mx-auto">
-      We'd love to hear from you. Whether you have a question about an
-      order, products, or anything else, our team is ready to help.
-    </p>
-  </div>
+                        <p className="mt-4 text-gray-600 max-w-2xl mx-auto">
+                            We'd love to hear from you. Whether you have a question about an
+                            order, products, or anything else, our team is ready to help.
+                        </p>
+                    </div>
 
-</div>
+                </div>
 
                 <div className="grid lg:grid-cols-2 gap-12">
 
@@ -114,7 +115,7 @@ export default function ContactUs() {
                                 <div>
                                     <h3 className="font-semibold">Email</h3>
                                     <p className="text-gray-600">
-                                        support@laddoolaado.com
+                                        {siteconfig.email}
                                     </p>
                                 </div>
                             </div>
@@ -128,7 +129,7 @@ export default function ContactUs() {
                                 <div>
                                     <h3 className="font-semibold">Phone</h3>
                                     <p className="text-gray-600">
-                                        +91 98765 43210
+                                        {siteConfig.phone}
                                     </p>
                                 </div>
                             </div>
@@ -142,7 +143,7 @@ export default function ContactUs() {
                                 <div>
                                     <h3 className="font-semibold">Address</h3>
                                     <p className="text-gray-600">
-                                        Moradabad, Uttar Pradesh, India
+                                        {siteConfig.address}
                                     </p>
                                 </div>
                             </div>
@@ -161,7 +162,7 @@ export default function ContactUs() {
                                         Monday - Saturday
                                     </p>
                                     <p className="text-gray-600">
-                                        9:00 AM - 7:00 PM
+                                        {siteConfig.businessHours}
                                     </p>
                                 </div>
                             </div>

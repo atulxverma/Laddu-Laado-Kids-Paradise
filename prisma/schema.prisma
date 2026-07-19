@@ -53,6 +53,7 @@ model Product {
 
   cartItems     CartItem[]
   wishlistItems WishlistItem[]
+  variants ProductVariant[]
 }
 
 model Image {
@@ -152,4 +153,16 @@ model Contact {
   message String
 
   createdAt DateTime @default(now())
+}
+
+model ProductVariant {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+
+  productId String @db.ObjectId
+  product   Product @relation(fields:[productId], references:[id], onDelete:Cascade)
+
+  size String
+  stock Int
+
+  @@unique([productId,size])
 }

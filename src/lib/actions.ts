@@ -80,6 +80,7 @@ export async function initiateRazorpayPayment(items: CheckoutItem[]) {
     const productIds = [...new Set(items.map((item) => item.id))];
 
     const products = await db.product.findMany({
+      
       where: {
         id: {
           in: productIds,
@@ -91,6 +92,7 @@ export async function initiateRazorpayPayment(items: CheckoutItem[]) {
         name: true,
         price: true,
         stock: true,
+        variants: true,
       },
     });
 
@@ -120,10 +122,19 @@ export async function initiateRazorpayPayment(items: CheckoutItem[]) {
         };
       }
 
-      if (product.stock < item.quantity) {
+      const variant = product.variants.find((v) => v.size === item.size);
+
+      if (!variant) {
         return {
           success: false,
-          error: `${product.name} has only ${product.stock} item(s) left.`,
+          error: `${product.name} (${item.size}) not available.`,
+        };
+      }
+
+      if (variant.stock < item.quantity) {
+        return {
+          success: false,
+          error: `${product.name} (${item.size}) has only ${variant.stock} left.`,
         };
       }
 
@@ -216,6 +227,7 @@ export async function createOrder(data: {
         name: true,
         price: true,
         stock: true,
+        variants: true,
       },
     });
 
@@ -238,9 +250,17 @@ export async function createOrder(data: {
         return { error: "Product not found." };
       }
 
-      if (product.stock < item.quantity) {
+      const variant = product.variants.find((v) => v.size === item.size);
+
+      if (!variant) {
         return {
-          error: `${product.name} has only ${product.stock} left.`,
+          error: `${product.name} (${item.size}) is unavailable.`,
+        };
+      }
+
+      if (variant.stock < item.quantity) {
+        return {
+          error: `${product.name} (${item.size}) has only ${variant.stock} left.`,
         };
       }
 
@@ -373,19 +393,32 @@ export async function createOrder(data: {
           where: {
             id: item.id,
           },
+          include: {
+            variants: true,
+          },
         });
 
         if (!latestProduct) {
           throw new Error("A product in your cart no longer exists.");
         }
 
-        if (latestProduct.stock < item.quantity) {
-          throw new Error(
-            `${latestProduct.name} has only ${latestProduct.stock} item(s) left.`,
-          );
-        }
-      }
+        const variant = latestProduct.variants.find(
+  (v) => v.size === item.size
+);
 
+if (!variant) {
+  throw new Error(
+    `${latestProduct.name} (${item.size}) is unavailable.`
+  );
+}
+
+if (variant.stock < item.quantity) {
+  throw new Error(
+    `${latestProduct.name} (${item.size}) has only ${variant.stock} left.`
+  );
+}
+} 
+      
       const newOrder = await tx.order.create({
         data: {
           clerkId: user.id,
@@ -419,11 +452,14 @@ export async function createOrder(data: {
           },
         },
       });
-
+    
       for (const item of data.items) {
-        await tx.product.update({
+        await tx.productVariant.update({
           where: {
-            id: item.id,
+            productId_size: {
+              productId: item.id,
+              size: item.size,
+            },
           },
           data: {
             stock: {
@@ -431,6 +467,16 @@ export async function createOrder(data: {
             },
           },
         });
+        await tx.product.update({
+  where: {
+    id: item.id,
+  },
+  data: {
+    stock: {
+      decrement: item.quantity,
+    },
+  },
+});
       }
 
       await tx.cartItem.deleteMany({
@@ -552,59 +598,45 @@ export async function createProduct(data: any) {
   try {
     await checkAdmin();
 
-    const {
-      name,
-      description,
-      price,
-      categoryId,
-      images,
-      size,
-      color,
-      stock,
-      gender,
-
-      specifications,
-    } = data;
-
-    if (!name.trim()) {
-      return {
-        error: "Product name is required",
-      };
+    if (!data.name?.trim()) {
+      return { error: "Product name is required" };
     }
 
-    if (!price || isNaN(parseFloat(price))) {
-      return { error: "Valid Price is required" };
+    if (!data.price || Number(data.price) <= 0) {
+      return { error: "Valid price is required" };
     }
 
-    if (Number(price) <= 0) {
-      return {
-        error: "Price must be greater than 0",
-      };
+    if (!data.categoryId) {
+      return { error: "Please select a category" };
     }
 
-    if (!categoryId) {
-      return { error: "Please select a Category" };
-    }
-
-    if (!images || images.length === 0) {
-      return { error: "Please upload at least one image" };
-    }
-
-    if (stock === undefined || isNaN(parseInt(stock))) {
-      return { error: "Stock quantity is required" };
-    }
-    if (Number(stock) < 0) {
-      return {
-        error: "Stock cannot be negative",
-      };
-    }
-    if (!data.size) {
-      return { error: "Please select at least one size" };
+    if (!data.images?.length) {
+      return { error: "Upload at least one image" };
     }
 
     if (!data.gender) {
       return { error: "Please select gender" };
     }
+
+    if (!data.variants || data.variants.length === 0) {
+      return { error: "Please add at least one size." };
+    }
+
+    const validVariants = data.variants.filter(
+      (v: any) =>
+        v.size && Number.isInteger(Number(v.stock)) && Number(v.stock) >= 0,
+    );
+
+    if (validVariants.length === 0) {
+      return {
+        error: "Please enter valid stock for every selected size.",
+      };
+    }
+
+    const totalStock = validVariants.reduce(
+      (sum: number, v: any) => sum + Number(v.stock),
+      0,
+    );
 
     await db.product.create({
       data: {
@@ -614,18 +646,28 @@ export async function createProduct(data: any) {
 
         isNewArrival: data.isNewArrival ?? true,
 
-        stock: Number(data.stock),
         gender: data.gender,
-
-        size: data.size,
         color: data.color,
+
         categoryId: data.categoryId,
 
         specifications: data.specifications,
 
+        // backward compatibility
+        size: validVariants.map((v: any) => v.size).join(","),
+
+        stock: totalStock,
+
         images: {
           create: data.images.map((url: string) => ({
             url,
+          })),
+        },
+
+        variants: {
+          create: validVariants.map((v: any) => ({
+            size: v.size,
+            stock: Number(v.stock),
           })),
         },
       },
@@ -635,10 +677,12 @@ export async function createProduct(data: any) {
     revalidatePath("/");
     revalidatePath("/shop");
 
-    return { success: true };
+    return {
+      success: true,
+    };
   } catch (error: any) {
     return {
-      error: "Database Error: " + error.message,
+      error: error.message,
     };
   }
 }
@@ -724,6 +768,11 @@ export async function deleteProduct(id: string) {
         error: "This product has orders and cannot be deleted.",
       };
     }
+    await db.productVariant.deleteMany({
+  where: {
+    productId: id,
+  },
+});
     await db.product.delete({
       where: {
         id,
@@ -752,27 +801,21 @@ export async function updateProduct(id: string, data: any) {
       };
     }
 
-    if (!data.images || data.images.length === 0) {
+    if (!data.images?.length) {
       return {
         error: "Please upload at least one image",
       };
     }
 
-    if (Number(data.price) <= 0) {
+    if (!data.price || Number(data.price) <= 0) {
       return {
         error: "Price must be greater than 0",
       };
     }
 
-    if (Number(data.stock) < 0) {
+    if (!data.categoryId) {
       return {
-        error: "Stock cannot be negative",
-      };
-    }
-
-    if (!data.size) {
-      return {
-        error: "Please select at least one size",
+        error: "Please select category",
       };
     }
 
@@ -782,43 +825,90 @@ export async function updateProduct(id: string, data: any) {
       };
     }
 
-    await db.image.deleteMany({
-      where: {
-        productId: id,
-      },
-    });
+    if (!data.variants || data.variants.length === 0) {
+      return {
+        error: "Please add at least one size.",
+      };
+    }
 
-    await db.product.update({
-      where: { id },
+    const validVariants = data.variants.filter(
+      (v: any) =>
+        v.size && Number.isInteger(Number(v.stock)) && Number(v.stock) >= 0,
+    );
 
-      data: {
-        name: data.name,
-        description: data.description,
-        price: Number(data.price),
-        stock: Number(data.stock),
+    if (validVariants.length === 0) {
+      return {
+        error: "Invalid variants.",
+      };
+    }
 
-        isNewArrival: data.isNewArrival ?? true,
+    const totalStock = validVariants.reduce(
+      (sum: number, v: any) => sum + Number(v.stock),
+      0,
+    );
 
-        categoryId: data.categoryId,
-        size: data.size,
-        color: data.color,
-
-        gender: data.gender,
-
-        specifications: data.specifications || [],
-
-        images: {
-          create: data.images.map((url: string) => ({
-            url,
-          })),
+    await db.$transaction(async (tx) => {
+      // Delete old images
+      await tx.image.deleteMany({
+        where: {
+          productId: id,
         },
-      },
+      });
+    
+
+      // Delete old variants
+      await tx.productVariant.deleteMany({
+        where: {
+          productId: id,
+        },
+      });
+
+      // Update product
+      await tx.product.update({
+        where: {
+          id,
+        },
+
+        data: {
+          name: data.name,
+          description: data.description,
+          price: Number(data.price),
+
+          isNewArrival: data.isNewArrival ?? true,
+
+          categoryId: data.categoryId,
+
+          color: data.color,
+
+          gender: data.gender,
+
+          specifications: data.specifications || [],
+
+          // backward compatibility
+          size: validVariants.map((v: any) => v.size).join(","),
+
+          stock: totalStock,
+
+          images: {
+            create: data.images.map((url: string) => ({
+              url,
+            })),
+          },
+
+          variants: {
+            create: validVariants.map((v: any) => ({
+              size: v.size,
+              stock: Number(v.stock),
+            })),
+          },
+        },
+      });
     });
 
     revalidatePath("/admin/products");
-    revalidatePath("/");
-    revalidatePath("/shop");
     revalidatePath(`/product/${id}`);
+    revalidatePath("/shop");
+    revalidatePath("/");
 
     return {
       success: true,
@@ -960,17 +1050,31 @@ export async function cancelOrder(orderId: string) {
       });
 
       for (const item of order.orderItems) {
-        await tx.product.update({
-          where: {
-            id: item.productId,
-          },
-          data: {
-            stock: {
-              increment: item.quantity,
-            },
-          },
-        });
-      }
+  await tx.productVariant.update({
+    where: {
+      productId_size: {
+        productId: item.productId,
+        size: item.size,
+      },
+    },
+    data: {
+      stock: {
+        increment: item.quantity,
+      },
+    },
+  });
+
+  await tx.product.update({
+    where: {
+      id: item.productId,
+    },
+    data: {
+      stock: {
+        increment: item.quantity,
+      },
+    },
+  });
+}
     });
 
     revalidatePath("/orders");
@@ -1378,26 +1482,34 @@ export async function syncCartWithDb(items: any[]) {
 
     for (const item of mergedItems.values()) {
       const product = await db.product.findUnique({
-        where: {
-          id: item.id,
-        },
-        select: {
-          id: true,
-          stock: true,
-          isArchived: true,
-        },
-      });
+  where: {
+    id: item.id,
+  },
+  select: {
+    id: true,
+    isArchived: true,
+    variants: true,
+  },
+});
 
-      if (!product || product.isArchived || product.stock <= 0) {
-        continue;
-      }
+if (!product || product.isArchived) {
+  continue;
+}
 
-      validItems.push({
-        clerkId,
-        productId: product.id,
-        quantity: Math.min(item.quantity, product.stock),
-        size: item.size,
-      });
+const variant = product.variants.find(
+  (v) => v.size === item.size
+);
+
+if (!variant || variant.stock <= 0) {
+  continue;
+}
+
+validItems.push({
+  clerkId,
+  productId: product.id,
+  quantity: Math.min(item.quantity, variant.stock),
+  size: item.size,
+});
     }
 
     await db.$transaction(async (tx) => {
@@ -1413,6 +1525,7 @@ export async function syncCartWithDb(items: any[]) {
         });
       }
     });
+  
 
     return {
       success: true,
@@ -1444,15 +1557,23 @@ export async function getDbCart() {
             images: true,
             category: true,
             reviews: true,
+            variants: true,
           },
         },
       },
     });
 
-    return cartItems.filter(
-      (item) =>
-        item.product && !item.product.isArchived && item.product.stock > 0,
-    );
+    return cartItems.filter((item) => {
+  if (!item.product || item.product.isArchived) {
+    return false;
+  }
+
+  const variant = item.product.variants.find(
+    (v) => v.size === item.size
+  );
+
+  return !!variant && variant.stock > 0;
+});
   } catch (error) {
     console.error("GET_CART_FAIL", error);
     return [];

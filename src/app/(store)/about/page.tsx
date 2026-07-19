@@ -3,6 +3,7 @@
 import { motion } from "framer-motion"
 import { Heart, Leaf, Star, Users } from "lucide-react"
 import Link from "next/link"
+import { ArrowLeft, Plus } from "lucide-react"
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -18,19 +19,19 @@ const values = [
   {
     icon: Heart,
     title: "Crafted with Love",
-    desc: "Every piece is handpicked and curated with care for our customers.",
+    desc: "Soft fabrics designed to keep your little one comfortable all day.",
     color: "bg-rose-50 text-rose-500",
   },
   {
     icon: Leaf,
-    title: "Sustainable Fashion",
-    desc: "We believe in responsible fashion that respects our planet.",
+    title: "Skin Friendly",
+    desc: "Gentle materials that are safe, breathable and perfect for kids.",
     color: "bg-emerald-50 text-emerald-500",
   },
   {
     icon: Star,
-    title: "Premium Quality",
-    desc: "Only the finest fabrics and craftsmanship make it to our shelves.",
+    title: "Premium Craftsmanship",
+    desc: "Carefully stitched outfits with attention to every detail. and craftsmanship make it to our shelves.",
     color: "bg-amber-50 text-amber-500",
   },
   {
@@ -42,19 +43,31 @@ const values = [
 ]
 
 const stats = [
-  { value: "2K+", label: "Happy Customers" },
-  { value: "500+", label: "Products" },
-  { value: "50+", label: "Brands" },
-  { value: "4.9★", label: "Average Rating" },
+  {
+    value: "100%",
+    label: "Premium Quality",
+  },
+  {
+    value: "Soft",
+    label: "Comfort Fabric",
+  },
+  {
+    value: "Fast",
+    label: "Shipping",
+  },
+  {
+    value: "Easy",
+    label: "Returns",
+  },
 ]
 
 export default function AboutPage() {
   return (
     <main className="bg-white min-h-screen">
-
       {/* HERO */}
       <section className="relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 py-20 md:py-32 text-center">
+
           <motion.div
             initial="hidden"
             animate="show"
@@ -72,16 +85,16 @@ export default function AboutPage() {
               variants={fadeUp}
               className="text-4xl md:text-6xl lg:text-7xl font-bold text-black leading-tight max-w-3xl"
             >
-              Fashion that tells{" "}
-              <span className="  font-serif">your story</span>
+              Premium Fashion
+              for {" "}
+              <span className="  font-serif">Every Little Star</span>
             </motion.h1>
 
             <motion.p
               variants={fadeUp}
               className="text-gray-500 text-base md:text-lg max-w-xl leading-relaxed"
             >
-              Laddoo Laado is more than a clothing brand — it&apos;s a celebration
-              of individuality, culture, and modern elegance.
+              At Laddoo Laado, we believe every child deserves clothing that is soft, comfortable and beautifully designed. Our collections are thoughtfully crafted to bring together quality, style and everyday comfort for your little ones.
             </motion.p>
 
             <motion.div variants={fadeUp}>
@@ -89,7 +102,7 @@ export default function AboutPage() {
                 href="/shop"
                 className="inline-flex items-center gap-3 bg-black text-white px-8 py-4 rounded-full text-sm font-bold hover:opacity-80 transition-opacity"
               >
-                Explore Collection
+                Shop Collection
                 <span className="h-6 w-6 bg-white text-black rounded-full flex items-center justify-center text-xs">
                   →
                 </span>
@@ -132,7 +145,7 @@ export default function AboutPage() {
       </section>
 
       {/* STORY */}
-      <section className="max-w-7xl mx-auto px-4 py-20">
+      <section className="max-w-7xl mx-auto px-4 py-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <motion.div
             initial={{ opacity: 0, x: -40 }}
@@ -145,49 +158,18 @@ export default function AboutPage() {
               Who We Are
             </span>
             <h2 className="text-3xl md:text-4xl font-bold text-black leading-tight">
-              Born from a passion for{" "}
-              <span className="  font-serif">timeless style</span>
+              Designed with Love,{" "}
+              <span className="  font-serif">Made for Comfort</span>
             </h2>
             <p className="text-gray-500 leading-relaxed">
-              Founded in 2024, Laddoo Laado started as a small dream — to bring
-              premium, culturally-inspired fashion to everyday people. We blend
-              traditional craftsmanship with modern design to create pieces that
-              are both beautiful and meaningful.
+              Laddoo Laado was created with one simple vision — to make premium kidswear that combines comfort, quality and timeless style.
+              Every outfit is thoughtfully selected using soft fabrics, modern designs and kid-friendly fits, ensuring your little one feels as good as they look.
             </p>
             <p className="text-gray-500 leading-relaxed">
-              Today, we serve thousands of happy customers across India, with a
-              curated collection that celebrates diversity, quality, and
-              self-expression.
+              Whether it's everyday wear or a special occasion, our collections are designed to make childhood even more colorful.
             </p>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="grid grid-cols-2 gap-3"
-          >
-            {[
-              "https: images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=600",
-              "https: images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600",
-              "https: images.unsplash.com/photo-1469334031218-e382a71b716b?q=80&w=600",
-              "https: images.unsplash.com/photo-1503341504253-dff4815485f1?q=80&w=600",
-            ].map((src, i) => (
-              <div
-                key={i}
-                className={`rounded-2xl overflow-hidden bg-gray-100 ${
-                  i === 0 ? "row-span-2 aspect-[3/4]" : "aspect-square"
-                }`}
-              >
-                <img
-                  src={src}
-                  alt="About"
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
-                />
-              </div>
-            ))}
-          </motion.div>
         </div>
       </section>
 
@@ -255,17 +237,17 @@ export default function AboutPage() {
               Join Us
             </p>
             <h2 className="text-3xl md:text-5xl font-bold mb-4 leading-tight">
-              Ready to find your{" "}
-              <span className="  font-serif">perfect look?</span>
+              Dress Your Little One{" "}
+              <span className="  font-serif">in Style</span>
             </h2>
             <p className="text-white/60 text-sm mb-8 max-w-md mx-auto">
-              Explore our latest collection and discover fashion that speaks to who you are.
+              Discover premium outfits designed with comfort, quality and love for every little star.
             </p>
             <Link
               href="/shop"
               className="inline-flex items-center gap-3 bg-white text-black px-8 py-4 rounded-full text-sm font-bold hover:opacity-90 transition-opacity"
             >
-              Shop Now
+              Explore Collection
               <span className="h-6 w-6 bg-black text-white rounded-full flex items-center justify-center text-xs">
                 →
               </span>

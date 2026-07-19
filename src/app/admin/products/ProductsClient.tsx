@@ -182,40 +182,30 @@ export default function ProductsClient({ products, categories }: ProductsClientP
                     </div>
                   )}
 
-                  <div className="absolute left-2 right-20 top-2 flex flex-col items-start gap-1.5 sm:left-3 sm:right-24 sm:top-3">
-                    <span className={`
+                  <div className="absolute left-2 top-2 z-20 flex flex-col items-start gap-1.5 sm:left-3 sm:top-3">
+                    <span
+  className={`
+inline-flex
+items-center
+w-fit
+whitespace-nowrap
 rounded-full
 border
-px-2.5
-py-1
+px-2
+py-0.5
 text-[9px]
 font-bold
 uppercase
-tracking-wider
+tracking-wide
 ${getStockBadge(stock)}
-`}>{getStockLabel(stock)}</span>
+`}
+>
+  {getStockLabel(stock)}
+</span>
                     {product.isNewArrival && <span className="max-w-full truncate rounded-full bg-black px-2 py-1 text-[8px] font-bold uppercase tracking-wider text-white sm:px-2.5 sm:py-1.5 sm:text-[9px]">New</span>}
                   </div>
                   {stock === 0 && (
-                    <div className="absolute inset-0 bg-black/45 flex items-center justify-center">
-                      <span
-                        className="
-  rounded-full
-  border
-  border-red-100
-  bg-red-50
-  px-2.5
-  py-1
-  text-[9px]
-  font-bold
-  uppercase
-  tracking-wider
-  text-red-700
-  "
-                      >
-                        OUT OF STOCK
-                      </span>
-                    </div>
+                    <div className="absolute inset-0 bg-black/35" />
                   )}
                   {product.category && <span className="absolute bottom-2 left-2 max-w-[72%] truncate rounded-full bg-white px-2 py-1 text-[8px] font-bold uppercase tracking-wider text-neutral-700 shadow-sm sm:bottom-3 sm:left-3 sm:px-2.5 sm:py-1.5 sm:text-[9px]">{product.category.name}</span>}
 
