@@ -7,14 +7,25 @@ import { ArrowUpRight, Boxes, CircleAlert, Plus, Tag, Warehouse } from "lucide-r
 export default async function ProductsPage() {
   const categories = await db.category.findMany()
   const products = await db.product.findMany({
-    include: { category: true, images: true, reviews: true },
-    orderBy: { createdAt: "desc" },
-  })
+  include: {
+    category: true,
+    images: true,
+    reviews: true,
+    variants: true,
+  },
+  orderBy: {
+    createdAt: "desc",
+  },
+})
 
-  const inventoryProducts = products as Array<typeof products[number] & {
-    stock?: number | null
-    isNewArrival?: boolean | null
-  }>
+  const inventoryProducts = products as Array<
+typeof products[number] & {
+stock?: number | null
+isNewArrival?: boolean | null
+isTrending?: boolean | null
+isExclusive?: boolean | null
+}
+>
 
   const newArrivalProducts = inventoryProducts.filter((product) => product.isNewArrival).length
   const lowStockProducts = inventoryProducts.filter((product) => {
@@ -22,7 +33,17 @@ export default async function ProductsPage() {
   product.variants?.reduce((sum, v) => sum + v.stock, 0) ?? product.stock ?? 0
     return stock > 0 && stock <= 5
   }).length
-  const outOfStockProducts = inventoryProducts.filter((product) => Number(product.stock ?? 0) === 0).length
+  const outOfStockProducts = inventoryProducts.filter((product) => {
+  const stock =
+    product.variants?.reduce(
+      (sum, v) => sum + v.stock,
+      0
+    ) ??
+    product.stock ??
+    0
+
+  return stock === 0
+}).length
 
   return (
     <main className="min-h-screen bg-[#fafafa] p-4 sm:p-6 lg:p-10">

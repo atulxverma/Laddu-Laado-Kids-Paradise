@@ -14,12 +14,23 @@ export default async function ShopPage({
     age?: string;
     sort?: string;
     new?: string;
-  }>;
+    trending?: string;
+    exclusive?: string;
+  }>
 }) {
   //   await new Promise((resolve) =>
   //   setTimeout(resolve, 3000)
   // );
-  const { category, q, gender, age, sort, new: isNew } = await searchParams;
+  const {
+    category,
+    q,
+    gender,
+    age,
+    sort,
+    new: isNew,
+    trending,
+    exclusive
+  } = await searchParams;
   const createSortLink = (sortValue: string) => {
     const params = new URLSearchParams();
 
@@ -29,7 +40,13 @@ export default async function ShopPage({
     if (category) params.set("category", category);
     if (gender) params.set("gender", gender);
     if (age) params.set("age", age);
-    if (isNew === "true") params.set("new", "true");
+    if (isNew === "true")
+      params.set("new", "true");
+    if (trending === "true")
+      params.set("trending", "true");
+
+    if (exclusive === "true")
+      params.set("exclusive", "true");
 
     return `/shop?${params.toString()}`;
   };
@@ -39,6 +56,13 @@ export default async function ShopPage({
       ...(isNew === "true" && {
         isNewArrival: true,
       }),
+      ...(trending === "true" && {
+        isTrending: true,
+      }),
+      ...(exclusive === "true" && {
+        isExclusive: true,
+      }),
+
 
       ...(category && {
         category: {
@@ -67,10 +91,9 @@ export default async function ShopPage({
           },
         ],
       }),
-
-      ...(age && {
-        size: {
-          contains: age,
+      ...(gender && {
+        gender: {
+          equals: gender,
           mode: "insensitive",
         },
       }),
@@ -83,6 +106,7 @@ export default async function ShopPage({
       }),
 
       isArchived: false,
+
     },
 
     include: {

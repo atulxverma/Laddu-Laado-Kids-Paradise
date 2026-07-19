@@ -78,13 +78,25 @@ export default async function HomePage() {
     p-5
     md:p-7
 
-    ${title.includes("Top")
-              ? "bg-gradient-to-r from-orange-50 to-amber-50"
-              : title.includes("Boy")
-                ? "bg-gradient-to-r from-sky-50 to-cyan-50"
-                : title.includes("Girl")
-                  ? "bg-gradient-to-r from-pink-50 to-rose-50"
-                  : "bg-gradient-to-r from-green-50 to-emerald-50"
+    ${title.includes("Trending")
+              ? "bg-gradient-to-r from-red-50 via-rose-50 to-white border-red-100"
+
+              : title.includes("Exclusive")
+                ? "bg-gradient-to-r from-violet-50 via-fuchsia-50 to-white border-violet-100"
+
+                : title.includes("Top")
+                  ? "bg-gradient-to-r from-amber-50 via-yellow-50 to-white border-amber-100"
+
+                  : title.includes("Boy")
+                    ? "bg-gradient-to-r from-sky-50 via-cyan-50 to-white border-sky-100"
+
+                    : title.includes("Girl")
+                      ? "bg-gradient-to-r from-pink-50 via-rose-50 to-white border-pink-100"
+
+                      : title.includes("Newborn")
+                        ? "bg-gradient-to-r from-orange-50 via-amber-50 to-white border-orange-100"
+
+                        : "bg-gradient-to-r from-emerald-50 via-green-50 to-white border-emerald-100"
             }
   `}
         >
@@ -166,22 +178,52 @@ export default async function HomePage() {
       })
     ])
 
-  const [products] = await Promise.all([
-    db.product.findMany({
-      where: {
-        isNewArrival: true
-      },
-      include: {
-        category: true,
-        images: true,
-        reviews: true,
-      },
-      take: 8,
-      orderBy: {
-        createdAt: "desc"
-      }
-    }),
-  ])
+  const [products, trendingProducts, exclusiveProducts] =
+    await Promise.all([
+      db.product.findMany({
+        where: {
+          isNewArrival: true,
+
+        },
+        include: {
+          category: true,
+          images: true,
+          reviews: true,
+        },
+        take: 8,
+        orderBy: {
+          createdAt: "desc"
+        }
+      }),
+      db.product.findMany({
+        where: {
+          isTrending: true,
+        },
+        include: {
+          category: true,
+          images: true,
+          reviews: true,
+        },
+        take: 8,
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+      db.product.findMany({
+        where: {
+          isExclusive: true,
+        },
+        include: {
+          category: true,
+          images: true,
+          reviews: true,
+        },
+        take: 8,
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+    ])
 
   const topRatedProducts = [...latestProducts]
     .sort((a, b) => {
@@ -578,7 +620,17 @@ hover:scale-105
         <HomeProductCarousel products={products} />
 
       </section>
+      <ProductSection
+        title="Trending Now"
+        href="/shop?trending=true"
+        products={trendingProducts}
+      />
 
+      <ProductSection
+        title="Exclusive Collection"
+        href="/shop?exclusive=true"
+        products={exclusiveProducts}
+      />
       <ProductSection
         title="Top Picks"
         href="/shop?sort=top-rated"
@@ -599,7 +651,7 @@ hover:scale-105
 
       <ProductSection
         title="Newborn Collection"
-        href="/shop?size=0-1Y"
+        href="/shop?age=0-1Y"
         products={newbornProducts}
       />
 

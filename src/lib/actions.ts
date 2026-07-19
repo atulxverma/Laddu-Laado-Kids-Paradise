@@ -645,6 +645,8 @@ export async function createProduct(data: any) {
         price: Number(data.price),
 
         isNewArrival: data.isNewArrival ?? true,
+        isTrending: data.isTrending ?? false,
+        isExclusive: data.isExclusive ?? false,
 
         gender: data.gender,
         color: data.color,
@@ -875,6 +877,8 @@ export async function updateProduct(id: string, data: any) {
           price: Number(data.price),
 
           isNewArrival: data.isNewArrival ?? true,
+          isTrending: data.isTrending ?? false,
+          isExclusive: data.isExclusive ?? false,
 
           categoryId: data.categoryId,
 

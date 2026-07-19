@@ -6,6 +6,7 @@ import { CldUploadWidget } from "next-cloudinary"
 import { ImagePlus, Trash2, X, Package, Pencil } from "lucide-react"
 import { createProduct, updateProduct } from "@/lib/actions"
 import { createPortal } from "react-dom"
+import { Sparkles, Flame, Crown } from "lucide-react";
 
 const sizeOptions = [
   "0-1Y",
@@ -29,6 +30,8 @@ const createEmptyForm = () => ({
   color: "",
   gender: "Newborn",
   isNewArrival: true,
+  isTrending: false,
+  isExclusive: false,
 })
 
 export default function ProductForm({
@@ -51,6 +54,8 @@ export default function ProductForm({
     color: product?.color || "",
     gender: product?.gender || "Newborn",
     isNewArrival: product?.isNewArrival ?? true,
+    isTrending: product?.isTrending ?? false,
+    isExclusive: product?.isExclusive ?? false,
   })
 
   const [variants, setVariants] = useState(
@@ -186,10 +191,138 @@ export default function ProductForm({
       </select>
 
 
-      <div className="flex items-center gap-3">
-        <input type="checkbox" checked={form.isNewArrival} onChange={(event) => setForm({ ...form, isNewArrival: event.target.checked })} className="h-4 w-4" />
-        <label className="text-sm font-medium">Mark as New Arrival</label>
+      <div className="space-y-4">
+  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+    Collections
+  </p>
+
+  <div className="space-y-3">
+
+    {/* New Arrival */}
+    <button
+      type="button"
+      onClick={() =>
+        setForm({
+          ...form,
+          isNewArrival: !form.isNewArrival,
+        })
+      }
+      className="w-full rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-black hover:shadow-sm"
+    >
+      <div className="flex items-center justify-between">
+
+        <div className="flex items-center gap-3">
+          <div className="rounded-xl bg-neutral-100 p-2">
+            <Sparkles size={18} />
+          </div>
+
+          <div className="text-left">
+            <h4 className="font-bold">New Arrival</h4>
+            <p className="text-xs text-gray-500">
+              Show in New Arrival section
+            </p>
+          </div>
+        </div>
+
+        <div
+          className={`relative h-7 w-12 rounded-full transition ${
+            form.isNewArrival ? "bg-black" : "bg-gray-300"
+          }`}
+        >
+          <div
+            className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-all ${
+              form.isNewArrival ? "left-6" : "left-1"
+            }`}
+          />
+        </div>
+
       </div>
+    </button>
+
+    {/* Trending */}
+    <button
+      type="button"
+      onClick={() =>
+        setForm({
+          ...form,
+          isTrending: !form.isTrending,
+        })
+      }
+      className="w-full rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-black hover:shadow-sm"
+    >
+      <div className="flex items-center justify-between">
+
+        <div className="flex items-center gap-3">
+          <div className="rounded-xl bg-neutral-100 p-2">
+            <Flame size={18} />
+          </div>
+
+          <div className="text-left">
+            <h4 className="font-bold">Trending</h4>
+            <p className="text-xs text-gray-500">
+              Show in Trending Collection
+            </p>
+          </div>
+        </div>
+
+        <div
+          className={`relative h-7 w-12 rounded-full transition ${
+            form.isTrending ? "bg-black" : "bg-gray-300"
+          }`}
+        >
+          <div
+            className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-all ${
+              form.isTrending ? "left-6" : "left-1"
+            }`}
+          />
+        </div>
+
+      </div>
+    </button>
+
+    {/* Exclusive */}
+    <button
+      type="button"
+      onClick={() =>
+        setForm({
+          ...form,
+          isExclusive: !form.isExclusive,
+        })
+      }
+      className="w-full rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-black hover:shadow-sm"
+    >
+      <div className="flex items-center justify-between">
+
+        <div className="flex items-center gap-3">
+          <div className="rounded-xl bg-neutral-100 p-2">
+            <Crown size={18} />
+          </div>
+
+          <div className="text-left">
+            <h4 className="font-bold">Exclusive</h4>
+            <p className="text-xs text-gray-500">
+              Premium Collection
+            </p>
+          </div>
+        </div>
+
+        <div
+          className={`relative h-7 w-12 rounded-full transition ${
+            form.isExclusive ? "bg-black" : "bg-gray-300"
+          }`}
+        >
+          <div
+            className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-all ${
+              form.isExclusive ? "left-6" : "left-1"
+            }`}
+          />
+        </div>
+
+      </div>
+    </button>
+
+  </div>
+</div>
 
       <div className="space-y-3">
         <p className="text-[10px] font-black uppercase text-gray-400">Category</p>
