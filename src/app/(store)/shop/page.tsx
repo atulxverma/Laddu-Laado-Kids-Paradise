@@ -81,6 +81,14 @@ export default async function ShopPage({
               mode: "insensitive",
             },
           },
+
+          {
+            description: {
+              contains: q,
+              mode: "insensitive",
+            },
+          },
+
           {
             category: {
               name: {
@@ -89,7 +97,28 @@ export default async function ShopPage({
               },
             },
           },
-        ],
+
+          {
+            gender: {
+              contains: q,
+              mode: "insensitive",
+            },
+          },
+
+          {
+            size: {
+              contains: q,
+              mode: "insensitive",
+            },
+          },
+
+          {
+            color: {
+              contains: q,
+              mode: "insensitive",
+            },
+          },
+        ]
       }),
       ...(gender && {
         gender: {
@@ -113,6 +142,7 @@ export default async function ShopPage({
       category: true,
       images: true,
       reviews: true,
+      variants: true,
     },
   });
 

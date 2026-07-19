@@ -25,6 +25,7 @@ export default async function HomePage() {
           category: true,
           images: true,
           reviews: true,
+          variants: true,
         },
         take: 4,
       }),
@@ -37,6 +38,7 @@ export default async function HomePage() {
           category: true,
           images: true,
           reviews: true,
+          variants: true,
         },
         take: 4,
       }),
@@ -51,6 +53,7 @@ export default async function HomePage() {
           category: true,
           images: true,
           reviews: true,
+          variants: true,
         },
         take: 4,
       })
@@ -132,7 +135,7 @@ export default async function HomePage() {
   const [latestProducts, categories, banners, reviews] =
     await Promise.all([
       db.product.findMany({
-        include: { category: true, images: true, reviews: true, },
+        include: { category: true, images: true, reviews: true, variants: true },
         take: 8,
         orderBy: { createdAt: "desc" }
       }),
@@ -189,6 +192,7 @@ export default async function HomePage() {
           category: true,
           images: true,
           reviews: true,
+          variants: true,
         },
         take: 8,
         orderBy: {
@@ -203,6 +207,7 @@ export default async function HomePage() {
           category: true,
           images: true,
           reviews: true,
+          variants: true,
         },
         take: 8,
         orderBy: {
@@ -217,6 +222,7 @@ export default async function HomePage() {
           category: true,
           images: true,
           reviews: true,
+          variants: true,
         },
         take: 8,
         orderBy: {

@@ -71,7 +71,7 @@ const isLowStock = stock > 0 && stock <= 5
       size: selectedSize,
       color: product.color || "",
       category: product.category?.name || "",
-      stock,
+      stock: selectedVariant?.stock ?? 0,
     })
 
     setAdded(true)

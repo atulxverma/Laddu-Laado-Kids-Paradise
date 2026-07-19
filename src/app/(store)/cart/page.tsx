@@ -394,7 +394,7 @@ export default function CartPage() {
               </div>
 
               {deliveryCharge === 0 && (
-                <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-3 text-center">
+                <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-3 mt-6 text-center">
                   <p className="text-xs font-bold text-emerald-700">
                     🎉 Congratulations! You unlocked FREE Delivery.
                   </p>

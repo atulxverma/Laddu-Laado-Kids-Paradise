@@ -80,7 +80,6 @@ export async function initiateRazorpayPayment(items: CheckoutItem[]) {
     const productIds = [...new Set(items.map((item) => item.id))];
 
     const products = await db.product.findMany({
-      
       where: {
         id: {
           in: productIds,
@@ -388,37 +387,37 @@ export async function createOrder(data: {
     //till there
 
     const order = await db.$transaction(async (tx) => {
-      for (const item of data.items) {
-        const latestProduct = await tx.product.findUnique({
-          where: {
-            id: item.id,
-          },
-          include: {
-            variants: true,
-          },
-        });
+      //       for (const item of data.items) {
+      //         const latestProduct = await tx.product.findUnique({
+      //           where: {
+      //             id: item.id,
+      //           },
+      //           include: {
+      //             variants: true,
+      //           },
+      //         });
 
-        if (!latestProduct) {
-          throw new Error("A product in your cart no longer exists.");
-        }
+      //         if (!latestProduct) {
+      //           throw new Error("A product in your cart no longer exists.");
+      //         }
 
-        const variant = latestProduct.variants.find(
-  (v) => v.size === item.size
-);
+      //         const variant = latestProduct.variants.find(
+      //   (v) => v.size === item.size
+      // );
 
-if (!variant) {
-  throw new Error(
-    `${latestProduct.name} (${item.size}) is unavailable.`
-  );
-}
+      // if (!variant) {
+      //   throw new Error(
+      //     `${latestProduct.name} (${item.size}) is unavailable.`
+      //   );
+      // }
 
-if (variant.stock < item.quantity) {
-  throw new Error(
-    `${latestProduct.name} (${item.size}) has only ${variant.stock} left.`
-  );
-}
-} 
-      
+      // if (variant.stock < item.quantity) {
+      //   throw new Error(
+      //     `${latestProduct.name} (${item.size}) has only ${variant.stock} left.`
+      //   );
+      // }
+      // }
+
       const newOrder = await tx.order.create({
         data: {
           clerkId: user.id,
@@ -452,13 +451,40 @@ if (variant.stock < item.quantity) {
           },
         },
       });
-    
+
+      //       for (const item of data.items) {
+      //         await tx.productVariant.update({
+      //           where: {
+      //             productId_size: {
+      //               productId: item.id,
+      //               size: item.size,
+      //             },
+      //           },
+      //           data: {
+      //             stock: {
+      //               decrement: item.quantity,
+      //             },
+      //           },
+      //         });
+      //         await tx.product.update({
+      //   where: {
+      //     id: item.id,
+      //   },
+      //   data: {
+      //     stock: {
+      //       decrement: item.quantity,
+      //     },
+      //   },
+      // });
+      //       }
+
       for (const item of data.items) {
-        await tx.productVariant.update({
+        const updated = await tx.productVariant.updateMany({
           where: {
-            productId_size: {
-              productId: item.id,
-              size: item.size,
+            productId: item.id,
+            size: item.size,
+            stock: {
+              gte: item.quantity,
             },
           },
           data: {
@@ -467,16 +493,23 @@ if (variant.stock < item.quantity) {
             },
           },
         });
+
+        if (updated.count === 0) {
+          throw new Error(
+            `Selected size is out of stock or no longer available.`,
+          );
+        }
+
         await tx.product.update({
-  where: {
-    id: item.id,
-  },
-  data: {
-    stock: {
-      decrement: item.quantity,
-    },
-  },
-});
+          where: {
+            id: item.id,
+          },
+          data: {
+            stock: {
+              decrement: item.quantity,
+            },
+          },
+        });
       }
 
       await tx.cartItem.deleteMany({
@@ -771,10 +804,10 @@ export async function deleteProduct(id: string) {
       };
     }
     await db.productVariant.deleteMany({
-  where: {
-    productId: id,
-  },
-});
+      where: {
+        productId: id,
+      },
+    });
     await db.product.delete({
       where: {
         id,
@@ -856,7 +889,6 @@ export async function updateProduct(id: string, data: any) {
           productId: id,
         },
       });
-    
 
       // Delete old variants
       await tx.productVariant.deleteMany({
@@ -1054,31 +1086,31 @@ export async function cancelOrder(orderId: string) {
       });
 
       for (const item of order.orderItems) {
-  await tx.productVariant.update({
-    where: {
-      productId_size: {
-        productId: item.productId,
-        size: item.size,
-      },
-    },
-    data: {
-      stock: {
-        increment: item.quantity,
-      },
-    },
-  });
+        await tx.productVariant.update({
+          where: {
+            productId_size: {
+              productId: item.productId,
+              size: item.size,
+            },
+          },
+          data: {
+            stock: {
+              increment: item.quantity,
+            },
+          },
+        });
 
-  await tx.product.update({
-    where: {
-      id: item.productId,
-    },
-    data: {
-      stock: {
-        increment: item.quantity,
-      },
-    },
-  });
-}
+        await tx.product.update({
+          where: {
+            id: item.productId,
+          },
+          data: {
+            stock: {
+              increment: item.quantity,
+            },
+          },
+        });
+      }
     });
 
     revalidatePath("/orders");
@@ -1486,34 +1518,32 @@ export async function syncCartWithDb(items: any[]) {
 
     for (const item of mergedItems.values()) {
       const product = await db.product.findUnique({
-  where: {
-    id: item.id,
-  },
-  select: {
-    id: true,
-    isArchived: true,
-    variants: true,
-  },
-});
+        where: {
+          id: item.id,
+        },
+        select: {
+          id: true,
+          isArchived: true,
+          variants: true,
+        },
+      });
 
-if (!product || product.isArchived) {
-  continue;
-}
+      if (!product || product.isArchived) {
+        continue;
+      }
 
-const variant = product.variants.find(
-  (v) => v.size === item.size
-);
+      const variant = product.variants.find((v) => v.size === item.size);
 
-if (!variant || variant.stock <= 0) {
-  continue;
-}
+      if (!variant || variant.stock <= 0) {
+        continue;
+      }
 
-validItems.push({
-  clerkId,
-  productId: product.id,
-  quantity: Math.min(item.quantity, variant.stock),
-  size: item.size,
-});
+      validItems.push({
+        clerkId,
+        productId: product.id,
+        quantity: Math.min(item.quantity, variant.stock),
+        size: item.size,
+      });
     }
 
     await db.$transaction(async (tx) => {
@@ -1529,7 +1559,6 @@ validItems.push({
         });
       }
     });
-  
 
     return {
       success: true,
@@ -1568,16 +1597,14 @@ export async function getDbCart() {
     });
 
     return cartItems.filter((item) => {
-  if (!item.product || item.product.isArchived) {
-    return false;
-  }
+      if (!item.product || item.product.isArchived) {
+        return false;
+      }
 
-  const variant = item.product.variants.find(
-    (v) => v.size === item.size
-  );
+      const variant = item.product.variants.find((v) => v.size === item.size);
 
-  return !!variant && variant.stock > 0;
-});
+      return !!variant && variant.stock > 0;
+    });
   } catch (error) {
     console.error("GET_CART_FAIL", error);
     return [];

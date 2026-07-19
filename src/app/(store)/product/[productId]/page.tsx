@@ -46,7 +46,7 @@ export default async function ProductPage({
   // 2. Fetch Related
   const related = await db.product.findMany({
     where: { categoryId: product.categoryId, NOT: { id: product.id } },
-    include: { category: true, images: true, reviews: true },
+    include: { category: true, images: true, reviews: true,variants: true },
     take: 4,
   });
 

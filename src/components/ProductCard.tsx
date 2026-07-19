@@ -20,7 +20,14 @@ export default function ProductCard({ product }: { product: any }) {
         ) / totalReviews
       ).toFixed(1)
       : "0.0";
-      const stock = Number(product.stock ?? 0)
+      const stock =
+  product.variants?.length
+    ? product.variants.reduce(
+        (total: number, variant: any) =>
+          total + Number(variant.stock ?? 0),
+        0
+      )
+    : Number(product.stock ?? 0)
 
 const stockBadge =
   stock === 0
@@ -61,7 +68,7 @@ const stockBadge =
           )}
 
           {/* Sold Out overlay */}
-          {(product?.stock ?? 0) <= 0 && (
+          {stock <= 0 && (
             <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
               <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 bg-white px-2.5 py-1 rounded-full border border-gray-200">
                 Sold Out

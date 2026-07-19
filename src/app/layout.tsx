@@ -9,7 +9,7 @@ const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfa
 export const metadata = {
   title: "Laddoo Laado | Premium Kids Wear Couture",
   description: "Handcrafted with love for your little ones. Luxury clothes, premium quality.",
-  icons: { icon: "/favicon.ico" }
+  icons: { icon: "/logo1.jpeg" }
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
