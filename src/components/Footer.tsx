@@ -7,6 +7,8 @@ import {
   FaFacebookF,
   FaWhatsapp,
 } from "react-icons/fa";
+import { useState } from "react";
+import { subscribeNewsletter } from "@/lib/actions";
 
 const footerCols = [
   {
@@ -31,6 +33,26 @@ const footerCols = [
 ];
 
 export default function Footer() {
+
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState("");
+
+  const handleSubscribe = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
+    e.preventDefault();
+
+    const res = await subscribeNewsletter(email);
+
+    if (res.success) {
+      setStatus("Subscribed successfully ❤️");
+      setEmail("");
+    } else {
+      setStatus(res.error || "Subscription failed");
+    }
+  };
+
+
   return (
     <footer className="mt-16 md:mt-28 border-t border-neutral-200 bg-white">
 
@@ -175,21 +197,36 @@ export default function Footer() {
                 collections.
               </p>
 
-              <div className="mt-4 md:mt-4 md:mt-6 flex h-12 overflow-hidden rounded-full border border-neutral-300">
+              <form
+                onSubmit={handleSubscribe}
+                className="mt-6"
+              >
+                <div className="flex h-12 overflow-hidden rounded-full border border-neutral-300">
 
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="flex-1 bg-transparent px-5 text-sm outline-none"
-                />
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    className="flex-1 bg-transparent px-5 text-sm outline-none"
+                  />
 
-                <button
-                  className="flex w-14 items-center justify-center bg-black text-white transition hover:bg-neutral-800"
-                >
-                  <Mail size={18} />
-                </button>
+                  <button
+                    type="submit"
+                    className="flex w-14 items-center justify-center bg-black text-white transition hover:bg-neutral-800"
+                  >
+                    <Mail size={18} />
+                  </button>
 
-              </div>
+                </div>
+
+                {status && (
+                  <p className="mt-3 text-xs text-neutral-600">
+                    {status}
+                  </p>
+                )}
+              </form>
 
             </div>
 

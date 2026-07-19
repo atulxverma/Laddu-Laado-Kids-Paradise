@@ -7,6 +7,11 @@ import { currentUser } from "@clerk/nextjs/server";
 import { Resend } from "resend";
 import Razorpay from "razorpay";
 import crypto from "crypto";
+import { render } from "@react-email/render";
+
+import OrderConfirmationEmail from "@/app/(store)/emails/OrderConfirmationEmail";
+import AdminOrderEmail from "@/app/(store)/emails/AdminOrderEmail";
+import WelcomeNewsletterEmail from "@/app/(store)/emails/WelcomeNewsletterEmail";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -436,6 +441,26 @@ export async function createOrder(data: {
 
       return newOrder;
     });
+    const fullOrder = await db.order.findUnique({
+      where: {
+        id: order.id,
+      },
+      include: {
+        orderItems: {
+          include: {
+            product: {
+              include: {
+                images: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!fullOrder) {
+      throw new Error("Order not found.");
+    }
 
     const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
@@ -443,26 +468,15 @@ export async function createOrder(data: {
 
     if (process.env.RESEND_API_KEY) {
       try {
-        if (adminEmail) {
-          await sendAdminMail(
-            `✨ New Order [#${orderIdShort}] Received`,
-            `
-    <h2>New Premium Order!</h2>
-
-    ${user.fullName || "Guest User"}
-
-    <p><b>Email:</b> ${user.primaryEmailAddress?.emailAddress || "N/A"}</p>
-
-    <p><b>Total:</b> ₹${finalTotal}</p>
-
-    <p><b>Order ID:</b> ${orderIdShort}</p>
-
-    <p><b>Payment:</b>
-${isCOD ? "Cash on Delivery" : data.payment?.razorpayPaymentId}
-</p>
-  `,
-          );
-        }
+        const products = fullOrder.orderItems.map((item) => ({
+          name: item.product.name,
+          image: item.product.images[0]?.url || "",
+          quantity: item.quantity,
+          price: item.product.price,
+          size: item.size,
+          color: item.product.color || "",
+          gender: item.product.gender || "",
+        }));
 
         const customerEmail = user.primaryEmailAddress?.emailAddress;
 
@@ -470,22 +484,50 @@ ${isCOD ? "Cash on Delivery" : data.payment?.razorpayPaymentId}
           await resend.emails.send({
             from: "Laddoo Laado <onboarding@resend.dev>",
             to: customerEmail,
-            subject: "Your Laddoo Laado Order is Confirmed! ✨",
-            html: `
-              <div>
-                <h2>Order Confirmed!</h2>
-                <p>Hi ${user.fullName || "Customer"}</p>
-                <p>Your order #${orderIdShort} has been confirmed.</p>
-                <p><b>Final Total:</b> ₹${finalTotal.toLocaleString("en-IN")}</p>
-              </div>
-            `,
+            subject: `Your Order #${orderIdShort} is Confirmed 🎉`,
+            html: await render(
+              OrderConfirmationEmail({
+                customerName: fullOrder.customerName,
+                orderId: orderIdShort,
+                phone: fullOrder.phone,
+                address: fullOrder.address,
+                paymentMethod: fullOrder.paymentMethod,
+                paymentStatus: fullOrder.isPaid ? "Paid" : "Pending",
+                subtotal: fullOrder.subtotal,
+                deliveryCharge: fullOrder.deliveryCharge,
+                codCharge: fullOrder.codCharge,
+                total: fullOrder.total,
+                products,
+              }),
+            ),
           });
         }
+
+        if (adminEmail) {
+          await sendAdminMail(
+            `🛒 New Order #${orderIdShort}`,
+            await render(
+              AdminOrderEmail({
+                customerName: fullOrder.customerName,
+                customerEmail: user.primaryEmailAddress?.emailAddress || "N/A",
+                orderId: orderIdShort,
+                phone: fullOrder.phone,
+                address: fullOrder.address,
+                paymentMethod: fullOrder.paymentMethod,
+                paymentStatus: fullOrder.isPaid ? "Paid" : "Pending",
+                subtotal: fullOrder.subtotal,
+                deliveryCharge: fullOrder.deliveryCharge,
+                codCharge: fullOrder.codCharge,
+                total: fullOrder.total,
+                products,
+              }),
+            ),
+          );
+        }
       } catch (emailError) {
-        console.error("Order created but email failed:", emailError);
+        console.error("Order email failed:", emailError);
       }
     }
-
     revalidatePath("/admin/orders");
     revalidatePath("/admin/products");
     revalidatePath("/orders");
@@ -1033,6 +1075,16 @@ export async function createReview(data: {
 }
 
 export async function subscribeNewsletter(email: string) {
+  await resend.emails.send({
+    from: "Laddoo Laado <onboarding@resend.dev>",
+    to: email,
+    subject: "✨ Welcome to the Laddoo Laado Family",
+    html: await render(
+      WelcomeNewsletterEmail({
+        email,
+      }),
+    ),
+  });
   try {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -1056,6 +1108,16 @@ export async function subscribeNewsletter(email: string) {
     <p><b>Time:</b> ${new Date()}</p>
   `,
     );
+    await resend.emails.send({
+      from: "Laddoo Laado <onboarding@resend.dev>",
+      to: email,
+      subject: "✨ Welcome to the Laddoo Laado Family",
+      html: await render(
+        WelcomeNewsletterEmail({
+          email,
+        }),
+      ),
+    });
 
     return { success: true };
   } catch (error: any) {
