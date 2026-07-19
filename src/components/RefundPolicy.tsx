@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { siteConfig } from "@/lib/site";
 
 export default function RefundPolicy() {
   return (
@@ -167,9 +168,7 @@ export default function RefundPolicy() {
 
               <p><strong>Laddoo Laado</strong></p>
 
-              <p>Your Return Address Here</p>
-
-              <p>City, State, PIN Code</p>
+              <p>{siteConfig.address}</p>
 
             </div>
 
@@ -183,7 +182,7 @@ export default function RefundPolicy() {
               Need Help?
             </h2>
 
-            <p className="mt-4 text-neutral-300">
+            <p className="mt-4 text-neutral-600">
               If you have any questions regarding returns or refunds,
               feel free to contact our support team.
             </p>
@@ -191,15 +190,15 @@ export default function RefundPolicy() {
             <div className="mt-6 space-y-3">
 
               <p>
-                <strong>Email:</strong> your-email@example.com
+                <strong>Email:</strong> {siteConfig.email}
               </p>
 
               <p>
-                <strong>Phone:</strong> +91 XXXXX XXXXX
+                <strong>Phone:</strong> {siteConfig.phone}
               </p>
 
               <p>
-                <strong>Support Hours:</strong> Monday – Saturday (10:00 AM – 6:00 PM)
+                <strong>Support Hours:</strong> {siteConfig.businessHours}
               </p>
 
             </div>

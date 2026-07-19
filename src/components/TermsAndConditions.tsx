@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { siteConfig } from "@/lib/site";
 
 export default function TermsAndConditions() {
   return (
@@ -208,7 +209,7 @@ export default function TermsAndConditions() {
               Contact Us
             </h2>
 
-            <p className="mt-4 text-neutral-300">
+            <p className="mt-4 text-neutral-600">
               If you have any questions regarding these Terms & Conditions,
               please feel free to contact us.
             </p>
@@ -216,15 +217,15 @@ export default function TermsAndConditions() {
             <div className="mt-6 space-y-3">
 
               <p>
-                <strong>Email:</strong> your-email@example.com
+                <strong>Email:</strong> {siteConfig.email}
               </p>
 
               <p>
-                <strong>Phone:</strong> +91 XXXXX XXXXX
+                <strong>Phone:</strong> {siteConfig.phone}
               </p>
 
               <p>
-                <strong>Address:</strong> Your Business Address
+                <strong>Address:</strong> {siteConfig.address}
               </p>
 
             </div>

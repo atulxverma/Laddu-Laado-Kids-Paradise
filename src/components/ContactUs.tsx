@@ -111,11 +111,13 @@ export default function ContactUs() {
                         <div className="bg-pink-50 rounded-2xl p-6 shadow">
 
                             <div className="flex items-center gap-4">
-                                <Mail className="text-pink-600" />
+                                <div className="flex h-10 w-10 items-center justify-center">
+  <Mail className="h-6 w-6 text-pink-600" />
+</div>
                                 <div>
                                     <h3 className="font-semibold">Email</h3>
                                     <p className="text-gray-600">
-                                        {siteconfig.email}
+                                        {siteConfig.email}
                                     </p>
                                 </div>
                             </div>
@@ -139,7 +141,7 @@ export default function ContactUs() {
                         <div className="bg-pink-50 rounded-2xl p-6 shadow">
 
                             <div className="flex items-center gap-4">
-                                <MapPin className="text-pink-600" />
+                                <MapPin size={24} className="text-pink-600 shrink-0" />
                                 <div>
                                     <h3 className="font-semibold">Address</h3>
                                     <p className="text-gray-600">

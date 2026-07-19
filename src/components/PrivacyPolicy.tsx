@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { siteConfig } from "@/lib/site";
 
 export default function PrivacyPolicyPage() {
   return (
@@ -158,15 +159,15 @@ export default function PrivacyPolicyPage() {
 
             <div className="mt-6 space-y-3 text-sm">
               <p>
-                <strong>Email:</strong> your-email@example.com
+                <strong>Email:</strong> {siteConfig.email}
               </p>
 
               <p>
-                <strong>Phone:</strong> +91 XXXXX XXXXX
+                <strong>Phone:</strong> {siteConfig.phone}
               </p>
 
               <p>
-                <strong>Address:</strong> Your Business Address
+                <strong>Address:</strong> {siteConfig.address}
               </p>
             </div>
           </section>
