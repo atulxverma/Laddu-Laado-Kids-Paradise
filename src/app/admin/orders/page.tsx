@@ -37,24 +37,62 @@ export default async function OrdersPage() {
         {orders?.map((order) => (
           <div key={order.id} className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300">
             <div className="p-6 border-b border-gray-50 flex flex-wrap justify-between items-center gap-4 bg-gray-50/30">
-              <div className="flex gap-8">
+              <div className="flex flex-wrap gap-8">
+
                 <div>
-                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Order ID</p>
-                  {/* Safe check for order.id fallback slice */}
-                  <p className="text-xs font-bold font-mono uppercase">#{order?.id ? order.id.slice(-8) : "N/A"}</p>
-                </div>
-                <div>
-                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Revenue</p>
-                  <p className="text-xs font-black">₹{order?.total ? order.total.toLocaleString() : 0}</p>
-                </div>
-                <div>
-                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Date</p>
-                  <p className="text-xs font-bold">
-                    {order?.createdAt ? new Date(order.createdAt).toLocaleDateString("en-IN", {
-                      day: "numeric", month: "short", year: "numeric"
-                    }) : "N/A"}
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">
+                    Revenue
+                  </p>
+
+                  <p className="text-xs font-black">
+                    ₹{order.total.toLocaleString()}
                   </p>
                 </div>
+
+                <div>
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">
+                    Payment
+                  </p>
+
+                  <span
+                    className={`rounded-full px-3 py-1 text-[10px] font-black uppercase ${order.paymentMethod === "ONLINE"
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-orange-100 text-orange-700"
+                      }`}
+                  >
+                    {order.paymentMethod}
+                  </span>
+                </div>
+
+                <div>
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">
+                    Status
+                  </p>
+
+                  <span
+                    className={`rounded-full px-3 py-1 text-[10px] font-black uppercase ${order.isPaid
+                        ? "bg-green-100 text-green-700"
+                        : "bg-red-100 text-red-700"
+                      }`}
+                  >
+                    {order.isPaid ? "PAID" : "UNPAID"}
+                  </span>
+                </div>
+
+                <div>
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">
+                    Date
+                  </p>
+
+                  <p className="text-xs font-bold">
+                    {new Date(order.createdAt).toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </p>
+                </div>
+
               </div>
               <OrderStatusButton orderId={order.id} currentStatus={order.status} />
             </div>
@@ -62,6 +100,7 @@ export default async function OrdersPage() {
             <div className="p-6 md:p-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="space-y-4">
                 <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Customer Details</p>
+
                 <div className="space-y-2">
                   <p className="text-sm font-bold text-black">
                     {order.customerName || "Guest User"}
@@ -74,7 +113,65 @@ export default async function OrdersPage() {
                   </p>
                 </div>
               </div>
+              <div className="mt-6 rounded-2xl border border-neutral-200 p-4">
 
+                <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
+                  Order Summary
+                </p>
+
+                <div className="mt-3 space-y-2 text-sm">
+
+                  <div className="flex justify-between">
+
+                    <span>Subtotal</span>
+
+                    <span>₹{order.subtotal}</span>
+
+                  </div>
+
+                  <div className="flex justify-between">
+
+                    <span>Delivery</span>
+
+                    <span>
+
+                      {order.deliveryCharge === 0
+                        ? "FREE"
+                        : `₹${order.deliveryCharge}`}
+
+                    </span>
+
+                  </div>
+
+                  <div className="flex justify-between">
+
+                    <span>COD Charge</span>
+
+                    <span>
+
+                      {order.codCharge === 0
+                        ? "-"
+                        : `₹${order.codCharge}`}
+
+                    </span>
+
+                  </div>
+
+                  <div className="border-t pt-2 flex justify-between font-black">
+
+                    <span>Total</span>
+
+                    <span>
+
+                      ₹{order.total}
+
+                    </span>
+
+                  </div>
+
+                </div>
+
+              </div>
               <div className="space-y-4">
                 <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Line Items</p>
                 <div className="space-y-3">

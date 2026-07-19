@@ -8,48 +8,48 @@ generator client {
 }
 
 model Category {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  name        String    @unique
-  slug        String    @unique
-  isCore      Boolean   @default(false)
-  order       Int       @default(0)
+  id     String  @id @default(auto()) @map("_id") @db.ObjectId
+  name   String  @unique
+  slug   String  @unique
+  isCore Boolean @default(false)
+  order  Int     @default(0)
 
-  imageUrl    String?
-  showOnHome  Boolean   @default(true)
-  products    Product[]
-  createdAt   DateTime  @default(now())
+  imageUrl   String?
+  showOnHome Boolean   @default(true)
+  products   Product[]
+  createdAt  DateTime  @default(now())
 }
 
 model Product {
-  id            String         @id @default(auto()) @map("_id") @db.ObjectId
-  name          String
-  description   String
-  price         Float
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String
+  price       Float
 
-  isFeatured    Boolean        @default(false)
-  isArchived    Boolean        @default(false)
+  isFeatured Boolean @default(false)
+  isArchived Boolean @default(false)
 
-  isNewArrival  Boolean        @default(true)
+  isNewArrival Boolean @default(true)
 
-  size          String
-  color         String
+  size  String
+  color String
 
-  images        Image[]
+  images Image[]
 
-  categoryId    String         @db.ObjectId
-  category      Category       @relation(fields: [categoryId], references: [id])
+  categoryId String   @db.ObjectId
+  category   Category @relation(fields: [categoryId], references: [id])
 
   specifications Json?
 
-  orderItems    OrderItem[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  orderItems OrderItem[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 
-  gender        String         @default("Newborn")
+  gender String @default("Newborn")
 
-  reviews       Review[]
+  reviews Review[]
 
-  stock         Int            @default(10)
+  stock Int @default(10)
 
   cartItems     CartItem[]
   wishlistItems WishlistItem[]
@@ -64,17 +64,22 @@ model Image {
 }
 
 model Order {
-  id                String      @id @default(auto()) @map("_id") @db.ObjectId
-  clerkId           String
-  phone             String      @default("")
-  address           String      @default("")
-  total             Float
+  id             String @id @default(auto()) @map("_id") @db.ObjectId
+  clerkId        String
+  phone          String @default("")
+  address        String @default("")
+  total          Float
+  subtotal       Float
+  deliveryCharge Float
+  codCharge      Float  @default(0)
+
+  paymentMethod     String      @default("ONLINE")
   isPaid            Boolean     @default(false)
   status            String      @default("Pending")
   orderItems        OrderItem[]
   customerName      String?
   razorpayOrderId   String?
-  razorpayPaymentId String?      @unique
+  razorpayPaymentId String?     
   createdAt         DateTime    @default(now())
 }
 
@@ -90,11 +95,11 @@ model OrderItem {
 
 model Review {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  rating    Int      
+  rating    Int
   comment   String
-  clerkId   String   
-  userName  String   
-  userImage String?  
+  clerkId   String
+  userName  String
+  userImage String?
   productId String   @db.ObjectId
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
@@ -103,14 +108,14 @@ model Review {
 }
 
 model Banner {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  label     String
-  title     String
-  subtitle  String?
-  imageUrl  String
-  link      String   @default("/shop")
-  active    Boolean  @default(true)
-  type      String   @unique @default("HERO")
+  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  label    String
+  title    String
+  subtitle String?
+  imageUrl String
+  link     String  @default("/shop")
+  active   Boolean @default(true)
+  type     String  @unique @default("HERO")
 }
 
 model Newsletter {
@@ -121,7 +126,7 @@ model Newsletter {
 
 model CartItem {
   id        String  @id @default(auto()) @map("_id") @db.ObjectId
-  clerkId   String  
+  clerkId   String
   productId String  @db.ObjectId
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   quantity  Int     @default(1)
@@ -130,20 +135,21 @@ model CartItem {
 
 model WishlistItem {
   id        String  @id @default(auto()) @map("_id") @db.ObjectId
-  clerkId   String  
+  clerkId   String
   productId String  @db.ObjectId
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
+
 model Contact {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  name      String
+  name String
 
-  email     String
+  email String
 
-  subject   String
+  subject String
 
-  message   String
+  message String
 
   createdAt DateTime @default(now())
 }

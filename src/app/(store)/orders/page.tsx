@@ -3,6 +3,8 @@ import { currentUser } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { ArrowRight, CheckCircle2, Clock, CreditCard, MapPin, Package, PackageCheck, RotateCcw, ShoppingBag, Truck, XCircle, Eye } from "lucide-react"
+import { cancelOrder } from "@/lib/actions"
+import CancelOrderButton from "@/components/CancelOrderButton";
 
 export const dynamic = "force-dynamic"
 export const fetchCache = "force-no-store"
@@ -56,52 +58,52 @@ export default async function MyOrdersPage() {
   }
 
   const getTimelineStep = (status?: string | null) => {
-  switch ((status ?? "").toUpperCase()) {
+    switch ((status ?? "").toUpperCase()) {
 
-    case "PENDING":
-      return 1
+      case "PENDING":
+        return 1
 
-    case "PROCESSING":
-      return 2
+      case "PROCESSING":
+        return 2
 
-    case "SHIPPED":
-      return 3
+      case "SHIPPED":
+        return 3
 
-    case "DELIVERED":
-      return 4
+      case "DELIVERED":
+        return 4
 
-    case "CANCELLED":
-      return 0
+      case "CANCELLED":
+        return 0
 
-    default:
-      return 1
+      default:
+        return 1
+    }
   }
-}
 
   const getDeliveryText = (status?: string | null) => {
 
-  switch ((status ?? "").toUpperCase()) {
+    switch ((status ?? "").toUpperCase()) {
 
-    case "PENDING":
-      return "Order received"
+      case "PENDING":
+        return "Order received"
 
-    case "PROCESSING":
-      return "Preparing your order"
+      case "PROCESSING":
+        return "Preparing your order"
 
-    case "SHIPPED":
-      return "On the way"
+      case "SHIPPED":
+        return "On the way"
 
-    case "DELIVERED":
-      return "Delivered successfully"
+      case "DELIVERED":
+        return "Delivered successfully"
 
-    case "CANCELLED":
-      return "Order cancelled"
+      case "CANCELLED":
+        return "Order cancelled"
 
-    default:
-      return "Order received"
+      default:
+        return "Order received"
+    }
+
   }
-
-}
 
   const getPaymentStatus = (isPaid: boolean) => {
     if (isPaid) {
@@ -172,24 +174,6 @@ export default async function MyOrdersPage() {
                         </div>
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-2">
-                        {(() => {
-                          const payment = getPaymentStatus(order.isPaid)
-
-                          return (
-                            <span
-                              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-2 text-[10px] font-bold uppercase tracking-wider ${payment.className}`}
-                            >
-                              {payment.icon}
-                              {payment.text}
-                            </span>
-                          )
-                        })()}
-                        <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-2 text-[10px] font-bold uppercase tracking-wider ${getStatusStyle(order.status)}`}>
-                          {getStatusIcon(order.status)}
-                          {status}
-                        </span>
-                      </div>
                     </div>
                   </div>
 
@@ -233,6 +217,7 @@ export default async function MyOrdersPage() {
                             { label: "Delivered", step: 4 },
                           ].map((item) => {
 
+
                             const active = item.step <= timelineStep
 
                             return (
@@ -264,6 +249,48 @@ export default async function MyOrdersPage() {
                             )
 
                           })}
+
+                        </div>
+
+                        <div className="mb-8 rounded-3xl border border-neutral-200 bg-neutral-50 p-5">
+
+                          <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-400">
+                            Order Summary
+                          </p>
+
+                          <div className="space-y-3 text-sm">
+
+                            <div className="flex justify-between">
+                              <span>Subtotal</span>
+                              <span>₹{order.subtotal}</span>
+                            </div>
+
+                            <div className="flex justify-between">
+                              <span>Delivery</span>
+
+                              <span>
+                                {order.deliveryCharge === 0
+                                  ? "FREE"
+                                  : `₹${order.deliveryCharge}`}
+                              </span>
+                            </div>
+
+                            <div className="flex justify-between">
+                              <span>COD Charge</span>
+
+                              <span>
+                                {order.codCharge === 0
+                                  ? "-"
+                                  : `₹${order.codCharge}`}
+                              </span>
+                            </div>
+
+                            <div className="border-t pt-3 flex justify-between font-black">
+                              <span>Total</span>
+                              <span>₹{order.total}</span>
+                            </div>
+
+                          </div>
 
                         </div>
 
@@ -321,12 +348,60 @@ export default async function MyOrdersPage() {
                       </div>
                       <div>
                         <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-neutral-400">Payment Method</p>
-                        <p className="mt-1 text-xs font-medium text-neutral-600">Secure Razorpay Payment</p>
+                        <p className="mt-1 text-xs font-medium text-neutral-600">
+                          {order.paymentMethod === "ONLINE"
+                            ? " Online Payment (Razorpay)"
+                            : " Cash on Delivery"}
+                        </p>
+
+                        <span
+                          className={`mt-2 inline-flex w-fit items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ${order.isPaid
+                            ? "bg-emerald-100 text-emerald-700"
+                            : "bg-amber-100 text-amber-700"
+                            }`}
+                        >
+                          {order.status?.toUpperCase() === "DELIVERED"
+                            ? "Paid"
+                            : "Pending"}
+                        </span>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:flex gap-2 lg:justify-end">
                       {firstProduct && <Link href={`/product/${firstProduct.id}`} className="inline-flex items-center justify-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2.5 text-xs font-bold text-neutral-800 transition-all duration-300 hover:border-neutral-900 hover:shadow-sm"><Eye size={14} /> View Details</Link>}
+                      {order.status?.toUpperCase() === "PENDING" && (
+                        <CancelOrderButton orderId={order.id} />
+                      )}
+
+                      {order.status?.toUpperCase() === "CONFIRMED" && (
+                        <button
+                          disabled
+                          className="inline-flex items-center justify-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-2.5 text-xs font-bold text-blue-600 cursor-not-allowed"
+                        >
+                          <Package size={14} />
+                          Preparing
+                        </button>
+                      )}
+
+                      {order.status?.toUpperCase() === "SHIPPED" && (
+                        <button
+                          disabled
+                          className="inline-flex items-center justify-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-4 py-2.5 text-xs font-bold text-sky-600 cursor-not-allowed"
+                        >
+                          <Truck size={14} />
+                          On The Way
+                        </button>
+                      )}
+
+                      {order.status?.toUpperCase() === "CANCELLED" && (
+                        <button
+                          disabled
+                          className="inline-flex items-center justify-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-2.5 text-xs font-bold text-red-600 cursor-not-allowed"
+                        >
+                          <XCircle size={14} />
+                          Cancelled
+                        </button>
+                      )}
                       <Link href="/shop" className="inline-flex items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-xs font-bold text-white transition-all duration-300 hover:bg-neutral-800 hover:shadow-lg"><RotateCcw size={14} /> Buy Again</Link>
                     </div>
                   </footer>

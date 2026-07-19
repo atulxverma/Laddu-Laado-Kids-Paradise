@@ -6,10 +6,12 @@ import { createOrder, initiateRazorpayPayment } from "@/lib/actions"
 import { useUser, SignInButton } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, ArrowRight, Building2, CheckCircle2, CreditCard, Home, Landmark, LockKeyhole, MapPin, Navigation, PackageCheck, Phone, ShieldCheck, ShoppingBag, Truck, User } from "lucide-react"
+import { ArrowLeft, ArrowRight, Building2, CheckCircle2, CreditCard, Home, Landmark, LockKeyhole, MapPin, Navigation, PackageCheck, Phone, ShieldCheck, ShoppingBag, Truck, User, Sparkles } from "lucide-react"
 import Script from "next/script"
 
 export default function CheckoutPage() {
+  const [paymentMethod, setPaymentMethod] =
+    useState<"ONLINE" | "COD">("ONLINE");
   const { user, isLoaded } = useUser()
   const router = useRouter()
   const items = useCart((state) => state.items)
@@ -26,7 +28,12 @@ export default function CheckoutPage() {
 
   const deliveryCharge = subtotal >= 999 ? 0 : 79
 
-  const total = subtotal + deliveryCharge
+  const codCharge = paymentMethod === "COD" ? 49 : 0;
+
+  const total =
+    subtotal +
+    deliveryCharge +
+    codCharge;
 
   const [loading, setLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
@@ -40,6 +47,14 @@ export default function CheckoutPage() {
     state: "",
     houseDetails: ""
   })
+
+  const particles = Array.from({ length: 18 }, (_, i) => ({
+    id: i,
+    left: `${(i * 17) % 100}%`,
+    top: `${(i * 29) % 100}%`,
+    duration: `${2 + (i % 3)}s`,
+    delay: `${i * 0.15}s`,
+  }));
 
   const detectLocation = () => {
     setLocating(true)
@@ -118,6 +133,41 @@ export default function CheckoutPage() {
         quantity: item.quantity,
         size: item.size,
       }))
+      if (paymentMethod === "COD") {
+
+        const orderRes = await createOrder({
+
+          phone: form.phone,
+
+          address: fullAddress,
+
+          items: checkoutItems,
+
+          paymentMethod: "COD"
+
+        })
+
+        if (orderRes.success) {
+          window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+          });
+
+          setIsSuccess(true);
+          clearCart();
+
+          setTimeout(() => router.push("/"), 4000);
+        } else {
+
+          alert(orderRes.error)
+
+        }
+
+        setLoading(false)
+
+        return;
+
+      }
 
       const res = await initiateRazorpayPayment(checkoutItems)
 
@@ -141,6 +191,7 @@ export default function CheckoutPage() {
             phone: form.phone,
             address: fullAddress,
             items: checkoutItems,
+            paymentMethod: "ONLINE",
             payment: {
               razorpayOrderId: response.razorpay_order_id,
               razorpayPaymentId: response.razorpay_payment_id,
@@ -149,15 +200,22 @@ export default function CheckoutPage() {
           })
 
           if (orderRes.success) {
-            setIsSuccess(true)
-            clearCart()
-            setTimeout(() => router.push("/"), 4000)
+            window.scrollTo({
+              top: 0,
+              behavior: "smooth",
+            });
+
+            setIsSuccess(true);
+            clearCart();
+
+            setTimeout(() => router.push("/"), 4000);
           } else {
             alert(orderRes.error || "Order failed")
           }
 
           setLoading(false)
         },
+
         prefill: {
           name: user.fullName,
           email: user.primaryEmailAddress?.emailAddress,
@@ -174,29 +232,29 @@ export default function CheckoutPage() {
       //without razorpay code 
 
 
-//       const orderRes = await createOrder({
-//   phone: form.phone,
-//   address: fullAddress,
-//   items: checkoutItems,
-//   payment: {
-//     razorpayOrderId: "DEV_ORDER",
-//     razorpayPaymentId: "DEV_PAYMENT",
-//     razorpaySignature: "DEV_SIGNATURE",
-//   },
-// });
+      //       const orderRes = await createOrder({
+      //   phone: form.phone,
+      //   address: fullAddress,
+      //   items: checkoutItems,
+      //   payment: {
+      //     razorpayOrderId: "DEV_ORDER",
+      //     razorpayPaymentId: "DEV_PAYMENT",
+      //     razorpaySignature: "DEV_SIGNATURE",
+      //   },
+      // });
 
-// if (orderRes.success) {
-//   setIsSuccess(true);
-//   clearCart();
-//   setTimeout(() => router.push("/"), 4000);
-// } else {
-//   alert(orderRes.error || "Order failed");
-// }
+      // if (orderRes.success) {
+      //   setIsSuccess(true);
+      //   clearCart();
+      //   setTimeout(() => router.push("/"), 4000);
+      // } else {
+      //   alert(orderRes.error || "Order failed");
+      // }
 
-// setLoading(false);
-// return;
+      // setLoading(false);
+      // return;
 
-//till there without razorpay
+      //till there without razorpay
 
     } catch (err) {
       setLoading(false)
@@ -205,21 +263,89 @@ export default function CheckoutPage() {
 
   if (isSuccess) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#fafafa] px-4 py-10 text-center">
-        <section className="w-full max-w-lg rounded-[32px] bg-white px-6 py-14 shadow-[0_20px_70px_rgba(0,0,0,0.08)] sm:px-12">
-          <div className="relative mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-full bg-emerald-50">
-            <div className="absolute inset-2 rounded-full border border-emerald-100" />
-            <CheckCircle2 size={42} strokeWidth={1.5} className="text-emerald-600" />
+      <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-emerald-50 via-white to-emerald-100 px-4">
+
+        {/* Animated Background */}
+        <div className="absolute inset-0 overflow-hidden">
+
+          {particles.map((particle) => (
+            <span
+              key={particle.id}
+              className="absolute h-3 w-3 rounded-full bg-emerald-300/40 animate-ping"
+              style={{
+                left: particle.left,
+                top: particle.top,
+                animationDuration: particle.duration,
+                animationDelay: particle.delay,
+              }}
+            />
+          ))}
+        </div>
+
+        <section className="relative z-10 w-full max-w-lg rounded-[36px] bg-white/90 p-10 text-center shadow-[0_25px_80px_rgba(0,0,0,.08)] backdrop-blur">
+
+          {/* Success Icon */}
+          <div className="relative mx-auto mb-8 flex h-28 w-28 items-center justify-center">
+
+            <div className="absolute inset-0 rounded-full border-4 border-emerald-200 animate-ping" />
+
+            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-emerald-500 shadow-lg">
+
+              <CheckCircle2
+                size={52}
+                className="text-white animate-bounce"
+              />
+
+            </div>
+
           </div>
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-zinc-400">Payment successful</p>
-          <h1 className="text-3xl font-semibold tracking-[-0.04em] text-zinc-950 sm:text-4xl">Thank you for your order.</h1>
-          <p className="mx-auto mt-5 max-w-sm text-sm leading-6 text-zinc-500">Your order has been confirmed and our team is preparing it for shipment.</p>
-          <div className="mt-10 rounded-2xl bg-zinc-50 px-5 h-14">
-            <p className="text-xs font-medium text-zinc-500">Redirecting you home in a few moments…</p>
+
+          <div className="mb-4 flex justify-center">
+            <Sparkles className="text-yellow-500 animate-pulse" size={24} />
           </div>
+
+          <p className="text-xs font-bold uppercase tracking-[0.3em] text-emerald-600">
+            PAYMENT SUCCESSFUL
+          </p>
+
+          <h1 className="mt-4 text-4xl font-black tracking-tight text-zinc-900">
+            Order Confirmed 🎉
+          </h1>
+
+          <p className="mx-auto mt-5 max-w-sm text-sm leading-7 text-zinc-500">
+            Thank you for shopping with
+            <span className="font-semibold text-black">
+              {" "}Laddoo Laado
+            </span>.
+            <br />
+            Your order has been placed successfully and our team is preparing it for dispatch.
+          </p>
+
+          <div className="mt-8 rounded-2xl border border-emerald-100 bg-emerald-50 p-5">
+
+            <p className="text-sm font-semibold text-emerald-700">
+              Redirecting to Home...
+            </p>
+
+            <div className="mt-4 h-2 overflow-hidden rounded-full bg-emerald-200">
+
+              <div className="h-full w-full animate-[progress_4s_linear] rounded-full bg-emerald-500" />
+
+            </div>
+
+          </div>
+
+          <button
+            onClick={() => router.push("/")}
+            className="mt-8 inline-flex h-14 items-center justify-center gap-2 rounded-2xl bg-black px-8 text-sm font-bold text-white transition hover:scale-[1.02]"
+          >
+            Continue Shopping
+            <ArrowRight size={18} />
+          </button>
+
         </section>
       </main>
-    )
+    );
   }
 
   if (isLoaded && !user) {
@@ -509,21 +635,23 @@ duration-300
                   </div>
 
                   <div className="flex justify-between">
-
                     <span className="text-neutral-500">
                       Delivery Charges
                     </span>
 
-                    {deliveryCharge === 0 ? (
-                      <span className="font-bold text-emerald-600">
-                        FREE
-                      </span>
-                    ) : (
-                      <span className="font-bold">
-                        ₹79
-                      </span>
-                    )}
+                    <span className="font-bold">
+                      {deliveryCharge === 0 ? "FREE" : "₹79"}
+                    </span>
+                  </div>
 
+                  <div className="flex justify-between">
+                    <span className="text-neutral-500">
+                      COD Charges
+                    </span>
+
+                    <span className="font-bold">
+                      {paymentMethod === "COD" ? "₹49" : "FREE"}
+                    </span>
                   </div>
 
                   <div className="flex justify-between">
@@ -562,28 +690,34 @@ duration-300
 
                 </div>
 
-                <div className="mt-5 rounded-2xl bg-neutral-50 border border-neutral-200 p-4">
+                <div className="mt-5 grid grid-cols-2 gap-3">
 
-                  <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("ONLINE")}
+                    className={`rounded-xl border p-3 transition ${paymentMethod === "ONLINE"
+                      ? "border-black bg-black text-white"
+                      : "border-zinc-200 bg-white"
+                      }`}
+                  >
+                    <p className="text-xs font-bold">
+                      ONLINE PAYMENT
+                    </p>
+                  </button>
 
-                    <Truck
-                      size={18}
-                      className="text-emerald-600"
-                    />
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("COD")}
+                    className={`rounded-xl border p-3 transition ${paymentMethod === "COD"
+                      ? "border-black bg-black text-white"
+                      : "border-zinc-200 bg-white"
+                      }`}
+                  >
+                    <p className="text-xs font-bold">
+                      CASH ON DELIVERY
+                    </p>
 
-                    <div>
-
-                      <p className="text-sm font-bold">
-                        Estimated Delivery
-                      </p>
-
-                      <p className="text-[11px] text-neutral-500">
-                        Arrives in 3–5 Business Days
-                      </p>
-
-                    </div>
-
-                  </div>
+                  </button>
 
                 </div>
 
@@ -594,11 +728,13 @@ duration-300
                   className="mt-7 flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-black text-white font-black transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[.98] disabled:opacity-40"
                 >
                   {loading ? (
-                    "Preparing Payment..."
+                    "Processing..."
                   ) : (
                     <>
                       <LockKeyhole size={17} />
-                      Proceed to Payment
+                      {paymentMethod === "ONLINE"
+                        ? "Pay Securely"
+                        : "Place COD Order"}
                       <ArrowRight size={17} />
                     </>
                   )}
@@ -642,6 +778,7 @@ duration-300
             </div>
           </aside>
         </div>
+
       </div>
 
 

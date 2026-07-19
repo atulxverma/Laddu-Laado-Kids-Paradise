@@ -34,7 +34,7 @@ async function checkAdmin() {
     `
       <p><b>User:</b> ${user?.fullName || "Unknown User"}</p>
       <p><b>Email:</b> ${user?.primaryEmailAddress?.emailAddress || "Unknown Email"}</p>
-    `
+    `,
   );
 
   if (!user || user.primaryEmailAddress?.emailAddress !== adminEmail) {
@@ -158,9 +158,14 @@ export async function initiateRazorpayPayment(items: CheckoutItem[]) {
 
 export async function createOrder(data: {
   phone: string;
+
   address: string;
+
   items: CheckoutItem[];
-  payment: PaymentDetails;
+
+  paymentMethod: "ONLINE" | "COD";
+
+  payment?: PaymentDetails;
 }) {
   try {
     const user = await currentUser();
@@ -191,75 +196,7 @@ export async function createOrder(data: {
         error: "Please enter a valid 10-digit Indian phone number.",
       };
     }
-
-    if (
-      !data.payment?.razorpayOrderId ||
-      !data.payment?.razorpayPaymentId ||
-      !data.payment?.razorpaySignature
-    ) {
-      return {
-        error: "Payment verification details are missing.",
-      };
-    }
-
-    const razorpaySecret = process.env.RAZORPAY_KEY_SECRET;
-
-    if (!razorpaySecret) {
-      throw new Error("Razorpay secret is not configured.");
-    }
-
-    const generatedSignature = crypto
-      .createHmac("sha256", razorpaySecret)
-      .update(
-        `${data.payment.razorpayOrderId}|${data.payment.razorpayPaymentId}`,
-      )
-      .digest("hex");
-
-    const receivedSignature = data.payment.razorpaySignature;
-
-    const generatedBuffer = Buffer.from(generatedSignature, "utf8");
-
-    const receivedBuffer = Buffer.from(receivedSignature, "utf8");
-
-    const isSignatureValid =
-      generatedBuffer.length === receivedBuffer.length &&
-      crypto.timingSafeEqual(generatedBuffer, receivedBuffer);
-
-    if (!isSignatureValid) {
-      return {
-        error: "Payment verification failed.",
-      };
-    }
-
-    const existingOrder = await db.order.findFirst({
-      where: {
-        razorpayPaymentId: data.payment.razorpayPaymentId,
-      },
-    });
-
-    if (existingOrder) {
-      return {
-        success: true,
-        orderId: existingOrder.id,
-      };
-    }
-
-    const razorpayPayment = await razorpay.payments.fetch(
-      data.payment.razorpayPaymentId,
-    );
-
-    if (razorpayPayment.order_id !== data.payment.razorpayOrderId) {
-      return {
-        error: "Payment order verification failed.",
-      };
-    }
-
-    if (razorpayPayment.status !== "captured") {
-      return {
-        error: "Payment has not been successfully captured.",
-      };
-    }
-
+    const isCOD = data.paymentMethod === "COD";
     const productIds = [...new Set(data.items.map((item) => item.id))];
 
     const products = await db.product.findMany({
@@ -279,7 +216,7 @@ export async function createOrder(data: {
 
     if (products.length !== productIds.length) {
       return {
-        error: "Some products are no longer available.",
+        error: "Some products are unavailable.",
       };
     }
 
@@ -287,77 +224,143 @@ export async function createOrder(data: {
 
     for (const item of data.items) {
       if (!Number.isInteger(item.quantity) || item.quantity < 1) {
-        return {
-          error: "Invalid product quantity.",
-        };
+        return { error: "Invalid quantity." };
       }
 
-      const product = products.find((product) => product.id === item.id);
+      const product = products.find((p) => p.id === item.id);
 
       if (!product) {
-        return {
-          error: "Product no longer exists.",
-        };
+        return { error: "Product not found." };
       }
 
       if (product.stock < item.quantity) {
         return {
-          error: `${product.name} has only ${product.stock} item(s) left.`,
+          error: `${product.name} has only ${product.stock} left.`,
         };
       }
 
       serverTotal += product.price * item.quantity;
     }
 
-    const razorpayOrder = await razorpay.orders.fetch(
-      data.payment.razorpayOrderId,
-    );
+    const finalTotal =
+      serverTotal + (serverTotal >= 999 ? 0 : 79) + (isCOD ? 49 : 0);
+    if (!isCOD) {
+      if (
+        !data.payment?.razorpayOrderId ||
+        !data.payment?.razorpayPaymentId ||
+        !data.payment?.razorpaySignature
+      ) {
+        return {
+          error: "Payment verification details are missing.",
+        };
+      }
 
-    const expectedAmount = Math.round(serverTotal * 100);
+      const razorpaySecret = process.env.RAZORPAY_KEY_SECRET;
 
-    if (
-      Number(razorpayOrder.amount) !== expectedAmount ||
-      razorpayOrder.currency !== "INR"
-    ) {
-      return {
-        error: "Payment amount verification failed.",
-      };
+      if (!razorpaySecret) {
+        throw new Error("Razorpay secret is not configured.");
+      }
+
+      const generatedSignature = crypto
+        .createHmac("sha256", razorpaySecret)
+        .update(
+          `${data.payment.razorpayOrderId}|${data.payment.razorpayPaymentId}`,
+        )
+        .digest("hex");
+
+      const receivedSignature = data.payment.razorpaySignature;
+
+      const generatedBuffer = Buffer.from(generatedSignature, "utf8");
+
+      const receivedBuffer = Buffer.from(receivedSignature, "utf8");
+
+      const isSignatureValid =
+        generatedBuffer.length === receivedBuffer.length &&
+        crypto.timingSafeEqual(generatedBuffer, receivedBuffer);
+
+      if (!isSignatureValid) {
+        return {
+          error: "Payment verification failed.",
+        };
+      }
+
+      const existingOrder = await db.order.findFirst({
+        where: {
+          razorpayPaymentId: data.payment.razorpayPaymentId,
+        },
+      });
+
+      if (existingOrder) {
+        return {
+          success: true,
+          orderId: existingOrder.id,
+        };
+      }
+
+      const razorpayPayment = await razorpay.payments.fetch(
+        data.payment.razorpayPaymentId,
+      );
+
+      if (razorpayPayment.order_id !== data.payment.razorpayOrderId) {
+        return {
+          error: "Payment order verification failed.",
+        };
+      }
+
+      if (razorpayPayment.status !== "captured") {
+        return {
+          error: "Payment has not been successfully captured.",
+        };
+      }
+
+      const razorpayOrder = await razorpay.orders.fetch(
+        data.payment.razorpayOrderId,
+      );
+
+      const expectedAmount = Math.round(serverTotal * 100);
+
+      if (
+        Number(razorpayOrder.amount) !== expectedAmount ||
+        razorpayOrder.currency !== "INR"
+      ) {
+        return {
+          error: "Payment amount verification failed.",
+        };
+      }
     }
 
+    //without razorpay code
 
-    //without razorpay code 
+    //     const productIds = [...new Set(data.items.map((item) => item.id))];
 
-//     const productIds = [...new Set(data.items.map((item) => item.id))];
+    // const products = await db.product.findMany({
+    //   where: {
+    //     id: {
+    //       in: productIds,
+    //     },
+    //     isArchived: false,
+    //   },
+    //   select: {
+    //     id: true,
+    //     name: true,
+    //     price: true,
+    //     stock: true,
+    //   },
+    // });
 
-// const products = await db.product.findMany({
-//   where: {
-//     id: {
-//       in: productIds,
-//     },
-//     isArchived: false,
-//   },
-//   select: {
-//     id: true,
-//     name: true,
-//     price: true,
-//     stock: true,
-//   },
-// });
+    // let serverTotal = 0;
 
-// let serverTotal = 0;
+    // for (const item of data.items) {
+    //   const product = products.find((p) => p.id === item.id);
 
-// for (const item of data.items) {
-//   const product = products.find((p) => p.id === item.id);
+    //   if (!product) {
+    //     return { error: "Product not found." };
+    //   }
 
-//   if (!product) {
-//     return { error: "Product not found." };
-//   }
+    //   serverTotal += product.price * item.quantity;
+    // }
 
-//   serverTotal += product.price * item.quantity;
-// }
-
-//till there
-
+    //till there
 
     const order = await db.$transaction(async (tx) => {
       for (const item of data.items) {
@@ -384,13 +387,23 @@ export async function createOrder(data: {
           customerName: user.fullName || "Guest User",
           phone: cleanPhone,
           address: cleanAddress,
-          total: serverTotal,
-          isPaid: true,
-          status: "Confirmed",
+          isPaid: !isCOD,
 
-          razorpayOrderId: data.payment.razorpayOrderId,
+          status: isCOD ? "Pending" : "Confirmed",
 
-          razorpayPaymentId: data.payment.razorpayPaymentId,
+          paymentMethod: data.paymentMethod,
+
+          subtotal: serverTotal,
+
+          deliveryCharge: serverTotal >= 999 ? 0 : 79,
+
+          codCharge: isCOD ? 49 : 0,
+
+          total: finalTotal,
+
+          razorpayOrderId: isCOD ? null : data.payment?.razorpayOrderId,
+
+          razorpayPaymentId: isCOD ? null : data.payment?.razorpayPaymentId,
 
           orderItems: {
             create: data.items.map((item) => ({
@@ -440,11 +453,13 @@ export async function createOrder(data: {
 
     <p><b>Email:</b> ${user.primaryEmailAddress?.emailAddress || "N/A"}</p>
 
-    <p><b>Total:</b> ₹${serverTotal}</p>
+    <p><b>Total:</b> ₹${finalTotal}</p>
 
     <p><b>Order ID:</b> ${orderIdShort}</p>
 
-    <p><b>Payment:</b> ${data.payment.razorpayPaymentId}</p>
+    <p><b>Payment:</b>
+${isCOD ? "Cash on Delivery" : data.payment?.razorpayPaymentId}
+</p>
   `,
           );
         }
@@ -461,7 +476,7 @@ export async function createOrder(data: {
                 <h2>Order Confirmed!</h2>
                 <p>Hi ${user.fullName || "Customer"}</p>
                 <p>Your order #${orderIdShort} has been confirmed.</p>
-                <p>Total Amount: ₹${serverTotal}</p>
+                <p><b>Final Total:</b> ₹${finalTotal.toLocaleString("en-IN")}</p>
               </div>
             `,
           });
@@ -505,7 +520,7 @@ export async function createProduct(data: any) {
       color,
       stock,
       gender,
-      
+
       specifications,
     } = data;
 
@@ -559,7 +574,6 @@ export async function createProduct(data: any) {
 
         stock: Number(data.stock),
         gender: data.gender,
-        
 
         size: data.size,
         color: data.color,
@@ -748,7 +762,6 @@ export async function updateProduct(id: string, data: any) {
         color: data.color,
 
         gender: data.gender,
-        
 
         specifications: data.specifications || [],
 
@@ -864,6 +877,69 @@ export async function updateOrderStatus(orderId: string, status: string) {
 
     return {
       error: "Failed to update status",
+    };
+  }
+}
+
+export async function cancelOrder(orderId: string) {
+  try {
+    const user = await currentUser();
+
+    if (!user) {
+      return { error: "Unauthorized" };
+    }
+
+    const order = await db.order.findFirst({
+      where: {
+        id: orderId,
+        clerkId: user.id,
+      },
+      include: {
+        orderItems: true,
+      },
+    });
+
+    if (!order) {
+      return { error: "Order not found." };
+    }
+
+    if (order.status !== "Pending") {
+      return {
+        error: "Only pending orders can be cancelled.",
+      };
+    }
+
+    await db.$transaction(async (tx) => {
+      await tx.order.update({
+        where: { id: orderId },
+        data: {
+          status: "Cancelled",
+        },
+      });
+
+      for (const item of order.orderItems) {
+        await tx.product.update({
+          where: {
+            id: item.productId,
+          },
+          data: {
+            stock: {
+              increment: item.quantity,
+            },
+          },
+        });
+      }
+    });
+
+    revalidatePath("/orders");
+    revalidatePath("/admin/orders");
+    revalidatePath("/shop");
+
+    return { success: true };
+  } catch (error) {
+    console.error(error);
+    return {
+      error: "Failed to cancel order.",
     };
   }
 }
