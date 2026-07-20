@@ -722,6 +722,32 @@ export async function createProduct(data: any) {
   }
 }
 
+export async function getSearchSuggestions(query: string) {
+  if (!query.trim()) return [];
+
+  return await db.product.findMany({
+    where: {
+      isArchived: false,
+      name: {
+        contains: query,
+        mode: "insensitive",
+      },
+    },
+
+    take: 6,
+
+    orderBy: {
+      createdAt: "desc",
+    },
+
+    include: {
+      images: {
+        take: 1,
+      },
+    },
+  });
+}
+
 // --- OTHER ACTIONS ---
 export async function createCategory(
   name: string,

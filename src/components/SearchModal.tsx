@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Search, X, TrendingUp } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { getSearchSuggestions } from "@/lib/actions";
 
 const genderFilters = [
   "Newborn",
@@ -33,6 +34,8 @@ export default function SearchModal({
   const [activeFilter, setActiveFilter] = useState("All")
   const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -74,6 +77,24 @@ export default function SearchModal({
     e.preventDefault()
     handleSearch(query)
   }
+  useEffect(() => {
+    if (!query.trim()) {
+      setSuggestions([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setLoading(true);
+
+      const data = await getSearchSuggestions(query);
+
+      setSuggestions(data);
+
+      setLoading(false);
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [query]);
 
   return (
     <AnimatePresence>
@@ -165,29 +186,54 @@ export default function SearchModal({
               {/* Body */}
               <div className="flex-1 overflow-y-auto p-5">
                 {query.trim() ? (
-                  <div>
-                    <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-3">
-                      Press Enter to Search
-                    </p>
-                    <button
-                      onClick={() => handleSearch(query)}
-                      className="w-full flex items-center gap-3 p-4 rounded-2xl hover:bg-neutral-50 hover:-translate-y-1 hover:shadow-md transition-colors text-left group"
-                    >
-                      <div className="h-8 w-8 bg-black rounded-xl flex items-center justify-center shrink-0">
-                        <Search size={14} className="text-white" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-black">
-                          Search results for &quot;{query}&quot;
-                        </p>
-                        {activeFilter !== "All" && (
-                          <p className="text-xs text-gray-400">in {activeFilter}</p>
-                        )}
-                      </div>
-                      <span className="ml-auto text-gray-300 group-hover:text-gray-500 transition-colors">
-                        →
-                      </span>
-                    </button>
+                  <div className="space-y-2">
+
+                    {loading && (
+                      <p className="text-sm text-neutral-500">
+                        Searching...
+                      </p>
+                    )}
+
+                    {!loading &&
+                      suggestions.map((product) => (
+
+                        <Link
+                          key={product.id}
+                          href={`/product/${product.id}`}
+                          onClick={onClose}
+                          className="flex items-center gap-3 rounded-xl p-3 hover:bg-neutral-100"
+                        >
+
+                          <img
+                            src={product.images[0]?.url}
+                            className="w-14 h-14 rounded-lg object-cover"
+                          />
+
+                          <div className="flex-1">
+
+                            <p className="font-semibold">
+                              {product.name}
+                            </p>
+
+                            <p className="text-sm text-neutral-500">
+                              ₹{product.price}
+                            </p>
+
+                          </div>
+
+                        </Link>
+
+                      ))}
+
+                    {!loading && suggestions.length === 0 && (
+                      <button
+                        onClick={() => handleSearch(query)}
+                        className="w-full text-left p-4 rounded-xl hover:bg-neutral-100"
+                      >
+                        Search for "<b>{query}</b>"
+                      </button>
+                    )}
+
                   </div>
                 ) : (
                   <div className="space-y-5">
