@@ -26,7 +26,6 @@ export default async function ProductPage({
 }) {
   const { productId } = await params;
 
-  // 1. Fetch Product with Reviews
   const product = await db.product.findUnique({
     where: { id: productId },
     include: {
@@ -43,14 +42,12 @@ export default async function ProductPage({
 
   if (!product) notFound();
 
-  // 2. Fetch Related
   const related = await db.product.findMany({
     where: { categoryId: product.categoryId, NOT: { id: product.id } },
     include: { category: true, images: true, reviews: true,variants: true },
     take: 4,
   });
 
-  // 3. Dynamic Stats Logic
   const reviews = product.reviews || [];
   const totalReviews = reviews.length;
   const avgRating =
