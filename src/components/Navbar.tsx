@@ -81,7 +81,7 @@ export default function Navbar() {
 
   const isAdmin =
     user?.primaryEmailAddress?.emailAddress ===
-    process.env.NEXT_PUBLIC_ADMIN_EMAIL
+    process.env.ADMIN_EMAIL
 
   useEffect(() => {
     if (!isLoaded) return
