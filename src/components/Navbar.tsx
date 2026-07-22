@@ -30,6 +30,7 @@ import {
   Shirt,
   Sparkles,
 } from "lucide-react"
+import { isCurrentUserAdmin } from "@/lib/admin";
 
 const genderFilters = [
   {
@@ -76,19 +77,20 @@ export default function Navbar() {
   const [mounted, setMounted] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   const cartCount = cart.items.length
 
-  const isAdmin =
-    !!user &&
-    !!process.env.NEXT_PUBLIC_ADMIN_EMAIL &&
-    user.primaryEmailAddress?.emailAddress?.trim().toLowerCase() ===
-    process.env.NEXT_PUBLIC_ADMIN_EMAIL.trim().toLowerCase();
+
 
   useEffect(() => {
-    console.log("USER EMAIL:", user?.primaryEmailAddress?.emailAddress);
-    console.log("NEXT_PUBLIC_ADMIN_EMAIL:", process.env.NEXT_PUBLIC_ADMIN_EMAIL);
-  }, [user]);
+    async function checkAdmin() {
+      const admin = await isCurrentUserAdmin();
+      setIsAdmin(admin);
+    }
+
+    checkAdmin();
+  }, []);
 
   useEffect(() => {
     if (!isLoaded) return
