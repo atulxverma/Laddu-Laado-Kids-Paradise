@@ -116,13 +116,6 @@ export default function CheckoutPage() {
     if (!user) return
     setLoading(true)
 
-    if (form.phone.length !== 10) {
-      alert("Please enter a valid 10-digit phone number.");
-      document.querySelector<HTMLInputElement>('input[type="tel"]')?.focus();
-      setLoading(false);
-      return;
-    }
-
     if (!form.pincode) {
       alert("Please enter your pincode.");
       document.querySelector<HTMLInputElement>('input[placeholder="6 Digit PIN"]')?.focus();
@@ -181,13 +174,12 @@ export default function CheckoutPage() {
           setIsSuccess(true);
           clearCart();
 
-          setTimeout(() => router.push("/"), 4000);
         } else {
 
           alert(orderRes.error)
 
         }
-
+setTimeout(() => router.push("/"), 4000);
         setLoading(false)
 
         return;
@@ -330,19 +322,19 @@ export default function CheckoutPage() {
           </div>
 
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-emerald-600">
-            {paymentMethod === "ONLINE"
+            {successfulPaymentMethod === "ONLINE"
               ? "PAYMENT SUCCESSFUL"
               : "ORDER PLACED"}
           </p>
 
           <h1 className="mt-4 text-4xl font-black tracking-tight text-zinc-900">
-            {paymentMethod === "ONLINE"
+            {successfulPaymentMethod === "ONLINE"
               ? "Order Confirmed 🎉"
               : "Order Placed 🎉"}
           </h1>
 
           <p className="mx-auto mt-5 max-w-sm text-sm leading-7 text-zinc-500">
-            {paymentMethod === "ONLINE" ? (
+            {successfulPaymentMethod === "ONLINE" ? (
               <>
                 Thank you for shopping with
                 <span className="font-semibold text-black"> Laddoo Laado</span>.
@@ -373,19 +365,11 @@ export default function CheckoutPage() {
 
           </div>
 
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-
-            <button
-              onClick={() => router.push("/orders")}
-              className="flex h-14 flex-1 items-center justify-center gap-2 rounded-2xl border border-black bg-white text-sm font-bold text-black transition hover:bg-neutral-100"
-            >
-              <PackageCheck size={18} />
-              Track Order
-            </button>
+          <div className="mt-8">
 
             <button
               onClick={() => router.push("/")}
-              className="flex h-14 flex-1 items-center justify-center gap-2 rounded-2xl bg-black text-sm font-bold text-white transition hover:scale-[1.02]"
+              className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-black text-sm font-bold text-white transition hover:scale-[1.02]"
             >
               Continue Shopping
               <ArrowRight size={18} />
