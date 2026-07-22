@@ -80,10 +80,15 @@ export default function Navbar() {
   const cartCount = cart.items.length
 
   const isAdmin =
-  !!user &&
-  !!process.env.NEXT_PUBLIC_ADMIN_EMAIL &&
-  user.primaryEmailAddress?.emailAddress?.trim().toLowerCase() ===
+    !!user &&
+    !!process.env.NEXT_PUBLIC_ADMIN_EMAIL &&
+    user.primaryEmailAddress?.emailAddress?.trim().toLowerCase() ===
     process.env.NEXT_PUBLIC_ADMIN_EMAIL.trim().toLowerCase();
+
+  useEffect(() => {
+    console.log("USER EMAIL:", user?.primaryEmailAddress?.emailAddress);
+    console.log("NEXT_PUBLIC_ADMIN_EMAIL:", process.env.NEXT_PUBLIC_ADMIN_EMAIL);
+  }, [user]);
 
   useEffect(() => {
     if (!isLoaded) return
