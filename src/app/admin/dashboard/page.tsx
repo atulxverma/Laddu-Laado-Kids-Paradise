@@ -10,7 +10,7 @@ export default async function DashboardPage() {
       where: { stock: { lte: 5 } },
       include: { images: {
   orderBy: {
-    createdAt: "asc",
+    position: "asc",
   },
 } },
       take: 5
@@ -21,7 +21,7 @@ export default async function DashboardPage() {
           include: {
             product: { include: { images: {
   orderBy: {
-    createdAt: "asc",
+    position: "asc",
   },
 } } }
           }

@@ -33,7 +33,7 @@ export default async function ProductPage({
 
       images: {
         orderBy: {
-          createdAt: "asc",
+          position: "asc",
         },
       },
 
@@ -54,7 +54,7 @@ export default async function ProductPage({
     include: {
       category: true, images: {
         orderBy: {
-          createdAt: "asc",
+          position: "asc",
         },
       }, reviews: true, variants: true
     },

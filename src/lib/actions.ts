@@ -534,7 +534,7 @@ export async function createOrder(data: {
               include: {
                 images: {
                   orderBy: {
-                    createdAt: "asc",
+                    position: "asc",
                   },
                 },
               },
@@ -701,8 +701,9 @@ export async function createProduct(data: any) {
         stock: totalStock,
 
         images: {
-          create: data.images.map((url: string) => ({
+          create: data.images.map((url: string, index: number) => ({
             url,
+            position: index,
           })),
         },
 
@@ -999,8 +1000,9 @@ export async function updateProduct(id: string, data: any) {
           stock: totalStock,
 
           images: {
-            create: data.images.map((url: string) => ({
+            create: data.images.map((url: string, index: number) => ({
               url,
+              position: index,
             })),
           },
 
@@ -1721,7 +1723,7 @@ export async function getDbCart() {
           include: {
             images: {
               orderBy: {
-                createdAt: "asc",
+                position: "asc",
               },
             },
             category: true,

@@ -142,7 +142,7 @@ export default async function ShopPage({
       category: true,
       images: {
         orderBy: {
-          createdAt: "asc",
+          position: "asc",
         },
       },
       reviews: true,

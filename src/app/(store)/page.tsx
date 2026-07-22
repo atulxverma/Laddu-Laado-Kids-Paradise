@@ -25,7 +25,7 @@ export default async function HomePage() {
           category: true,
           images: {
   orderBy: {
-    createdAt: "asc",
+    position: "asc",
   },
 },
           reviews: true,
@@ -42,7 +42,7 @@ export default async function HomePage() {
           category: true,
           images: {
   orderBy: {
-    createdAt: "asc",
+    position: "asc",
   },
 },
           reviews: true,
@@ -61,7 +61,7 @@ export default async function HomePage() {
           category: true,
           images: {
   orderBy: {
-    createdAt: "asc",
+    position: "asc",
   },
 },
           reviews: true,
@@ -149,7 +149,7 @@ export default async function HomePage() {
       db.product.findMany({
         include: { category: true, images: {
   orderBy: {
-    createdAt: "asc",
+    position: "asc",
   },
 }, reviews: true, variants: true },
         take: 8,
@@ -188,7 +188,7 @@ export default async function HomePage() {
             include: {
               images: {
   orderBy: {
-    createdAt: "asc",
+    position: "asc",
   },
 },
             },
@@ -212,7 +212,7 @@ export default async function HomePage() {
           category: true,
           images: {
   orderBy: {
-    createdAt: "asc",
+    position: "asc",
   },
 },
           reviews: true,
@@ -231,7 +231,7 @@ export default async function HomePage() {
           category: true,
           images: {
   orderBy: {
-    createdAt: "asc",
+    position: "asc",
   },
 },
           reviews: true,
@@ -250,7 +250,7 @@ export default async function HomePage() {
           category: true,
           images: {
             orderBy: {
-              createdAt: "asc",
+              position: "asc",
             },
           },
           reviews: true,

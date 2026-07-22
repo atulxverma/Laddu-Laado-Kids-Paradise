@@ -29,7 +29,7 @@ export default async function CategoryPage({
         include: {
             images: {
                 orderBy: {
-                    createdAt: "asc",
+                    position: "asc",
                 },
             },
             category: true,

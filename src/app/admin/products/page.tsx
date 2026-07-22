@@ -11,7 +11,7 @@ export default async function ProductsPage() {
     category: true,
     images: {
   orderBy: {
-    createdAt: "asc",
+    position: "asc",
   },
 },
     reviews: true,

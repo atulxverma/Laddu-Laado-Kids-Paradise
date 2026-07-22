@@ -15,7 +15,7 @@ export default async function OrdersPage() {
           include: {
             product: { include: { images: {
   orderBy: {
-    createdAt: "asc",
+    position: "asc",
   },
 } } }
           }

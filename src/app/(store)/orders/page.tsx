@@ -22,7 +22,7 @@ export default async function MyOrdersPage() {
             include: {
               images: {
                 orderBy: {
-                  createdAt: "asc",
+                  position: "asc",
                 },
               }
             }
