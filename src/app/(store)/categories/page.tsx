@@ -25,7 +25,7 @@ export default async function CategoriesPage() {
           <p className="mt-3 max-w-lg text-sm leading-6 text-neutral-500 sm:text-base">Discover thoughtfully made collections for every little moment.</p>
         </header>
 
-        <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4 lg:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-5 lg:gap-6 xl:gap-8">
           {categories.map((category) => (
             <Link key={category.id} href={`/category/${category.slug}`} className="group flex min-w-0 flex-col rounded-3xl border border-neutral-100 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:p-4">
               <div className="flex h-28 items-center justify-center overflow-hidden rounded-3xl border border-neutral-100 bg-neutral-50 p-4 sm:h-36 sm:p-5">

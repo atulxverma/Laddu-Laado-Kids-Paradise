@@ -140,7 +140,11 @@ export default async function ShopPage({
 
     include: {
       category: true,
-      images: true,
+      images: {
+        orderBy: {
+          createdAt: "asc",
+        },
+      },
       reviews: true,
       variants: true,
     },
@@ -186,7 +190,7 @@ export default async function ShopPage({
   return (
     <main className="min-h-screen bg-white pb-20 pt-8 md:pt-10">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="mb-10">
+        <div className="mb-6">
 
           <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.28em] text-neutral-400">
             Premium Kids Fashion
@@ -225,51 +229,26 @@ export default async function ShopPage({
 
           </div>
 
-          <div className="mt-8 rounded-[30px] border border-neutral-200 bg-gradient-to-r from-neutral-50 to-white p-6 md:p-8 shadow-sm">
-
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-
-              <div>
-
-                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-neutral-400">
-                  Available Products
-                </p>
-
-                <h3 className="mt-2 text-2xl md:text-4xl font-black">
-                  {products.length} Products
-                </h3>
-
-                <p className="mt-2 text-sm text-neutral-500">
-                  Carefully curated premium kidswear.
-                </p>
-
-              </div>
-
-              <div className="rounded-full bg-black px-6 py-3 text-sm font-bold text-white shadow-lg">
-                Premium Collection
-              </div>
-
-            </div>
-
-          </div>
-
         </div>
 
         {/* -------- CATEGORY CARDS -------- */}
 
-        <div className="grid grid-cols-3 gap-3 md:gap-5 mb-10">
+        <div className="grid grid-cols-3 gap-3 md:gap-5 mb-6">
 
           <Link href="/shop?age=0-1Y">
 
-            <div className="rounded-2xl border border-neutral-200 bg-gradient-to-b from-orange-50 to-white px-3 py-5 md:p-6 flex flex-col items-center justify-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+            <div className="rounded-2xl border border-neutral-200 bg-gradient-to-b from-orange-50 to-white px-3 py-4 md:p-5 flex flex-col items-center justify-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
 
-              <div className="h-11 w-11 md:h-14 md:w-14 rounded-full bg-orange-100 flex items-center justify-center">
+              <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-orange-100 flex items-center justify-center">
 
                 <Baby size={20} />
 
               </div>
 
-              <p className="mt-3 text-[11px] md:text-sm font-bold">
+              <p className="mt-3 text-[10px] md:text-[13px]
+uppercase
+tracking-wide
+font-black tracking-wide">
                 Newborn
               </p>
 
@@ -279,15 +258,18 @@ export default async function ShopPage({
 
           <Link href="/shop?gender=Boy">
 
-            <div className="rounded-2xl border border-neutral-200 bg-gradient-to-b from-sky-50 to-white px-3 py-5 md:p-6 flex flex-col items-center justify-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+            <div className="rounded-2xl border border-neutral-200 bg-gradient-to-b from-sky-50 to-white px-3 py-4 md:p-5 flex flex-col items-center justify-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
 
-              <div className="h-11 w-11 md:h-14 md:w-14 rounded-full bg-sky-100 flex items-center justify-center">
+              <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-sky-100 flex items-center justify-center">
 
                 <Shirt size={20} />
 
               </div>
 
-              <p className="mt-3 text-[11px] md:text-sm font-bold">
+              <p className="mt-3 text-[10px] md:text-[13px]
+uppercase
+tracking-wide
+font-black tracking-wide">
                 Boys
               </p>
 
@@ -297,15 +279,18 @@ export default async function ShopPage({
 
           <Link href="/shop?gender=Girl">
 
-            <div className="rounded-2xl border border-neutral-200 bg-gradient-to-b from-pink-50 to-white px-3 py-5 md:p-6 flex flex-col items-center justify-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+            <div className="rounded-2xl border border-neutral-200 bg-gradient-to-b from-pink-50 to-white px-3 py-4 md:p-5 flex flex-col items-center justify-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
 
-              <div className="h-11 w-11 md:h-14 md:w-14 rounded-full bg-pink-100 flex items-center justify-center">
+              <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-pink-100 flex items-center justify-center">
 
                 <Sparkles size={20} />
 
               </div>
 
-              <p className="mt-3 text-[11px] md:text-sm font-bold">
+              <p className="mt-3 text-[10px] md:text-[13px]
+uppercase
+tracking-wide
+font-black tracking-wide">
                 Girls
               </p>
 
@@ -314,7 +299,40 @@ export default async function ShopPage({
           </Link>
 
         </div>
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
+
+
+        <div className="mt-5 md:mt-6 rounded-[28px] border border-neutral-200 bg-gradient-to-r from-neutral-50 to-white p-5 md:p-6 shadow-sm">
+
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+
+            <div>
+
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-neutral-400">
+                Collection Overview
+              </p>
+
+              <h3 className="mt-2 text-xl md:text-2xl font-black">
+                {products.length} Products
+              </h3>
+
+              <p className="mt-2 text-xs text-neutral-500">
+                Premium outfits curated for little stars.
+              </p>
+
+            </div>
+
+            <div className="flex items-center justify-between md:block">
+  <div className="inline-flex items-center justify-center rounded-full bg-black px-3 py-1.5 text-[10px] md:px-5 md:py-2.5 md:text-xs font-bold text-white shadow-sm">
+    Premium Collection
+  </div>
+</div>
+
+          </div>
+
+        </div>
+
+
+        <div className="mt-8 mb-8 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
 
           <h2 className="text-xl md:text-3xl font-black">
             Explore Collection
@@ -324,7 +342,7 @@ export default async function ShopPage({
 
             <Link
               href={createSortLink("newest")}
-              className={`whitespace-nowrap px-5 py-3 rounded-2xl text-[10px] font-bold transition ${!sort || sort === "newest"
+              className={`inline-flex h-8 items-center justify-center whitespace-nowrap rounded-full px-5 text-xs font-bold transition ${!sort || sort === "newest"
                 ? "bg-black text-white"
                 : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
                 }`}
@@ -334,7 +352,7 @@ export default async function ShopPage({
 
             <Link
               href={createSortLink("price-asc")}
-              className={`whitespace-nowrap px-4 py-2 rounded-full text-[10px] font-bold transition ${sort === "price-asc"
+              className={`inline-flex h-8 items-center justify-center whitespace-nowrap rounded-full px-5 text-xs font-bold transition ${sort === "price-asc"
                 ? "bg-black text-white"
                 : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
                 }`}
@@ -344,7 +362,7 @@ export default async function ShopPage({
 
             <Link
               href={createSortLink("price-desc")}
-              className={`whitespace-nowrap px-4 py-2 rounded-full text-[10px] font-bold transition ${sort === "price-desc"
+              className={`inline-flex h-8 items-center justify-center whitespace-nowrap rounded-full px-5 text-xs font-bold transition ${sort === "price-desc"
                 ? "bg-black text-white"
                 : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
                 }`}
@@ -382,7 +400,7 @@ export default async function ShopPage({
 
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-8 md:gap-x-8 md:gap-y-12">
+          <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-8 md:gap-x-8 md:gap-y-12">
             {products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}

@@ -96,7 +96,7 @@ export default function ProductGallery({
 
   if (safeImages.length === 0) {
     return (
-      <div className="w-full max-w-[430px] mx-auto">
+      <div className="w-full max-w-[520px] mx-auto lg:mx-0 space-y-2">
         <div className="aspect-[4/5] bg-gray-100 rounded-3xl flex items-center justify-center">
           <p className="text-xs font-black text-gray-300 uppercase tracking-widest">
             No Image
@@ -340,7 +340,7 @@ backdrop-blur-md
   return (
     <>
       {/* SMALL PRODUCT GALLERY */}
-      <div className="w-full max-w-[560px] mx-auto lg:mx-0 space-y-3">
+      <div className="w-full space-y-3">
 
         {/* MAIN IMAGE */}
         <div
@@ -351,7 +351,7 @@ backdrop-blur-md
           className="
 relative
 w-full
-aspect-[4/5]
+aspect-[3/4]
 bg-gradient-to-b
 from-white
 to-gray-50
@@ -373,8 +373,8 @@ cursor-zoom-in
             className="
               w-full
               h-full
-              object-contain
-              p-6
+              object-cover
+              p-0
               transition-transform
               duration-500
               group-hover:scale-[1.02]
@@ -480,33 +480,27 @@ border-gray-200
           <div className="flex justify-center gap-3 overflow-x-auto scroll-smooth py-2 px-1 no-scrollbar">
             {safeImages.map((image, index) => (
               <button
-                type="button"
-                key={image.id || `${image.url}-${index}`}
-                onClick={() => {
-                  setSelectedIndex(index)
-                  setZoom(1)
-                }}
+                key={image.id ?? image.url ?? index}
                 className={`
-                  h-20
-                  w-16
-                  md:h-20
-                  md:w-16
-                  shrink-0
-                  rounded-2xl
-                  overflow-hidden
-                  transition-all
-                  ${selectedIndex === index
-                    ? "border-2 border-black scale-105 shadow-2xl bg-white"
-                    : "border-2 border-transparent opacity-60 hover:opacity-100 hover:scale-105"
+    h-20
+    w-16
+    overflow-hidden
+    rounded-xl
+    border
+    transition-all
+    ${selectedIndex === index
+                    ? "border-black"
+                    : "border-gray-200 hover:border-gray-400"
                   }
-                `}
+  `}
               >
                 <img
                   src={image.url}
                   alt={`Product ${index + 1}`}
-                  className="w-full h-full object-contain bg-white p-1"
+                  className="w-full h-full object-cover"
                 />
               </button>
+
             ))}
           </div>
         )}

@@ -30,12 +30,19 @@ export default async function ProductPage({
     where: { id: productId },
     include: {
       category: true,
-      images: true,
+
+      images: {
+        orderBy: {
+          createdAt: "asc",
+        },
+      },
+
       reviews: {
         orderBy: {
           createdAt: "desc",
         },
       },
+
       variants: true,
     },
   })
@@ -44,7 +51,13 @@ export default async function ProductPage({
 
   const related = await db.product.findMany({
     where: { categoryId: product.categoryId, NOT: { id: product.id } },
-    include: { category: true, images: true, reviews: true,variants: true },
+    include: {
+      category: true, images: {
+        orderBy: {
+          createdAt: "asc",
+        },
+      }, reviews: true, variants: true
+    },
     take: 4,
   });
 
@@ -112,12 +125,15 @@ export default async function ProductPage({
         </div>
 
         {/* Main Grid */}
-        <div className="grid lg:grid-cols-[58%_42%] gap-10 xl:gap-20">
-          <div className="lg:sticky lg:top-24 h-fit">
-            <ProductGallery images={product.images} />
+        <div className="grid lg:grid-cols-[46%_54%] xl:grid-cols-[42%_58%] gap-8 xl:gap-16">
+
+          <div className="lg:sticky lg:top-31 self-start">
+            <div className="w-full max-w-[420px] mx-auto">
+              <ProductGallery images={product.images} />
+            </div>
           </div>
 
-          <div className="flex flex-col gap-8 xl:pl-4">
+          <div className="flex flex-col gap-8">
             <div className="space-y-8 border-b border-gray-100 pb-8">
               <div className="flex flex-wrap items-center gap-3">
                 <span className="px-4 py-2 rounded-full bg-black text-white text-[10px] uppercase tracking-[0.22em] font-black">
@@ -134,25 +150,40 @@ export default async function ProductPage({
               <div className="space-y-4">
                 <h1
                   className="
-      text-[28px]
-sm:text-[34px]
-md:text-5xl
-xl:text-6xl
-      font-black
-      tracking-tight
-md:tracking-[-0.05em]
-      leading-[0.9]
+      text-[26px]
+      sm:text-[30px]
+      md:text-[42px]
+      xl:text-[52px]
+      font-extrabold
+      tracking-[-0.03em]
+      leading-[1.05]
+      text-neutral-900
     "
                 >
                   {product.name}
                 </h1>
 
-                <p className="text-[14px] md:text-[16px] leading-6 md:leading-8 text-gray-500">
-                  {(product.description || "")
-                    .split("\n")
-                    .find((line) => line.trim() && !line.includes(":")) ||
-                    "Premium handcrafted kidswear designed for comfort and everyday adventures."}
-                </p>
+                <details open className="group">
+                  <summary className="flex items-center justify-between cursor-pointer text-[11px] font-black uppercase tracking-[0.2em] py-3 list-none">
+                    Description & Fit{" "}
+                    <span className="group-open:rotate-180 transition-transform">
+                      ▼
+                    </span>
+                  </summary>
+                  <p
+                    className="text-[14px]
+md:text-[16px]
+leading-6
+md:leading-8
+tracking-wide text-gray-600 pb-5 whitespace-pre-wrap font-medium"
+                  >
+                    {(product.description || "")
+                      .split("\n")
+                      .filter((line) => !line.includes(":"))
+                      .join("\n") ||
+                      "Premium handcrafted clothing designed for your little ones."}
+                  </p>
+                </details>
               </div>
 
               <div className="flex items-end gap-6">
@@ -217,28 +248,7 @@ md:text-5xl
             </div>
 
             {/* Accordions */}
-            <div className="border-t border-gray-100 pt-4 space-y-2">
-              <details open className="group">
-                <summary className="flex items-center justify-between cursor-pointer text-[11px] font-black uppercase tracking-[0.2em] py-3 list-none">
-                  Description & Fit{" "}
-                  <span className="group-open:rotate-180 transition-transform">
-                    ▼
-                  </span>
-                </summary>
-                <p
-                  className="text-[14px]
-md:text-[16px]
-leading-6
-md:leading-8
-tracking-wide text-gray-600 pb-5 whitespace-pre-wrap font-medium"
-                >
-                  {(product.description || "")
-                    .split("\n")
-                    .filter((line) => !line.includes(":"))
-                    .join("\n") ||
-                    "Premium handcrafted clothing designed for your little ones."}
-                </p>
-              </details>
+            <div className="pt-2 space-y-2">
 
               {product.specifications?.length > 0 && (
                 <div className="mt-8">
@@ -314,15 +324,15 @@ tracking-wide text-gray-600 pb-5 whitespace-pre-wrap font-medium"
 
               <div className="rounded-2xl md:rounded-[28px] border border-emerald-100 bg-gradient-to-br from-emerald-50 to-green-50 p-4 md:p-6 shadow-sm hover:shadow-lg transition-all">
                 <p className="text-[9px] md:text-[10px] uppercase tracking-[0.22em] text-emerald-600 font-black">
-                  Organic Fabric
+                  Premium Quality
                 </p>
 
-                <h3 className="mt-2 text-lg md:text-2xl font-black text-neutral-900">
-                  100% Cotton
+                <h3 className="mt-2 text-base md:text-xl font-extrabold text-neutral-900">
+                  Crafted Well
                 </h3>
 
                 <p className="mt-2 text-[11px] md:text-xs leading-5 text-neutral-600">
-                  Soft, breathable & gentle on baby's skin.
+                  Designed for comfort, durability and everyday wear.
                 </p>
               </div>
 
@@ -377,9 +387,6 @@ tracking-wide text-gray-600 pb-5 whitespace-pre-wrap font-medium"
                 </div>
               </div>
               <div className="pt-2">
-                <h3 className="mb-5 text-lg font-black tracking-tight">
-                  Write a Review
-                </h3>
 
                 <ReviewForm productId={product.id} />
               </div>
@@ -505,7 +512,7 @@ pb-1"
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-4">
               {related.map((p) => (
                 <ProductCard key={p.id} product={p} />
               ))}

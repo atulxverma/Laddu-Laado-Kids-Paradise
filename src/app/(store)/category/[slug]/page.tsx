@@ -27,7 +27,11 @@ export default async function CategoryPage({
             isArchived: false,
         },
         include: {
-            images: true,
+            images: {
+                orderBy: {
+                    createdAt: "asc",
+                },
+            },
             category: true,
             reviews: true,
         },
@@ -98,7 +102,7 @@ export default async function CategoryPage({
                     <section>
 
 
-                        <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4 lg:gap-6">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                             {products.map((product) => (
                                 <div key={product.id} className="min-w-0 transition-transform duration-300 hover:-translate-y-1">
                                     <ProductCard product={product} />

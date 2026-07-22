@@ -5,7 +5,9 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Search, X, TrendingUp } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { getSearchSuggestions } from "@/lib/actions";
+import {
+  getSearchSuggestions,
+} from "@/lib/actions";
 
 const genderFilters = [
   "Newborn",
@@ -15,13 +17,6 @@ const genderFilters = [
 
 const allFilters = ["All", ...genderFilters]
 
-const trendingSearches = [
-  "Party Wear",
-  "Ethnic Wear",
-  "Frocks",
-  "Newborn Set",
-  "Winter Wear",
-]
 
 export default function SearchModal({
   open,
@@ -36,6 +31,26 @@ export default function SearchModal({
   const router = useRouter()
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const loadCategories = async () => {
+      try {
+        const res = await fetch("/api/search-data");
+
+        const data = await res.json();
+
+        setCategories(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    loadCategories();
+
+  }, [open]);
 
   useEffect(() => {
     if (open) {
@@ -86,7 +101,10 @@ export default function SearchModal({
     const timer = setTimeout(async () => {
       setLoading(true);
 
-      const data = await getSearchSuggestions(query);
+      const data = await getSearchSuggestions(
+        query,
+        activeFilter
+      );
 
       setSuggestions(data);
 
@@ -94,7 +112,8 @@ export default function SearchModal({
     }, 250);
 
     return () => clearTimeout(timer);
-  }, [query]);
+
+  }, [query, activeFilter]);
 
   return (
     <AnimatePresence>
@@ -215,9 +234,19 @@ export default function SearchModal({
                               {product.name}
                             </p>
 
-                            <p className="text-sm text-neutral-500">
-                              ₹{product.price}
-                            </p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-sm font-semibold">
+                                ₹{product.price}
+                              </span>
+
+                              <span className="text-xs text-neutral-400">
+                                •
+                              </span>
+
+                              <span className="text-xs text-neutral-500">
+                                {product.category?.name}
+                              </span>
+                            </div>
 
                           </div>
 
@@ -228,9 +257,19 @@ export default function SearchModal({
                     {!loading && suggestions.length === 0 && (
                       <button
                         onClick={() => handleSearch(query)}
-                        className="w-full text-left p-4 rounded-xl hover:bg-neutral-100"
+                        className="w-full rounded-xl border border-neutral-200 p-4 text-left hover:bg-neutral-100"
                       >
-                        Search for "<b>{query}</b>"
+                        <p className="font-semibold">
+                          Search "{query}"
+                        </p>
+
+                        <p className="text-xs text-neutral-500 mt-1">
+                          Products • Categories • {activeFilter}
+                        </p>
+
+                        <p className="text-xs text-neutral-500 mt-1">
+                          Search products & categories
+                        </p>
                       </button>
                     )}
 
@@ -238,58 +277,46 @@ export default function SearchModal({
                 ) : (
                   <div className="space-y-5">
                     {/* Trending */}
+
                     <div>
                       <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-3 flex items-center gap-1.5">
                         <TrendingUp size={10} />
-                        Popular Searches
+                        Popular Categories
                       </p>
-                      <div className="space-y-0.5">
-                        {trendingSearches.map((term, i) => (
-                          <motion.button
-                            key={term}
+
+                      <div className="space-y-0.5 max-h-64 overflow-y-auto pr-1">
+                        {categories.map((category, i) => (
+                          <motion.div
+                            key={category.id}
                             initial={{ opacity: 0, x: -8 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: i * 0.04 }}
-                            onClick={() => handleSearch(term)}
-                            className="w-full flex items-center gap-4 px-3 py-2.5 rounded-xl hover:bg-neutral-50 hover:translate-x-1 hover:bg-neutral-100 transition-colors text-left group"
                           >
-                            <div className="h-7 w-7 bg-gray-100 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-gray-200 transition-colors">
-                              <TrendingUp size={11} className="text-gray-400" />
-                            </div>
-                            <span className="text-sm text-gray-700 font-medium">
-                              {term}
-                            </span>
-                            <span className="ml-auto text-gray-300 group-hover:text-gray-500 transition-colors text-xs">
-                              →
-                            </span>
-                          </motion.button>
+                            <Link
+                              href={`/category/${category.slug}`}
+                              onClick={onClose}
+                              className="w-full flex items-center gap-4 px-3 py-2.5 rounded-xl hover:bg-neutral-50 hover:translate-x-1 transition-all text-left group"
+                            >
+                              <div className="h-7 w-7 bg-gray-100 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-gray-200 transition-colors">
+                                <TrendingUp
+                                  size={11}
+                                  className="text-gray-400"
+                                />
+                              </div>
+
+                              <span className="text-sm text-gray-700 font-medium">
+                                {category.name}
+                              </span>
+
+                              <span className="ml-auto text-gray-300 group-hover:text-gray-500 text-xs">
+                                →
+                              </span>
+                            </Link>
+                          </motion.div>
                         ))}
                       </div>
                     </div>
 
-                    {/* Categories */}
-                    <div>
-                      <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-3">
-                        Explore Collections
-                      </p>
-                      <div className="grid grid-cols-2 gap-2">
-                        {genderFilters.map((cat) => (
-                          <Link
-                            key={cat}
-                            href={`/shop?gender=${cat}`}
-                            onClick={onClose}
-                            className="flex items-center gap-2 p-4 rounded-xl border border-neutral-200 hover:border-gray-200 hover:bg-neutral-50 hover:translate-x-1 hover:bg-neutral-100 transition-all group"
-                          >
-                            <span className="text-sm font-medium text-gray-700 group-hover:text-black transition-colors">
-                              {cat}
-                            </span>
-                            <span className="ml-auto text-gray-300 group-hover:text-gray-500 text-xs">
-                              →
-                            </span>
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
                   </div>
                 )}
               </div>

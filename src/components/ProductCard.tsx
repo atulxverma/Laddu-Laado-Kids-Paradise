@@ -44,13 +44,21 @@ const stockBadge =
         text: "In Stock",
         className: "text-emerald-600",
       }
-
   return (
     <div className="group relative flex flex-col">
       <Link href={`/product/${product.id}`} className="flex flex-col h-full">
 
         {/* Image Container — Amazon/Flipkart style: taller on mobile */}
-        <div className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden bg-gray-100 shadow-sm group-hover:shadow-lg transition-all duration-300">
+        <div
+  className="
+  relative
+  w-full
+  aspect-[4/5]
+  overflow-hidden
+  rounded-2xl
+  bg-neutral-100
+  "
+>
           {product.images?.[0]?.url ? (
             <img
               loading="eager"
@@ -59,7 +67,7 @@ const stockBadge =
                 e.currentTarget.src = "/placeholder.png";
               }}
               alt={product.name}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
@@ -89,7 +97,7 @@ const stockBadge =
         </div>
 
         {/* Product Info */}
-        <div className="mt-2 md:mt-3 flex flex-col gap-0.5 flex-1">
+        <div className="mt-2 flex flex-col gap-1 flex-1">
           {/* Category */}
           <p className="text-[10px] md:text-[10px] font-bold uppercase tracking-widest text-gray-400 truncate">
             {product.category?.name}

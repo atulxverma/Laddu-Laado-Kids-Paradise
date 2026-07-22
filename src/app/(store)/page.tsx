@@ -23,7 +23,11 @@ export default async function HomePage() {
         },
         include: {
           category: true,
-          images: true,
+          images: {
+  orderBy: {
+    createdAt: "asc",
+  },
+},
           reviews: true,
           variants: true,
         },
@@ -36,7 +40,11 @@ export default async function HomePage() {
         },
         include: {
           category: true,
-          images: true,
+          images: {
+  orderBy: {
+    createdAt: "asc",
+  },
+},
           reviews: true,
           variants: true,
         },
@@ -51,7 +59,11 @@ export default async function HomePage() {
         },
         include: {
           category: true,
-          images: true,
+          images: {
+  orderBy: {
+    createdAt: "asc",
+  },
+},
           reviews: true,
           variants: true,
         },
@@ -135,7 +147,11 @@ export default async function HomePage() {
   const [latestProducts, categories, banners, reviews] =
     await Promise.all([
       db.product.findMany({
-        include: { category: true, images: true, reviews: true, variants: true },
+        include: { category: true, images: {
+  orderBy: {
+    createdAt: "asc",
+  },
+}, reviews: true, variants: true },
         take: 8,
         orderBy: { createdAt: "desc" }
       }),
@@ -170,7 +186,11 @@ export default async function HomePage() {
         include: {
           product: {
             include: {
-              images: true,
+              images: {
+  orderBy: {
+    createdAt: "asc",
+  },
+},
             },
           },
         },
@@ -190,7 +210,11 @@ export default async function HomePage() {
         },
         include: {
           category: true,
-          images: true,
+          images: {
+  orderBy: {
+    createdAt: "asc",
+  },
+},
           reviews: true,
           variants: true,
         },
@@ -205,7 +229,11 @@ export default async function HomePage() {
         },
         include: {
           category: true,
-          images: true,
+          images: {
+  orderBy: {
+    createdAt: "asc",
+  },
+},
           reviews: true,
           variants: true,
         },
@@ -220,7 +248,11 @@ export default async function HomePage() {
         },
         include: {
           category: true,
-          images: true,
+          images: {
+            orderBy: {
+              createdAt: "asc",
+            },
+          },
           reviews: true,
           variants: true,
         },

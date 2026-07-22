@@ -8,14 +8,22 @@ export default async function DashboardPage() {
     // ✅ Fixed: added images to include
     db.product.findMany({
       where: { stock: { lte: 5 } },
-      include: { images: true },
+      include: { images: {
+  orderBy: {
+    createdAt: "asc",
+  },
+} },
       take: 5
     }),
     db.order.findMany({
       include: {
         orderItems: {
           include: {
-            product: { include: { images: true } }
+            product: { include: { images: {
+  orderBy: {
+    createdAt: "asc",
+  },
+} } }
           }
         }
       },

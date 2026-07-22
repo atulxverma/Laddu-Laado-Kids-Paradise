@@ -529,7 +529,11 @@ export async function createOrder(data: {
           include: {
             product: {
               include: {
-                images: true,
+                images: {
+  orderBy: {
+    createdAt: "asc",
+  },
+},
               },
             },
           },
@@ -722,29 +726,69 @@ export async function createProduct(data: any) {
   }
 }
 
-export async function getSearchSuggestions(query: string) {
+export async function getSearchSuggestions(
+  query: string,
+  filter: string = "All"
+) {
   if (!query.trim()) return [];
 
-  return await db.product.findMany({
-    where: {
-      isArchived: false,
-      name: {
-        contains: query,
-        mode: "insensitive",
+  const search = query.trim();
+
+  const where: any = {
+    isArchived: false,
+
+    OR: [
+      {
+        name: {
+          contains: search,
+          mode: "insensitive",
+        },
       },
-    },
+      {
+        category: {
+          name: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+      },
+    ],
+  };
 
-    take: 6,
+  if (filter === "Boy") {
+    where.gender = "Boy";
+  }
 
-    orderBy: {
-      createdAt: "desc",
-    },
+  if (filter === "Girl") {
+    where.gender = "Girl";
+  }
+
+  if (filter === "Newborn") {
+    where.age = "0-1Y";
+  }
+
+  return await db.product.findMany({
+    where,
 
     include: {
       images: {
         take: 1,
       },
+
+      category: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+      },
     },
+
+    orderBy: {
+      createdAt: "desc",
+    },
+
+    take: 8,
   });
 }
 
@@ -1451,11 +1495,36 @@ export async function seedCoreCategories() {
 export async function getNavCategories() {
   try {
     const categories = await db.category.findMany({
-      orderBy: { order: "asc" },
-      include: { _count: { select: { products: true } } },
+      orderBy: {
+        name: "asc",
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+      },
     });
     return categories;
   } catch (e) {
+    return [];
+  }
+}
+
+export async function getSearchData() {
+  try {
+    const categories = await db.category.findMany({
+      orderBy: {
+        name: "asc",
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+      },
+    });
+
+    return categories;
+  } catch {
     return [];
   }
 }
@@ -1613,7 +1682,11 @@ export async function getDbCart() {
       include: {
         product: {
           include: {
-            images: true,
+            images: {
+  orderBy: {
+    createdAt: "asc",
+  },
+},
             category: true,
             reviews: true,
             variants: true,

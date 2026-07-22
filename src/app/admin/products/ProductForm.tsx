@@ -44,7 +44,19 @@ export default function ProductForm({
   const router = useRouter()
   const isEdit = Boolean(product)
   const [open, setOpen] = useState(!isEdit)
-  const [images, setImages] = useState<string[]>(product?.images?.map((img: any) => img.url) || [])
+  const [images, setImages] = useState<
+    {
+      id: string
+      url: string
+      order: number
+    }[]
+  >(
+    product?.images?.map((img: any, index: number) => ({
+      id: img.id ?? crypto.randomUUID(),
+      url: img.url,
+      order: index,
+    })) || []
+  )
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({
     name: product?.name || "",
@@ -110,14 +122,18 @@ export default function ProductForm({
         variants,
         description: form.description,
         specifications,
-        images,
+        images: images
+          .sort((a, b) => a.order - b.order)
+          .map((i) => i.url),
       })
       : await createProduct({
         ...form,
         variants,
         description: form.description,
         specifications,
-        images,
+        images: images
+          .sort((a, b) => a.order - b.order)
+          .map((i) => i.url),
       })
 
     if (response.success) {
@@ -143,19 +159,32 @@ export default function ProductForm({
         <p className="text-[10px] font-black uppercase text-gray-400">Media</p>
 
         <div className="flex flex-wrap gap-3">
-          {images.map((url, index) => (
-            <div key={url} className="relative h-24 w-20 overflow-hidden rounded-2xl border border-gray-100 shadow-sm">
-              <img src={url} className="h-full w-full object-cover" alt="" />
+          {images.map((image, index) => (
+            <div key={image.id} className="relative h-24 w-20 overflow-hidden rounded-2xl border border-gray-100 shadow-sm">
+              <img src={image.url} className="h-full w-full object-cover" alt="" />
               <button type="button" onClick={() => setImages((currentImages) => currentImages.filter((_, imageIndex) => imageIndex !== index))} aria-label="Remove image" className="absolute right-1 top-1 rounded-full bg-red-500 p-1 text-white shadow-lg">
                 <X size={10} />
               </button>
             </div>
           ))}
 
-          <CldUploadWidget uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET} onSuccess={(result: any) => {
-            const imageUrl = result?.info?.secure_url
-            if (imageUrl) setImages((currentImages) => [...currentImages, imageUrl])
-          }}>
+          <CldUploadWidget
+            uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
+            onSuccess={(result: any) => {
+              const imageUrl = result?.info?.secure_url
+
+              if (!imageUrl) return
+
+              setImages((currentImages) => [
+                ...currentImages,
+                {
+                  id: crypto.randomUUID(),
+                  url: imageUrl,
+                  order: currentImages.length,
+                },
+              ])
+            }}
+          >
             {({ open: openUpload }) => (
               <button type="button" onClick={() => openUpload()} className="flex h-24 w-20 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-100 text-gray-300 transition-all hover:border-black hover:text-black">
                 <ImagePlus size={20} />
@@ -192,137 +221,131 @@ export default function ProductForm({
 
 
       <div className="space-y-4">
-  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
-    Collections
-  </p>
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+          Collections
+        </p>
 
-  <div className="space-y-3">
+        <div className="space-y-3">
 
-    {/* New Arrival */}
-    <button
-      type="button"
-      onClick={() =>
-        setForm({
-          ...form,
-          isNewArrival: !form.isNewArrival,
-        })
-      }
-      className="w-full rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-black hover:shadow-sm"
-    >
-      <div className="flex items-center justify-between">
+          {/* New Arrival */}
+          <button
+            type="button"
+            onClick={() =>
+              setForm({
+                ...form,
+                isNewArrival: !form.isNewArrival,
+              })
+            }
+            className="w-full rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-black hover:shadow-sm"
+          >
+            <div className="flex items-center justify-between">
 
-        <div className="flex items-center gap-3">
-          <div className="rounded-xl bg-neutral-100 p-2">
-            <Sparkles size={18} />
-          </div>
+              <div className="flex items-center gap-3">
+                <div className="rounded-xl bg-neutral-100 p-2">
+                  <Sparkles size={18} />
+                </div>
 
-          <div className="text-left">
-            <h4 className="font-bold">New Arrival</h4>
-            <p className="text-xs text-gray-500">
-              Show in New Arrival section
-            </p>
-          </div>
+                <div className="text-left">
+                  <h4 className="font-bold">New Arrival</h4>
+                  <p className="text-xs text-gray-500">
+                    Show in New Arrival section
+                  </p>
+                </div>
+              </div>
+
+              <div
+                className={`relative h-7 w-12 rounded-full transition ${form.isNewArrival ? "bg-black" : "bg-gray-300"
+                  }`}
+              >
+                <div
+                  className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-all ${form.isNewArrival ? "left-6" : "left-1"
+                    }`}
+                />
+              </div>
+
+            </div>
+          </button>
+
+          {/* Trending */}
+          <button
+            type="button"
+            onClick={() =>
+              setForm({
+                ...form,
+                isTrending: !form.isTrending,
+              })
+            }
+            className="w-full rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-black hover:shadow-sm"
+          >
+            <div className="flex items-center justify-between">
+
+              <div className="flex items-center gap-3">
+                <div className="rounded-xl bg-neutral-100 p-2">
+                  <Flame size={18} />
+                </div>
+
+                <div className="text-left">
+                  <h4 className="font-bold">Trending</h4>
+                  <p className="text-xs text-gray-500">
+                    Show in Trending Collection
+                  </p>
+                </div>
+              </div>
+
+              <div
+                className={`relative h-7 w-12 rounded-full transition ${form.isTrending ? "bg-black" : "bg-gray-300"
+                  }`}
+              >
+                <div
+                  className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-all ${form.isTrending ? "left-6" : "left-1"
+                    }`}
+                />
+              </div>
+
+            </div>
+          </button>
+
+          {/* Exclusive */}
+          <button
+            type="button"
+            onClick={() =>
+              setForm({
+                ...form,
+                isExclusive: !form.isExclusive,
+              })
+            }
+            className="w-full rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-black hover:shadow-sm"
+          >
+            <div className="flex items-center justify-between">
+
+              <div className="flex items-center gap-3">
+                <div className="rounded-xl bg-neutral-100 p-2">
+                  <Crown size={18} />
+                </div>
+
+                <div className="text-left">
+                  <h4 className="font-bold">Exclusive</h4>
+                  <p className="text-xs text-gray-500">
+                    Premium Collection
+                  </p>
+                </div>
+              </div>
+
+              <div
+                className={`relative h-7 w-12 rounded-full transition ${form.isExclusive ? "bg-black" : "bg-gray-300"
+                  }`}
+              >
+                <div
+                  className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-all ${form.isExclusive ? "left-6" : "left-1"
+                    }`}
+                />
+              </div>
+
+            </div>
+          </button>
+
         </div>
-
-        <div
-          className={`relative h-7 w-12 rounded-full transition ${
-            form.isNewArrival ? "bg-black" : "bg-gray-300"
-          }`}
-        >
-          <div
-            className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-all ${
-              form.isNewArrival ? "left-6" : "left-1"
-            }`}
-          />
-        </div>
-
       </div>
-    </button>
-
-    {/* Trending */}
-    <button
-      type="button"
-      onClick={() =>
-        setForm({
-          ...form,
-          isTrending: !form.isTrending,
-        })
-      }
-      className="w-full rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-black hover:shadow-sm"
-    >
-      <div className="flex items-center justify-between">
-
-        <div className="flex items-center gap-3">
-          <div className="rounded-xl bg-neutral-100 p-2">
-            <Flame size={18} />
-          </div>
-
-          <div className="text-left">
-            <h4 className="font-bold">Trending</h4>
-            <p className="text-xs text-gray-500">
-              Show in Trending Collection
-            </p>
-          </div>
-        </div>
-
-        <div
-          className={`relative h-7 w-12 rounded-full transition ${
-            form.isTrending ? "bg-black" : "bg-gray-300"
-          }`}
-        >
-          <div
-            className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-all ${
-              form.isTrending ? "left-6" : "left-1"
-            }`}
-          />
-        </div>
-
-      </div>
-    </button>
-
-    {/* Exclusive */}
-    <button
-      type="button"
-      onClick={() =>
-        setForm({
-          ...form,
-          isExclusive: !form.isExclusive,
-        })
-      }
-      className="w-full rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-black hover:shadow-sm"
-    >
-      <div className="flex items-center justify-between">
-
-        <div className="flex items-center gap-3">
-          <div className="rounded-xl bg-neutral-100 p-2">
-            <Crown size={18} />
-          </div>
-
-          <div className="text-left">
-            <h4 className="font-bold">Exclusive</h4>
-            <p className="text-xs text-gray-500">
-              Premium Collection
-            </p>
-          </div>
-        </div>
-
-        <div
-          className={`relative h-7 w-12 rounded-full transition ${
-            form.isExclusive ? "bg-black" : "bg-gray-300"
-          }`}
-        >
-          <div
-            className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-all ${
-              form.isExclusive ? "left-6" : "left-1"
-            }`}
-          />
-        </div>
-
-      </div>
-    </button>
-
-  </div>
-</div>
 
       <div className="space-y-3">
         <p className="text-[10px] font-black uppercase text-gray-400">Category</p>

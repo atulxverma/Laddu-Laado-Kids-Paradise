@@ -17,7 +17,17 @@ export default async function MyOrdersPage() {
     where: { clerkId: user.id },
     include: {
       orderItems: {
-        include: { product: { include: { images: true } } }
+        include: {
+          product: {
+            include: {
+              images: {
+                orderBy: {
+                  createdAt: "asc",
+                },
+              }
+            }
+          }
+        }
       }
     },
     orderBy: { createdAt: "desc" }

@@ -4,6 +4,7 @@ import { Heart } from "lucide-react"
 import { useCart } from "@/hooks/use-cart"
 import { useWishlist } from "@/hooks/use-wishlist"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 
 export default function AddToCartButton({ product }: { product: any }) {
   const cart = useCart()
@@ -12,6 +13,7 @@ export default function AddToCartButton({ product }: { product: any }) {
   const [added, setAdded] = useState(false)
   const [selectedSize, setSelectedSize] = useState("")
   const [mounted, setMounted] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
     setMounted(true)
@@ -21,19 +23,19 @@ export default function AddToCartButton({ product }: { product: any }) {
 
   const variants = product.variants || []
 
-  
+
 
   const selectedVariant = variants.find(
-  (v: any) => v.size === selectedSize
-)
+    (v: any) => v.size === selectedSize
+  )
 
-const stock = selectedVariant?.stock ?? 0
+  const stock = selectedVariant?.stock ?? 0
 
-const isOutOfStock = variants.every(
-  (v: any) => v.stock === 0
-)
+  const isOutOfStock = variants.every(
+    (v: any) => v.stock === 0
+  )
 
-const isLowStock = stock > 0 && stock <= 5
+  const isLowStock = stock > 0 && stock <= 5
 
   const currentItem = cart.items.find(
     (item: any) =>
@@ -48,6 +50,7 @@ const isLowStock = stock > 0 && stock <= 5
   )
 
   const handleAdd = () => {
+    if (added) return
     if (!selectedSize) {
       alert("Please select a size.")
       return
@@ -79,6 +82,39 @@ const isLowStock = stock > 0 && stock <= 5
     setTimeout(() => {
       setAdded(false)
     }, 2000)
+  }
+
+  const handleBuyNow = () => {
+    if (!selectedSize) {
+      alert("Please select a size.")
+      return
+    }
+
+    if (isOutOfStock) {
+      alert("This product is currently out of stock.")
+      return
+    }
+
+    const alreadyInCart = cart.items.some(
+      (item: any) =>
+        item.id === product.id &&
+        item.size === selectedSize
+    )
+
+    if (!alreadyInCart) {
+      cart.addItem({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.images?.[0]?.url || "",
+        size: selectedSize,
+        color: product.color || "",
+        category: product.category?.name || "",
+        stock: selectedVariant?.stock ?? 0,
+      })
+    }
+
+    router.push("/checkout")
   }
 
   return (
@@ -120,11 +156,10 @@ const isLowStock = stock > 0 && stock <= 5
                   ? "bg-black text-white border-black"
                   : "bg-white border-gray-200 hover:border-black"
                 }
-              ${
-  variant.stock === 0
-    ? "opacity-40 cursor-not-allowed"
-    : ""
-}
+              ${variant.stock === 0
+                  ? "opacity-40 cursor-not-allowed"
+                  : ""
+                }
               `}
             >
               {variant.size}
@@ -142,41 +177,125 @@ const isLowStock = stock > 0 && stock <= 5
 
       {/* Buttons */}
 
-      <div className="flex gap-3 rounded-3xl border border-gray-200 bg-white p-2 shadow-lg">
+      <div className="flex flex-col gap-4">
 
-        <button
-          type="button"
-          onClick={handleAdd}
-          disabled={!selectedSize || isOutOfStock}
-          className="flex-1 h-14 rounded-2xl bg-black text-white text-[11px] md:text-xs font-black uppercase tracking-[0.18em] disabled:bg-gray-300 disabled:cursor-not-allowed transition-all"
-        >
-          {isOutOfStock
-            ? "OUT OF STOCK"
-            : !selectedSize
-              ? "SELECT SIZE"
-              : added
-                ? "ADDED ✓"
-                : "ADD TO CART"}
-        </button>
+        {/* Buttons */}
 
-        <button
-          type="button"
-          onClick={() => toggleItem(product)}
-          className={`h-14 w-14 rounded-2xl border flex items-center justify-center transition-all
-          ${isLiked
-              ? "border-red-200 bg-red-50"
-              : "border-gray-200 hover:bg-black hover:text-white"
-            }`}
-        >
-          <Heart
-            size={22}
-            className={
-              isLiked
-                ? "fill-red-500 text-red-500"
-                : "text-gray-500"
-            }
-          />
-        </button>
+        <div className="flex flex-col gap-4">
+
+          <div className="grid grid-cols-[1fr_1fr_48px]
+sm:grid-cols-[1fr_1fr_56px]
+md:grid-cols-[1fr_1fr_60px] gap-3">
+
+            {/* Add To Cart */}
+
+            <button
+              type="button"
+              onClick={handleAdd}
+              disabled={!selectedSize || isOutOfStock || added}
+              className="
+      h-14
+      rounded-full
+      border
+      border-neutral-900
+      bg-white
+      text-neutral-900
+      text-[11px]
+sm:text-[13px]
+md:text-sm
+font-semibold
+tracking-[0.12em]
+uppercase
+      transition-all
+      duration-300
+      hover:-translate-y-0.5
+      hover:shadow-lg
+      active:translate-y-0
+      disabled:border-neutral-300
+      disabled:bg-neutral-100
+      disabled:text-neutral-400
+      disabled:shadow-none
+      disabled:cursor-not-allowed
+      "
+            >
+              {isOutOfStock
+                ? "OUT OF STOCK"
+                : !selectedSize
+                  ? "SELECT SIZE"
+                  : added
+                    ? "✓ ADDED"
+                    : "ADD TO CART"}
+            </button>
+
+            {/* Buy Now */}
+
+            <button
+              type="button"
+              onClick={handleBuyNow}
+              disabled={!selectedSize || isOutOfStock}
+              className="
+      h-14
+      rounded-full
+      bg-neutral-900
+      text-white
+      text-[11px]
+sm:text-[13px]
+md:text-sm
+font-semibold
+tracking-[0.12em]
+uppercase
+      transition-all
+      duration-300
+      hover:-translate-y-0.5
+      hover:bg-neutral-800
+      hover:shadow-xl
+      active:translate-y-0
+      disabled:bg-neutral-300
+      disabled:text-neutral-100
+      disabled:shadow-none
+      disabled:cursor-not-allowed
+      "
+            >
+              BUY NOW
+            </button>
+
+            {/* Wishlist */}
+
+            <button
+              type="button"
+              onClick={() => toggleItem(product)}
+              className={`
+      h-12
+      w-12
+      sm:h-14 sm:w-14
+      rounded-full
+      border
+      flex
+      items-center
+      justify-center
+      transition-all
+      duration-300
+      hover:-translate-y-0.5
+      hover:shadow-lg
+      ${isLiked
+                  ? "border-red-200 bg-red-50"
+                  : "border-neutral-300 bg-white"
+                }
+      `}
+            >
+              <Heart
+                size={20}
+                className={
+                  isLiked
+                    ? "fill-red-500 text-red-500"
+                    : "text-neutral-700"
+                }
+              />
+            </button>
+
+          </div>
+
+        </div>
 
       </div>
     </div>

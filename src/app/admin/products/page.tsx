@@ -9,7 +9,11 @@ export default async function ProductsPage() {
   const products = await db.product.findMany({
   include: {
     category: true,
-    images: true,
+    images: {
+  orderBy: {
+    createdAt: "asc",
+  },
+},
     reviews: true,
     variants: true,
   },
