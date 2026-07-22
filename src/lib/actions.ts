@@ -33,14 +33,16 @@ async function checkAdmin() {
   const user = await currentUser();
 
   const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-
-  await sendAdminMail(
-    "🚨 Unauthorized Access Attempt",
-    `
+  if (!user || user.primaryEmailAddress?.emailAddress !== adminEmail) {
+    await sendAdminMail(
+      "🚨 Unauthorized Access Attempt",
+      `
       <p><b>User:</b> ${user?.fullName || "Unknown User"}</p>
       <p><b>Email:</b> ${user?.primaryEmailAddress?.emailAddress || "Unknown Email"}</p>
     `,
-  );
+    );
+    throw new Error("Unauthorized");
+  }
 
   if (!user || user.primaryEmailAddress?.emailAddress !== adminEmail) {
     throw new Error("Unauthorized: Access Denied");
@@ -530,10 +532,10 @@ export async function createOrder(data: {
             product: {
               include: {
                 images: {
-  orderBy: {
-    createdAt: "asc",
-  },
-},
+                  orderBy: {
+                    createdAt: "asc",
+                  },
+                },
               },
             },
           },
@@ -728,7 +730,7 @@ export async function createProduct(data: any) {
 
 export async function getSearchSuggestions(
   query: string,
-  filter: string = "All"
+  filter: string = "All",
 ) {
   if (!query.trim()) return [];
 
@@ -1683,10 +1685,10 @@ export async function getDbCart() {
         product: {
           include: {
             images: {
-  orderBy: {
-    createdAt: "asc",
-  },
-},
+              orderBy: {
+                createdAt: "asc",
+              },
+            },
             category: true,
             reviews: true,
             variants: true,
