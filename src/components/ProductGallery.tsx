@@ -479,29 +479,34 @@ border-gray-200
         {safeImages.length > 1 && (
           <div className="flex justify-center gap-3 overflow-x-auto scroll-smooth py-2 px-1 no-scrollbar">
             {safeImages.map((image, index) => (
-              <button
-                key={image.id ?? image.url ?? index}
-                className={`
-    h-20
-    w-16
-    overflow-hidden
-    rounded-xl
-    border
-    transition-all
-    ${selectedIndex === index
-                    ? "border-black"
-                    : "border-gray-200 hover:border-gray-400"
-                  }
-  `}
-              >
-                <img
-                  src={image.url}
-                  alt={`Product ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
-              </button>
-
-            ))}
+  <button
+    key={image.id ?? image.url ?? index}
+    type="button"
+    onClick={() => {
+      setSelectedIndex(index)
+      setZoom(1)
+    }}
+    className={`
+      h-20
+      w-16
+      overflow-hidden
+      rounded-xl
+      border
+      transition-all
+      ${
+        selectedIndex === index
+          ? "border-black ring-2 ring-black"
+          : "border-gray-200 hover:border-gray-400"
+      }
+    `}
+  >
+    <img
+      src={image.url}
+      alt={`Product ${index + 1}`}
+      className="w-full h-full object-cover"
+    />
+  </button>
+))}
           </div>
         )}
       </div>
