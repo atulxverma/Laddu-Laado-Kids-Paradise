@@ -80,7 +80,10 @@ export default function Navbar() {
   const cartCount = cart.items.length
 
   const isAdmin =
-  user?.primaryEmailAddress?.emailAddress === process.env.NEXT_PUBLIC_ADMIN_EMAIL
+  !!user &&
+  !!process.env.NEXT_PUBLIC_ADMIN_EMAIL &&
+  user.primaryEmailAddress?.emailAddress?.trim().toLowerCase() ===
+    process.env.NEXT_PUBLIC_ADMIN_EMAIL.trim().toLowerCase();
 
   useEffect(() => {
     if (!isLoaded) return
