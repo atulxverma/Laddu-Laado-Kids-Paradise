@@ -32,7 +32,7 @@ const razorpay = new Razorpay({
 async function checkAdmin() {
   const user = await currentUser();
 
-  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
   if (!user || user.primaryEmailAddress?.emailAddress !== adminEmail) {
     await sendAdminMail(
       "🚨 Unauthorized Access Attempt",
@@ -547,7 +547,7 @@ export async function createOrder(data: {
       throw new Error("Order not found.");
     }
 
-    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
     const orderIdShort = order.id.slice(-6).toUpperCase();
 

@@ -7,7 +7,7 @@ export async function sendAdminMail(
   try {
     await resend.emails.send({
       from: "Laddoo Laado <onboarding@resend.dev>",
-      to: process.env.ADMIN_EMAIL!,
+      to: process.env.NEXT_PUBLIC_ADMIN_EMAIL!,
       subject,
       html,
     });

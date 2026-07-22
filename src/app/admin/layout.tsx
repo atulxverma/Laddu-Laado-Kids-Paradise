@@ -9,7 +9,7 @@ export default async function AdminLayout({
 }) {
   const user = await currentUser()
 
-  if (user?.primaryEmailAddress?.emailAddress !== process.env.ADMIN_EMAIL) {
+  if (user?.primaryEmailAddress?.emailAddress !== process.env.NEXT_PUBLIC_ADMIN_EMAIL) {
     redirect("/")
   }
 
