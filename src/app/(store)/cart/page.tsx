@@ -50,8 +50,8 @@ export default function CartPage() {
   const itemCount = validItems.reduce((sum, item) => sum + item.quantity, 0)
   const amountAway = Math.max(freeDeliveryThreshold - subtotal, 0)
   const shippingProgress = Math.min((subtotal / freeDeliveryThreshold) * 100, 100)
-  const deliveryCharge = subtotal >= 999 ? 0 : 79
-  const total = subtotal + deliveryCharge
+  const shippingCharge = subtotal >= 999 ? 0 : 79
+const total = subtotal + shippingCharge
 
   if (!mounted) return null
 
@@ -135,7 +135,7 @@ export default function CartPage() {
                   <h3 className="mt-1 text-lg font-black">
                     {subtotal >= freeDeliveryThreshold
                       ? "Unlocked 🎉"
-                      : `₹${amountAway.toLocaleString("en-IN")} Away`}
+                      : `Add ₹${amountAway.toLocaleString("en-IN")} more for free delivery`}
                   </h3>
 
                 </div>
@@ -338,9 +338,9 @@ export default function CartPage() {
                   </div>
 
                   <div className="flex justify-between text-sm">
-                    <span className="text-neutral-500">Delivery</span>
+                    <span className="text-neutral-500">Shipping Charges</span>
 
-                    {deliveryCharge === 0 ? (
+                    {shippingCharge === 0 ? (
                       <span className="font-bold text-emerald-600">
                         FREE
                       </span>
@@ -352,7 +352,7 @@ export default function CartPage() {
 
                   </div>
 
-                  {deliveryCharge !== 0 && (
+                  {shippingCharge !== 0 && (
 
                     <p className="text-[11px] text-neutral-500">
 
@@ -399,10 +399,10 @@ export default function CartPage() {
 
               </div>
 
-              {deliveryCharge === 0 && (
+              {shippingCharge === 0 && (
                 <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-3 mt-6 text-center">
                   <p className="text-xs font-bold text-emerald-700">
-                    🎉 Congratulations! You unlocked FREE Delivery.
+                    🎉 Congratulations! You unlocked FREE Shipping.
                   </p>
                 </div>
               )}

@@ -26,17 +26,20 @@ export default function CheckoutPage() {
     0
   )
 
-  const deliveryCharge = subtotal >= 999 ? 0 : 79
+  const shippingCharge = subtotal >= 999 ? 0 : 79;
 
-  const codCharge = paymentMethod === "COD" ? 49 : 0;
+  const deliveryCharge =
+    paymentMethod === "COD" ? 79 : 0;
 
   const total =
     subtotal +
-    deliveryCharge +
-    codCharge;
+    shippingCharge +
+    deliveryCharge;
 
   const [loading, setLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [successfulPaymentMethod, setSuccessfulPaymentMethod] =
+    useState<"ONLINE" | "COD" | null>(null);
   const [pincodeLoading, setPincodeLoading] = useState(false)
   const [locating, setLocating] = useState(false)
 
@@ -113,10 +116,32 @@ export default function CheckoutPage() {
     if (!user) return
     setLoading(true)
 
-    if (!form.houseDetails.trim() || !form.city || !form.state || !form.pincode) {
-      alert("Please complete your address")
-      setLoading(false)
-      return
+    if (form.phone.length !== 10) {
+      alert("Please enter a valid 10-digit phone number.");
+      document.querySelector<HTMLInputElement>('input[type="tel"]')?.focus();
+      setLoading(false);
+      return;
+    }
+
+    if (!form.pincode) {
+      alert("Please enter your pincode.");
+      document.querySelector<HTMLInputElement>('input[placeholder="6 Digit PIN"]')?.focus();
+      setLoading(false);
+      return;
+    }
+
+    if (!form.city || !form.state) {
+      alert("Please enter a valid pincode to fetch your city and state.");
+      document.querySelector<HTMLInputElement>('input[placeholder="6 Digit PIN"]')?.focus();
+      setLoading(false);
+      return;
+    }
+
+    if (!form.houseDetails.trim()) {
+      alert("Please enter your complete delivery address.");
+      document.querySelector<HTMLTextAreaElement>("textarea")?.focus();
+      setLoading(false);
+      return;
     }
 
     if (form.phone.length !== 10) {
@@ -152,7 +177,7 @@ export default function CheckoutPage() {
             top: 0,
             behavior: "smooth",
           });
-
+          setSuccessfulPaymentMethod("COD");
           setIsSuccess(true);
           clearCart();
 
@@ -181,7 +206,7 @@ export default function CheckoutPage() {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: res.amount,
         currency: "INR",
-        name: "laddu LAADO",
+        name: "Laddoo Laado",
         description: "Premium Couture Order",
         order_id: res.orderId,
         handler: async function (response: any) {
@@ -204,7 +229,7 @@ export default function CheckoutPage() {
               top: 0,
               behavior: "smooth",
             });
-
+            setSuccessfulPaymentMethod("ONLINE");
             setIsSuccess(true);
             clearCart();
 
@@ -305,20 +330,33 @@ export default function CheckoutPage() {
           </div>
 
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-emerald-600">
-            PAYMENT SUCCESSFUL
+            {paymentMethod === "ONLINE"
+              ? "PAYMENT SUCCESSFUL"
+              : "ORDER PLACED"}
           </p>
 
           <h1 className="mt-4 text-4xl font-black tracking-tight text-zinc-900">
-            Order Confirmed 🎉
+            {paymentMethod === "ONLINE"
+              ? "Order Confirmed 🎉"
+              : "Order Placed 🎉"}
           </h1>
 
           <p className="mx-auto mt-5 max-w-sm text-sm leading-7 text-zinc-500">
-            Thank you for shopping with
-            <span className="font-semibold text-black">
-              {" "}Laddoo Laado
-            </span>.
-            <br />
-            Your order has been placed successfully and our team is preparing it for dispatch.
+            {paymentMethod === "ONLINE" ? (
+              <>
+                Thank you for shopping with
+                <span className="font-semibold text-black"> Laddoo Laado</span>.
+                <br />
+                Your payment has been received and your order is being prepared for dispatch.
+              </>
+            ) : (
+              <>
+                Thank you for shopping with
+                <span className="font-semibold text-black"> Laddoo Laado</span>.
+                <br />
+                Your Cash on Delivery order has been placed successfully and will be confirmed shortly.
+              </>
+            )}
           </p>
 
           <div className="mt-8 rounded-2xl border border-emerald-100 bg-emerald-50 p-5">
@@ -335,13 +373,25 @@ export default function CheckoutPage() {
 
           </div>
 
-          <button
-            onClick={() => router.push("/")}
-            className="mt-8 inline-flex h-14 items-center justify-center gap-2 rounded-2xl bg-black px-8 text-sm font-bold text-white transition hover:scale-[1.02]"
-          >
-            Continue Shopping
-            <ArrowRight size={18} />
-          </button>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+
+            <button
+              onClick={() => router.push("/orders")}
+              className="flex h-14 flex-1 items-center justify-center gap-2 rounded-2xl border border-black bg-white text-sm font-bold text-black transition hover:bg-neutral-100"
+            >
+              <PackageCheck size={18} />
+              Track Order
+            </button>
+
+            <button
+              onClick={() => router.push("/")}
+              className="flex h-14 flex-1 items-center justify-center gap-2 rounded-2xl bg-black text-sm font-bold text-white transition hover:scale-[1.02]"
+            >
+              Continue Shopping
+              <ArrowRight size={18} />
+            </button>
+
+          </div>
 
         </section>
       </main>
@@ -504,72 +554,34 @@ duration-300
                 <span className="rounded-full bg-neutral-100 text-neutral-700 px-3 py-1 text-xs font-bold">{validItems.length} {validItems.length === 1 ? "item" : "items"}</span>
               </div>
 
-              {total >= 999 ? (
+              <div className="mt-6 rounded-2xl border border-neutral-200 bg-neutral-50 p-5">
 
-                <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
+                <div className="flex items-center gap-3">
 
-                  <div className="flex items-center gap-3">
+                  <Truck
+                    size={22}
+                    className="text-black"
+                  />
 
-                    <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
-                      <CheckCircle2 size={18} className="text-emerald-600" />
-                    </div>
+                  <div>
 
-                    <div>
+                    <p className="text-sm font-bold text-black">
+                      Shipping Policy
+                    </p>
 
-                      <p className="text-sm font-black text-emerald-700">
-                        Free Delivery Unlocked 🎉
-                      </p>
+                    <ul className="mt-2 space-y-1 text-xs text-neutral-600">
 
-                      <p className="text-xs text-emerald-600 mt-1">
-                        Your order qualifies for complimentary shipping.
-                      </p>
+                      <li>• Free Shipping on orders above ₹999.</li>
 
-                    </div>
+                      <li>• Delivery Charges are included on Cash on Delivery(COD) .</li>
 
-                  </div>
-
-                  <div className="mt-4 h-2 rounded-full bg-emerald-200 overflow-hidden">
-                    <div className="h-full w-full bg-emerald-500 rounded-full" />
-                  </div>
-
-                </div>
-
-              ) : (
-
-                <div className="mt-6 rounded-2xl border border-orange-200 bg-orange-50 p-5">
-
-                  <div className="flex items-center justify-between">
-
-                    <div>
-
-                      <p className="text-sm font-black text-orange-700">
-                        Unlock Free Delivery
-                      </p>
-
-                      <p className="text-xs text-orange-600 mt-1">
-                        Add ₹{(999 - total).toLocaleString("en-IN")} more
-                      </p>
-
-                    </div>
-
-                    <Truck size={22} className="text-orange-500" />
-
-                  </div>
-
-                  <div className="mt-4 h-2 rounded-full bg-orange-200 overflow-hidden">
-
-                    <div
-                      className="h-full rounded-full bg-orange-500"
-                      style={{
-                        width: `${Math.min((total / 999) * 100, 100)}%`
-                      }}
-                    />
+                    </ul>
 
                   </div>
 
                 </div>
 
-              )}
+              </div>
 
               <div className="my-6 max-h-[310px] space-y-4 overflow-y-auto pr-1">
 
@@ -636,21 +648,21 @@ duration-300
 
                   <div className="flex justify-between">
                     <span className="text-neutral-500">
-                      Delivery Charges
+                      Shipping Charges
                     </span>
 
                     <span className="font-bold">
-                      {deliveryCharge === 0 ? "FREE" : "₹79"}
+                      {shippingCharge === 0 ? "FREE" : "₹79"}
                     </span>
                   </div>
 
                   <div className="flex justify-between">
                     <span className="text-neutral-500">
-                      COD Charges
+                      Delivery Charges
                     </span>
 
                     <span className="font-bold">
-                      {paymentMethod === "COD" ? "₹49" : "FREE"}
+                      {paymentMethod === "COD" ? "₹79" : "FREE"}
                     </span>
                   </div>
 
@@ -724,7 +736,7 @@ duration-300
                 <button
                   form="checkout-form"
                   type="submit"
-                  disabled={loading || !form.city}
+                  disabled={loading}
                   className="mt-7 flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-black text-white font-black transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[.98] disabled:opacity-40"
                 >
                   {loading ? (
