@@ -103,7 +103,7 @@ export default function Footer() {
             <div className="flex flex-wrap gap-2 mt-4 md:mt-4 md:mt-6">
 
               {[
-                "Organic Cotton",
+                "Comfortable Fabric",
                 "Made with Love",
                 "Premium Quality",
               ].map((item) => (
