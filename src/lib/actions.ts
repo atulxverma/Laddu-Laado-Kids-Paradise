@@ -12,6 +12,7 @@ import { render } from "@react-email/render";
 import OrderConfirmationEmail from "@/app/(store)/emails/OrderConfirmationEmail";
 import AdminOrderEmail from "@/app/(store)/emails/AdminOrderEmail";
 import WelcomeNewsletterEmail from "@/app/(store)/emails/WelcomeNewsletterEmail";
+import CancelledOrderEmail from "@/app/(store)/emails/CancelledOrderEmail";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -567,7 +568,7 @@ export async function createOrder(data: {
 
         if (customerEmail) {
           await resend.emails.send({
-            from: "Laddoo Laado <onboarding@resend.dev>",
+            from: "Laddoo Laado <orders@laddoolaado.com>",
             to: customerEmail,
             subject: `Your Order #${orderIdShort} is Confirmed 🎉`,
             html: await render(
@@ -1185,6 +1186,40 @@ export async function cancelOrder(orderId: string) {
       }
     });
 
+    const customerEmail = user.primaryEmailAddress?.emailAddress;
+    const shortOrderId = order.id.slice(-6).toUpperCase();
+
+    if (process.env.RESEND_API_KEY) {
+      if (customerEmail) {
+        await resend.emails.send({
+          from: "Laddoo Laado <orders@laddoolaado.com>",
+          to: customerEmail,
+          subject: `❌ Order #${shortOrderId} Cancelled`,
+          html: await render(
+            CancelledOrderEmail({
+              customerName: order.customerName,
+              orderId: shortOrderId,
+            }),
+          ),
+        });
+      }
+
+      await sendAdminMail(
+        `❌ Order #${shortOrderId} Cancelled`,
+        `
+      <h2>Order Cancelled</h2>
+
+      <p><b>Order:</b> ${shortOrderId}</p>
+
+      <p><b>Customer:</b> ${order.customerName}</p>
+
+      <p><b>Email:</b> ${customerEmail ?? "N/A"}</p>
+
+      <p><b>Status:</b> Cancelled</p>
+    `,
+      );
+    }
+
     revalidatePath("/orders");
     revalidatePath("/admin/orders");
     revalidatePath("/shop");
@@ -1288,7 +1323,7 @@ export async function createReview(data: {
 
 export async function subscribeNewsletter(email: string) {
   await resend.emails.send({
-    from: "Laddoo Laado <onboarding@resend.dev>",
+    from: "Laddoo Laado <orders@laddoolaado.com>",
     to: email,
     subject: "✨ Welcome to the Laddoo Laado Family",
     html: await render(
@@ -1321,7 +1356,7 @@ export async function subscribeNewsletter(email: string) {
   `,
     );
     await resend.emails.send({
-      from: "Laddoo Laado <onboarding@resend.dev>",
+      from: "Laddoo Laado <orders@laddoolaado.com>",
       to: email,
       subject: "✨ Welcome to the Laddoo Laado Family",
       html: await render(

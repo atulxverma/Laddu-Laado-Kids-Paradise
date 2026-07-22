@@ -346,7 +346,7 @@ export default function AdminOrderEmail({
                         }}
                     >
                         <Button
-                            href={`https://laddoolaado.com/admin/orders/${orderId}`}
+                            href="https://laddoolaado.com/admin/orders"
                             style={{
                                 background: "#111",
                                 color: "#fff",
