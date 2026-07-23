@@ -1748,3 +1748,74 @@ export async function getDbCart() {
     return [];
   }
 }
+
+export async function sendContactMessage(data: {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}) {
+  if (!data.name.trim()) return { error: "Name required" };
+
+  if (!data.email.trim()) return { error: "Email required" };
+
+  if (!data.subject.trim()) return { error: "Subject required" };
+
+  if (!data.message.trim()) return { error: "Message required" };
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!emailRegex.test(data.email)) {
+    return { error: "Invalid email address" };
+  }
+  try {
+    await sendAdminMail(
+      `📩 Contact Form - ${data.subject}`,
+
+      `
+         <h2>New Contact Message</h2>
+
+         <p><b>Name:</b> ${data.name.trim()}</p>
+
+         <p><b>Email:</b> ${data.email.trim()}</p>
+
+         <p><b>Subject:</b> ${data.subject.trim()}</p>
+
+         <p><b>Message:</b></p>
+
+         <p>${data.message.trim()}</p>
+         `,
+    );
+    try {
+      await resend.emails.send({
+        from: "Laddoo Laado <orders@laddoolaado.com>",
+        to: data.email.trim(),
+        subject: "Thank you for contacting Laddoo Laado 💖",
+        html: `
+    <h2>Hi ${data.name.trim()},</h2>
+
+    <p>Thank you for contacting <b>Laddoo Laado</b>.</p>
+
+    <p>We have received your message and our support team will get back to you as soon as possible.</p>
+
+    <hr/>
+
+    <p><b>Your Subject:</b> ${data.subject.trim()}</p>
+
+    <p><b>Your Message:</b></p>
+
+    <p>${data.message.trim()}</p>
+
+    <br/>
+
+    <p>Regards,<br/>Laddoo Laado Support Team</p>
+  `,
+      });
+    } catch (error) {
+      console.error("Customer email failed:", error);
+    }
+
+    return { success: true };
+  } catch {
+    return { error: "Failed to send message" };
+  }
+}
