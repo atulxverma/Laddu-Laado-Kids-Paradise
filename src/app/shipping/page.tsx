@@ -142,7 +142,7 @@ Enjoy fast dispatch, real-time tracking and hassle-free delivery across India.
 
             <Link
               href="/shop"
-              className="border px-6 py-3 rounded-full font-semibold hover:bg-gray-100"
+              className="border px-6 py-3 rounded-full font-semibold"
             >
               Continue Shopping
             </Link>
