@@ -175,6 +175,7 @@ export async function initiateRazorpayPayment(items: CheckoutItem[]) {
 }
 
 export async function createOrder(data: {
+  customerName: string;
   phone: string;
 
   address: string;
@@ -424,7 +425,7 @@ export async function createOrder(data: {
       const newOrder = await tx.order.create({
         data: {
           clerkId: user.id,
-          customerName: user.fullName || "Guest User",
+          customerName: data.customerName,
           phone: cleanPhone,
           address: cleanAddress,
           isPaid: !isCOD,

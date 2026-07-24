@@ -44,12 +44,13 @@ export default function CheckoutPage() {
   const [locating, setLocating] = useState(false)
 
   const [form, setForm] = useState({
+    name: "",
     phone: "",
     pincode: "",
     city: "",
     state: "",
-    houseDetails: ""
-  })
+    houseDetails: "",
+  });
 
   const particles = Array.from({ length: 18 }, (_, i) => ({
     id: i,
@@ -154,7 +155,7 @@ export default function CheckoutPage() {
       if (paymentMethod === "COD") {
 
         const orderRes = await createOrder({
-
+          customerName: form.name,
           phone: form.phone,
 
           address: fullAddress,
@@ -179,7 +180,7 @@ export default function CheckoutPage() {
           alert(orderRes.error)
 
         }
-setTimeout(() => router.push("/"), 4000);
+        setTimeout(() => router.push("/"), 4000);
         setLoading(false)
 
         return;
@@ -205,6 +206,7 @@ setTimeout(() => router.push("/"), 4000);
           setLoading(true)
 
           const orderRes = await createOrder({
+            customerName: form.name,
             phone: form.phone,
             address: fullAddress,
             items: checkoutItems,
@@ -234,8 +236,8 @@ setTimeout(() => router.push("/"), 4000);
         },
 
         prefill: {
-          name: user.fullName,
-          email: user.primaryEmailAddress?.emailAddress,
+          name: form.name,
+          email: user?.primaryEmailAddress?.emailAddress,
           contact: form.phone,
         },
         theme: { color: "#000000" },
@@ -462,7 +464,16 @@ setTimeout(() => router.push("/"), 4000);
                   <label className="mb-2 block text-xs font-semibold text-zinc-700">Recipient Name</label>
                   <div className="relative">
                     <User size={17} className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                    <input value={user?.fullName || ""} disabled className="w-full rounded-2xl border border-zinc-100 bg-zinc-50 h-14 pl-12 pr-5 text-sm font-medium text-zinc-400 outline-none" />
+                    <input
+                      required
+                      type="text"
+                      placeholder="Your Name"
+                      value={form.name}
+                      onChange={(e) =>
+                        setForm({ ...form, name: e.target.value })
+                      }
+                      className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 h-14 pl-12 pr-5 text-sm font-medium text-zinc-950 outline-none transition-all placeholder:text-zinc-400 focus:border-zinc-950 focus:bg-white focus:ring-4 focus:ring-zinc-100"
+                    />
                   </div>
                 </div>
 
@@ -503,7 +514,7 @@ setTimeout(() => router.push("/"), 4000);
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-xs font-semibold text-zinc-700">House No / Landmark / Road</label>
+                  <label className="mb-2 block text-xs font-semibold text-zinc-700">Enter Full Address</label>
                   <div className="relative">
                     <Home size={17} className="pointer-events-none absolute left-5 top-5 text-zinc-400" />
                     <textarea minLength={10} required rows={4} placeholder="Flat/House No, Building Name, Near Landmark, Road Name..." value={form.houseDetails} onChange={(e) => setForm({ ...form, houseDetails: e.target.value })} className="w-full resize-none rounded-2xl border border-zinc-200 bg-zinc-50 h-14 pl-12 pr-5 text-sm font-medium leading-6 text-zinc-950 outline-none transition-all placeholder:text-zinc-400 focus:border-zinc-950 focus:bg-white focus:ring-4 focus:ring-zinc-100" />
