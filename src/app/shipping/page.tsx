@@ -6,80 +6,80 @@ import Link from "next/link";
 
 export default function ShippingPage() {
   const shippingInfo = [
-  {
-    icon: <Truck className="h-6 w-6" />,
-    title: "Processing Time",
-    desc: "Orders are processed and packed within 24 hours of successful payment."
-  },
-  {
-    icon: <Clock className="h-6 w-6" />,
-    title: "Delivery Time",
-    desc: "Most orders are delivered within 3–7 business days depending on your location."
-  },
-  {
-    icon: <MapPin className="h-6 w-6" />,
-    title: "Live Tracking",
-    desc: "You'll receive an email and SMS with a tracking link once your order ships."
-  },
-  {
-    icon: <Package className="h-6 w-6" />,
-    title: "Free Shipping",
-    desc: "Free shipping on orders above ₹999. Standard shipping charges apply below this amount."
-  },
-];
+    {
+      icon: <Truck className="h-6 w-6" />,
+      title: "Processing Time",
+      desc: "Orders are processed and packed within 24 hours of successful payment."
+    },
+    {
+      icon: <Clock className="h-6 w-6" />,
+      title: "Delivery Time",
+      desc: "Most orders are delivered within 3–7 business days depending on your location."
+    },
+    {
+      icon: <MapPin className="h-6 w-6" />,
+      title: "Live Tracking",
+      desc: "You'll receive an email and SMS with a tracking link once your order ships."
+    },
+    {
+      icon: <Package className="h-6 w-6" />,
+      title: "Free Shipping",
+      desc: "Free shipping on orders above ₹999. Standard shipping charges apply below this amount."
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-white py-16">
-         
-        <div className="mt-24 rounded-[32px] border border-neutral-200 bg-neutral-50 p-8 shadow-sm md:p-14">
-  <h2 className="text-3xl font-bold text-center mb-10">
-    Shipping Process
-  </h2>
 
-  <div className="grid md:grid-cols-4 gap-8">
+      <div className="mt-24 rounded-[32px] border border-neutral-200 bg-neutral-50 p-8 shadow-sm md:p-14">
+        <h2 className="text-3xl font-bold text-center mb-10">
+          Shipping Process
+        </h2>
 
-    <div className="text-center">
-      <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-white text-black hover:bg-neutral-200 flex items-center justify-center font-bold">
-        1
+        <div className="grid md:grid-cols-4 gap-8">
+
+          <div className="text-center">
+            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-white text-black hover:bg-neutral-200 flex items-center justify-center font-bold">
+              1
+            </div>
+            <h3 className="font-semibold">Order Placed</h3>
+            <p className="text-sm text-gray-500 mt-2">
+              Your order is confirmed instantly.
+            </p>
+          </div>
+
+          <div className="text-center">
+            <div className="mx-auto mb-5 flex h-14 w-14 rounded-full bg-white text-black hover:bg-neutral-200 flex items-center justify-center font-bold">
+              2
+            </div>
+            <h3 className="font-semibold">Packed</h3>
+            <p className="text-sm text-gray-500 mt-2">
+              Carefully packed by our team.
+            </p>
+          </div>
+
+          <div className="text-center">
+            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-white text-black hover:bg-neutral-200 flex items-center justify-center font-bold">
+              3
+            </div>
+            <h3 className="font-semibold">Shipped</h3>
+            <p className="text-sm text-gray-500 mt-2">
+              Tracking details are shared.
+            </p>
+          </div>
+
+          <div className="text-center">
+            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-white text-black hover:bg-neutral-200 flex items-center justify-center font-bold">
+              4
+            </div>
+            <h3 className="font-semibold">Delivered</h3>
+            <p className="text-sm text-gray-500 mt-2">
+              Delivered safely to your doorstep.
+            </p>
+          </div>
+
+        </div>
       </div>
-      <h3 className="font-semibold">Order Placed</h3>
-      <p className="text-sm text-gray-500 mt-2">
-        Your order is confirmed instantly.
-      </p>
-    </div>
-
-    <div className="text-center">
-      <div className="mx-auto mb-5 flex h-14 w-14 rounded-full bg-white text-black hover:bg-neutral-200 flex items-center justify-center font-bold">
-        2
-      </div>
-      <h3 className="font-semibold">Packed</h3>
-      <p className="text-sm text-gray-500 mt-2">
-        Carefully packed by our team.
-      </p>
-    </div>
-
-    <div className="text-center">
-      <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-white text-black hover:bg-neutral-200 flex items-center justify-center font-bold">
-        3
-      </div>
-      <h3 className="font-semibold">Shipped</h3>
-      <p className="text-sm text-gray-500 mt-2">
-        Tracking details are shared.
-      </p>
-    </div>
-
-    <div className="text-center">
-      <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-white text-black hover:bg-neutral-200 flex items-center justify-center font-bold">
-        4
-      </div>
-      <h3 className="font-semibold">Delivered</h3>
-      <p className="text-sm text-gray-500 mt-2">
-        Delivered safely to your doorstep.
-      </p>
-    </div>
-
-  </div>
-</div>
       <div className="max-w-6xl mx-auto px-4 py-5">
 
         <motion.div
@@ -97,7 +97,7 @@ export default function ShippingPage() {
 
           <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-neutral-600">
             We carefully pack every order and deliver it safely to your doorstep.
-Enjoy fast dispatch, real-time tracking and hassle-free delivery across India.
+            Enjoy fast dispatch, real-time tracking and hassle-free delivery across India.
           </p>
         </motion.div>
 
@@ -129,7 +129,7 @@ Enjoy fast dispatch, real-time tracking and hassle-free delivery across India.
           </h2>
 
           <p className="mt-3 text-neutral-300">
-           Need help tracking your package or have delivery-related questions? Our support team is always here to assist you.
+            Need help tracking your package or have delivery-related questions? Our support team is always here to assist you.
           </p>
 
           <div className="mt-6 flex justify-center gap-4 flex-wrap">
@@ -142,7 +142,7 @@ Enjoy fast dispatch, real-time tracking and hassle-free delivery across India.
 
             <Link
               href="/shop"
-              className="border px-6 py-3 rounded-full font-semibold"
+              className="rounded-full border border-white px-6 py-3 font-semibold text-white transition hover:bg-white hover:text-black"
             >
               Continue Shopping
             </Link>
