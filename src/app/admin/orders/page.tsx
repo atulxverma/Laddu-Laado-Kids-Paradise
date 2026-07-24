@@ -1,6 +1,7 @@
 import { db } from "@/lib/db"
 import OrderStatusButton from "./OrderStatusButton"
 import { Smartphone, MapPin } from "lucide-react"
+import CreateShipmentButton from "@/components/CreateShipmentButton";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
@@ -13,11 +14,15 @@ export default async function OrdersPage() {
       include: {
         orderItems: {
           include: {
-            product: { include: { images: {
-  orderBy: {
-    position: "asc",
-  },
-} } }
+            product: {
+              include: {
+                images: {
+                  orderBy: {
+                    position: "asc",
+                  },
+                }
+              }
+            }
           }
         }
       },
@@ -60,8 +65,8 @@ export default async function OrdersPage() {
 
                   <span
                     className={`rounded-full px-3 py-1 text-[10px] font-black uppercase ${order.paymentMethod === "ONLINE"
-                        ? "bg-emerald-100 text-emerald-700"
-                        : "bg-orange-100 text-orange-700"
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-orange-100 text-orange-700"
                       }`}
                   >
                     {order.paymentMethod}
@@ -75,8 +80,8 @@ export default async function OrdersPage() {
 
                   <span
                     className={`rounded-full px-3 py-1 text-[10px] font-black uppercase ${order.isPaid
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
                       }`}
                   >
                     {order.isPaid ? "PAID" : "UNPAID"}
@@ -98,7 +103,50 @@ export default async function OrdersPage() {
                 </div>
 
               </div>
-              <OrderStatusButton orderId={order.id} currentStatus={order.status} />
+              <div className="flex flex-wrap items-center gap-3">
+
+                {!order.isShipmentCreated ? (
+                  <CreateShipmentButton
+                    orderId={order.id}
+                  />
+                ) : (
+                  <div className="flex flex-wrap items-center gap-2">
+
+                    <span className="rounded-full bg-emerald-100 px-3 py-2 text-[10px] font-black uppercase text-emerald-700">
+                      Shipment Created
+                    </span>
+
+                    {order.trackingUrl && (
+                      <a
+                        href={order.trackingUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rounded-xl border border-sky-200 bg-sky-50 px-3 py-2 text-[10px] font-black uppercase text-sky-700 hover:bg-sky-100"
+                      >
+                        Track
+                      </a>
+                    )}
+
+                    {order.labelUrl && (
+                      <a
+                        href={order.labelUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-[10px] font-black uppercase text-neutral-700 hover:bg-neutral-100"
+                      >
+                        Label
+                      </a>
+                    )}
+
+                  </div>
+                )}
+
+                <OrderStatusButton
+                  orderId={order.id}
+                  currentStatus={order.status}
+                />
+
+              </div>
             </div>
 
             <div className="p-6 md:p-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -117,6 +165,29 @@ export default async function OrdersPage() {
                   </p>
                 </div>
               </div>
+              {order.isShipmentCreated && (
+                <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+
+                  <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
+                    Shipment Details (inside Customer card)
+                  </p>
+
+                  <div className="mt-3 space-y-2 text-sm">
+
+                    <div className="flex justify-between">
+                      <span>Courier</span>
+                      <span>{order.courierName || "-"}</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span>AWB Number</span>
+                      <span>{order.awbNumber || "-"}</span>
+                    </div>
+
+                  </div>
+
+                </div>
+              )}
               <div className="mt-6 rounded-2xl border border-neutral-200 p-4">
 
                 <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
@@ -182,7 +253,7 @@ export default async function OrdersPage() {
 
                   {order?.orderItems?.length ? (
 
-                    order.orderItems.map((item) => (
+                    order.orderItems.map((item: any) => (
 
                       <div
                         key={item.id}

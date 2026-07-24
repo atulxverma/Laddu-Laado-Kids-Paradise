@@ -155,16 +155,24 @@ export default function CheckoutPage() {
       if (paymentMethod === "COD") {
 
         const orderRes = await createOrder({
-          customerName: form.name,
-          phone: form.phone,
+  customerName: form.name,
 
-          address: fullAddress,
+  email: user.primaryEmailAddress?.emailAddress || "",
 
-          items: checkoutItems,
+  phone: form.phone,
 
-          paymentMethod: "COD"
+  address: form.houseDetails,
 
-        })
+  city: form.city,
+
+  state: form.state,
+
+  pincode: form.pincode,
+
+  items: checkoutItems,
+
+  paymentMethod: "COD",
+})
 
         if (orderRes.success) {
           window.scrollTo({
@@ -206,17 +214,30 @@ export default function CheckoutPage() {
           setLoading(true)
 
           const orderRes = await createOrder({
-            customerName: form.name,
-            phone: form.phone,
-            address: fullAddress,
-            items: checkoutItems,
-            paymentMethod: "ONLINE",
-            payment: {
-              razorpayOrderId: response.razorpay_order_id,
-              razorpayPaymentId: response.razorpay_payment_id,
-              razorpaySignature: response.razorpay_signature,
-            },
-          })
+  customerName: form.name,
+
+  email: user.primaryEmailAddress?.emailAddress || "",
+
+  phone: form.phone,
+
+  address: form.houseDetails,
+
+  city: form.city,
+
+  state: form.state,
+
+  pincode: form.pincode,
+
+  items: checkoutItems,
+
+  paymentMethod: "ONLINE",
+
+  payment: {
+    razorpayOrderId: response.razorpay_order_id,
+    razorpayPaymentId: response.razorpay_payment_id,
+    razorpaySignature: response.razorpay_signature,
+  },
+})
 
           if (orderRes.success) {
             window.scrollTo({

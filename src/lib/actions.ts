@@ -13,6 +13,8 @@ import OrderConfirmationEmail from "@/app/(store)/emails/OrderConfirmationEmail"
 import AdminOrderEmail from "@/app/(store)/emails/AdminOrderEmail";
 import WelcomeNewsletterEmail from "@/app/(store)/emails/WelcomeNewsletterEmail";
 import CancelledOrderEmail from "@/app/(store)/emails/CancelledOrderEmail";
+import { createShipment } from "@/lib/createShipment";
+import { Prisma } from "@prisma/client";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -176,9 +178,14 @@ export async function initiateRazorpayPayment(items: CheckoutItem[]) {
 
 export async function createOrder(data: {
   customerName: string;
+  email: string;
+
   phone: string;
 
   address: string;
+  city: string;
+  state: string;
+  pincode: string;
 
   items: CheckoutItem[];
 
@@ -200,9 +207,38 @@ export async function createOrder(data: {
         error: "Cart is empty.",
       };
     }
-
     const cleanAddress = data.address.trim();
     const cleanPhone = data.phone.trim();
+    const cleanEmail = data.email.trim();
+
+    const cleanCity = data.city.trim();
+
+    const cleanState = data.state.trim();
+
+    const cleanPincode = data.pincode.trim();
+    if (!cleanEmail) {
+      return {
+        error: "Email is required.",
+      };
+    }
+
+    if (!cleanCity) {
+      return {
+        error: "City is required.",
+      };
+    }
+
+    if (!cleanState) {
+      return {
+        error: "State is required.",
+      };
+    }
+
+    if (!/^[1-9][0-9]{5}$/.test(cleanPincode)) {
+      return {
+        error: "Invalid pincode.",
+      };
+    }
 
     if (!cleanAddress) {
       return {
@@ -426,8 +462,12 @@ export async function createOrder(data: {
         data: {
           clerkId: user.id,
           customerName: data.customerName,
+          email: cleanEmail,
           phone: cleanPhone,
           address: cleanAddress,
+          city: cleanCity,
+          state: cleanState,
+          pincode: cleanPincode,
           isPaid: !isCOD,
 
           status: isCOD ? "Pending" : "Confirmed",
@@ -547,6 +587,50 @@ export async function createOrder(data: {
 
     if (!fullOrder) {
       throw new Error("Order not found.");
+    }
+
+    // -------------------------
+    // CREATE NIMBUS SHIPMENT
+    // -------------------------
+
+    try {
+      const shipment = await createShipment(fullOrder);
+
+      const shipmentData = shipment?.data || shipment?.shipment || shipment;
+
+      await db.order.update({
+        where: {
+          id: fullOrder.id,
+        },
+        data: {
+          isShipmentCreated: true,
+
+          shipmentId:
+            shipmentData?.shipment_id?.toString() ??
+            shipmentData?.shipmentId?.toString() ??
+            null,
+
+          awbNumber:
+            shipmentData?.awb_number?.toString() ??
+            shipmentData?.awbNumber?.toString() ??
+            null,
+
+          courierName:
+            shipmentData?.courier_name ?? shipmentData?.courier ?? null,
+
+          trackingUrl:
+            shipmentData?.tracking_url ??
+            shipmentData?.trackingLink ??
+            shipmentData?.awb_tracking_link ??
+            null,
+
+          labelUrl: shipmentData?.label ?? shipmentData?.label_url ?? null,
+        },
+      });
+
+      console.log("✅ Nimbus shipment created");
+    } catch (err) {
+      console.error("❌ Nimbus shipment failed", err);
     }
 
     const adminEmail = process.env.ADMIN_EMAIL;
@@ -1818,5 +1902,82 @@ export async function sendContactMessage(data: {
     return { success: true };
   } catch {
     return { error: "Failed to send message" };
+  }
+}
+export async function createNimbusShipment(orderId: string) {
+  try {
+    await checkAdmin();
+
+    const order = await db.order.findUnique({
+      where: {
+        id: orderId,
+      },
+
+      include: {
+        orderItems: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
+
+    if (!order) {
+      return {
+        error: "Order not found.",
+      };
+    }
+
+    if (order.isShipmentCreated) {
+      return {
+        error: "Shipment already created.",
+      };
+    }
+
+    const response = await createShipment(order);
+
+    console.log("Nimbus Response:", response);
+
+    await db.order.update({
+      where: {
+        id: orderId,
+      },
+
+      data: {
+        shipmentId:
+          response?.data?.shipment_id?.toString() ??
+          response?.shipment_id?.toString() ??
+          null,
+
+        awbNumber: response?.data?.awb_number ?? response?.awb_number ?? null,
+
+        trackingUrl:
+          response?.data?.tracking_url ?? response?.tracking_url ?? null,
+
+        courierName:
+          response?.data?.courier_name ?? response?.courier_name ?? null,
+
+        labelUrl: response?.data?.label ?? response?.label ?? null,
+
+        isShipmentCreated: true,
+      },
+    });
+
+    revalidatePath("/admin/orders");
+    revalidatePath("/orders");
+
+    return {
+      success: true,
+      shipment: response,
+    };
+  } catch (error: any) {
+    console.error("CREATE_SHIPMENT_ERROR", error);
+
+    return {
+      error:
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to create shipment.",
+    };
   }
 }

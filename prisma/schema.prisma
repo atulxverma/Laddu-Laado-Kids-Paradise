@@ -71,23 +71,41 @@ model Image {
 }
 
 model Order {
-  id             String @id @default(auto()) @map("_id") @db.ObjectId
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+
   clerkId        String
-  phone          String @default("")
-  address        String @default("")
-  total          Float
+
+  customerName   String?
+  email          String   @default("")
+  phone          String   @default("")
+
+  address        String   @default("")
+  city           String   @default("")
+  state          String   @default("")
+  pincode        String   @default("")
+
   subtotal       Float
   deliveryCharge Float
-  codCharge      Float  @default(0)
+  codCharge      Float    @default(0)
+  total          Float
 
-  paymentMethod     String      @default("ONLINE")
-  isPaid            Boolean     @default(false)
-  status            String      @default("Pending")
-  orderItems        OrderItem[]
-  customerName      String?
+  paymentMethod     String   @default("ONLINE")
+  isPaid            Boolean  @default(false)
+  status            String   @default("Pending")
+
   razorpayOrderId   String?
   razorpayPaymentId String?
-  createdAt         DateTime    @default(now())
+
+  shipmentId        String?
+  awbNumber         String?
+  trackingUrl       String?
+  courierName       String?
+  labelUrl          String?
+  isShipmentCreated Boolean  @default(false)
+
+  orderItems OrderItem[]
+
+  createdAt DateTime @default(now())
 }
 
 model OrderItem {
