@@ -603,28 +603,43 @@ export async function createOrder(data: {
           id: fullOrder.id,
         },
         data: {
-          isShipmentCreated: true,
+          isShipmentCreated: Boolean(
+            shipmentData?.shipment_id ||
+            shipmentData?.shipmentId ||
+            shipmentData?.awb_number,
+          ),
 
           shipmentId:
             shipmentData?.shipment_id?.toString() ??
             shipmentData?.shipmentId?.toString() ??
+            shipmentData?.id?.toString() ??
             null,
 
           awbNumber:
             shipmentData?.awb_number?.toString() ??
             shipmentData?.awbNumber?.toString() ??
+            shipmentData?.awb?.toString() ??
             null,
 
           courierName:
-            shipmentData?.courier_name ?? shipmentData?.courier ?? null,
+            shipmentData?.courier_name ??
+            shipmentData?.courier ??
+            shipmentData?.courier_company ??
+            null,
 
           trackingUrl:
             shipmentData?.tracking_url ??
             shipmentData?.trackingLink ??
             shipmentData?.awb_tracking_link ??
+            shipmentData?.track_url ??
+            shipmentData?.tracking ??
             null,
 
-          labelUrl: shipmentData?.label ?? shipmentData?.label_url ?? null,
+          labelUrl:
+            shipmentData?.label ??
+            shipmentData?.label_url ??
+            shipmentData?.labelLink ??
+            null,
         },
       });
 
@@ -1935,6 +1950,7 @@ export async function createNimbusShipment(orderId: string) {
     }
 
     const response = await createShipment(order);
+    const shipmentData = response?.data || response?.shipment || response;
 
     console.log("Nimbus Response:", response);
 
@@ -1942,24 +1958,27 @@ export async function createNimbusShipment(orderId: string) {
       where: {
         id: orderId,
       },
-
       data: {
         shipmentId:
-          response?.data?.shipment_id?.toString() ??
-          response?.shipment_id?.toString() ??
+          shipmentData?.shipment_id?.toString() ??
+          shipmentData?.shipmentId?.toString() ??
           null,
 
-        awbNumber: response?.data?.awb_number ?? response?.awb_number ?? null,
+        awbNumber: shipmentData?.awb_number ?? shipmentData?.awbNumber ?? null,
 
         trackingUrl:
-          response?.data?.tracking_url ?? response?.tracking_url ?? null,
+          shipmentData?.tracking_url ?? shipmentData?.trackingLink ?? null,
 
         courierName:
-          response?.data?.courier_name ?? response?.courier_name ?? null,
+          shipmentData?.courier_name ?? shipmentData?.courierName ?? null,
 
-        labelUrl: response?.data?.label ?? response?.label ?? null,
+        labelUrl: shipmentData?.label ?? shipmentData?.label_url ?? null,
 
-        isShipmentCreated: true,
+        isShipmentCreated: Boolean(
+          shipmentData?.shipment_id ||
+          shipmentData?.shipmentId ||
+          shipmentData?.awb_number,
+        ),
       },
     });
 

@@ -38,17 +38,29 @@ export async function createShipment(order: any) {
     length: DEFAULT_LENGTH,
     breadth: DEFAULT_BREADTH,
     height: DEFAULT_HEIGHT,
+    order_amount: order.total,
   };
 
   try {
-    const { data } = await nimbus.post("/courier/create-shipment", body);
+    const response = await nimbus.post("/courier/create-shipment", body);
 
-    return data;
+    console.log("=========== NIMBUS DEBUG ===========");
+    console.log("STATUS:", response.status);
+    console.log("HEADERS:", response.headers);
+    console.log("CONTENT-TYPE:", response.headers["content-type"]);
+    console.log("FINAL URL:", response.request?.res?.responseUrl);
+    console.log("DATA:");
+    console.log(response.data);
+    console.log("====================================");
+
+    return response.data;
   } catch (error: any) {
-    console.error(
-      "Nimbus Shipment Error:",
-      error.response?.data || error.message,
-    );
+    console.error("=========== NIMBUS ERROR ===========");
+    console.error("STATUS:", error.response?.status);
+    console.error("HEADERS:", error.response?.headers);
+    console.error("DATA:", error.response?.data);
+    console.error("MESSAGE:", error.message);
+    console.error("====================================");
 
     throw new Error(
       error.response?.data?.message || "Failed to create shipment.",
