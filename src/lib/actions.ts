@@ -225,7 +225,7 @@ export async function createOrder(data: {
         error: "Cart is empty.",
       };
     }
-    const cleanAddress = data.address.trim();
+
     const cleanPhone = data.phone.trim();
     const cleanEmail = data.email.trim();
 
@@ -234,11 +234,25 @@ export async function createOrder(data: {
     const cleanState = data.state.trim();
 
     const cleanPincode = data.pincode.trim();
-    if (!cleanEmail) {
-      return {
-        error: "Email is required.",
-      };
-    }
+    const cleanAddress = data.address.trim();
+    const cleanCustomerName = data.customerName.trim();
+
+if (!cleanCustomerName) {
+  return {
+    error: "Customer name is required.",
+  };
+}
+
+    const fullAddress = [cleanAddress, cleanCity, cleanState, cleanPincode]
+      .filter(Boolean)
+      .join(", ");
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+if (!emailRegex.test(cleanEmail)) {
+  return {
+    error: "Invalid email address.",
+  };
+}
 
     if (!cleanCity) {
       return {
@@ -324,7 +338,22 @@ export async function createOrder(data: {
       serverTotal += product.price * item.quantity;
     }
 
-    const finalTotal = data.total;
+    const shippingCharge = serverTotal >= 999 ? 0 : 79;
+
+    const codCharge = isCOD ? 79 : 0;
+
+    const finalTotal = serverTotal + shippingCharge + codCharge;
+
+    // Security check
+    if (
+      data.shippingCharge !== shippingCharge ||
+      data.deliveryCharge !== codCharge ||
+      data.total !== finalTotal
+    ) {
+      return {
+        error: "Order amount verification failed.",
+      };
+    }
     if (!isCOD) {
       if (
         !data.payment?.razorpayOrderId ||
@@ -475,13 +504,25 @@ export async function createOrder(data: {
       // }
       // }
 
+      if (!isCOD && data.payment?.razorpayPaymentId) {
+        const duplicate = await tx.order.findFirst({
+          where: {
+            razorpayPaymentId: data.payment.razorpayPaymentId,
+          },
+        });
+
+        if (duplicate) {
+          throw new Error("Duplicate payment detected.");
+        }
+      }
+
       const newOrder = await tx.order.create({
         data: {
           clerkId: user.id,
           customerName: data.customerName,
           email: cleanEmail,
           phone: cleanPhone,
-          address: cleanAddress,
+          address: fullAddress,
           city: cleanCity,
           state: cleanState,
           pincode: cleanPincode,
@@ -493,11 +534,11 @@ export async function createOrder(data: {
 
           subtotal: serverTotal,
 
-          deliveryCharge: data.shippingCharge,
+          deliveryCharge: shippingCharge,
 
-          codCharge: data.deliveryCharge,
+          codCharge: codCharge,
 
-          total: data.total,
+          total: finalTotal,
 
           razorpayOrderId: isCOD ? null : data.payment?.razorpayOrderId,
 
@@ -663,11 +704,21 @@ export async function createOrder(data: {
       console.log("✅ Nimbus shipment created");
     } catch (err) {
       console.error("❌ Nimbus shipment failed", err);
+
+await db.order.update({
+  where: {
+    id: fullOrder.id,
+  },
+  data: {
+    isShipmentCreated: false,
+  },
+});
     }
 
     const adminEmail = process.env.ADMIN_EMAIL;
 
     const orderIdShort = order.id.slice(-6).toUpperCase();
+        const customerEmail = user.primaryEmailAddress?.emailAddress;
 
     if (process.env.RESEND_API_KEY) {
       try {
@@ -681,7 +732,6 @@ export async function createOrder(data: {
           gender: item.product.gender || "",
         }));
 
-        const customerEmail = user.primaryEmailAddress?.emailAddress;
 
         if (customerEmail) {
           await resend.emails.send({
@@ -728,8 +778,17 @@ export async function createOrder(data: {
           );
         }
       } catch (emailError) {
-        console.error("Order email failed:", emailError);
-      }
+  console.error("Order email failed:", emailError);
+
+  await sendAdminMail(
+    "⚠️ Customer Email Failed",
+    `
+      <p>Order: ${orderIdShort}</p>
+      <p>Email: ${customerEmail ?? "N/A"}</p>
+      <p>Please resend manually.</p>
+    `,
+  );
+}
     }
     revalidatePath("/admin/orders");
     revalidatePath("/admin/products");
@@ -1292,17 +1351,20 @@ export async function cancelOrder(orderId: string) {
           },
         });
 
-        await tx.product.update({
-          where: {
-            id: item.productId,
-          },
-          data: {
-            stock: {
-              increment: item.quantity,
-            },
-          },
-        });
-      }
+        const updatedProduct = await tx.product.updateMany({
+  where: {
+    id: item.productId,
+  },
+  data: {
+    stock: {
+      increment: item.quantity,
+    },
+  },
+});
+
+if (updatedProduct.count === 0) {
+  throw new Error("Product stock mismatch.");
+}
     });
 
     const customerEmail = user.primaryEmailAddress?.emailAddress;
@@ -1441,16 +1503,6 @@ export async function createReview(data: {
 }
 
 export async function subscribeNewsletter(email: string) {
-  await resend.emails.send({
-    from: "Laddoo Laado <orders@laddoolaado.com>",
-    to: email,
-    subject: "✨ Welcome to the Laddoo Laado Family",
-    html: await render(
-      WelcomeNewsletterEmail({
-        email,
-      }),
-    ),
-  });
   try {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
