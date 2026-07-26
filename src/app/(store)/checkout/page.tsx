@@ -296,8 +296,10 @@ export default function CheckoutPage() {
       //till there without razorpay
 
     } catch (err) {
-      setLoading(false)
-    }
+  console.error(err);
+  alert("Something went wrong. Please try again.");
+  setLoading(false);
+}
   }
 
   if (isSuccess) {
