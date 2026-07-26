@@ -193,7 +193,10 @@ export default function CheckoutPage() {
 
       }
 
-      const res = await initiateRazorpayPayment(checkoutItems)
+      const res = await initiateRazorpayPayment(
+        checkoutItems,
+        paymentMethod,
+      )
 
       if (!res.success) {
         alert("Payment Gateway Error")

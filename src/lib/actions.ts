@@ -64,7 +64,10 @@ type PaymentDetails = {
   razorpaySignature: string;
 };
 
-export async function initiateRazorpayPayment(items: CheckoutItem[]) {
+export async function initiateRazorpayPayment(
+  items: CheckoutItem[],
+  paymentMethod: "ONLINE" | "COD",
+) {
   try {
     const user = await currentUser();
 
@@ -145,7 +148,13 @@ export async function initiateRazorpayPayment(items: CheckoutItem[]) {
       serverTotal += product.price * item.quantity;
     }
 
-    const amountInPaise = Math.round(serverTotal * 100);
+    const shippingCharge = serverTotal >= 999 ? 0 : 79;
+
+    const codCharge = paymentMethod === "COD" ? 79 : 0;
+
+    const finalTotal = serverTotal + shippingCharge + codCharge;
+
+    const amountInPaise = Math.round(finalTotal * 100);
 
     if (amountInPaise <= 0) {
       return {
@@ -164,7 +173,10 @@ export async function initiateRazorpayPayment(items: CheckoutItem[]) {
       success: true,
       orderId: razorpayOrder.id,
       amount: razorpayOrder.amount,
-      total: serverTotal,
+      subtotal: serverTotal,
+      shippingCharge,
+      codCharge,
+      total: finalTotal,
     };
   } catch (error) {
     console.error("Razorpay order creation error:", error);
@@ -386,7 +398,7 @@ export async function createOrder(data: {
         data.payment.razorpayOrderId,
       );
 
-      const expectedAmount = Math.round(serverTotal * 100);
+      const expectedAmount = Math.round(data.total * 100);
 
       if (
         Number(razorpayOrder.amount) !== expectedAmount ||
