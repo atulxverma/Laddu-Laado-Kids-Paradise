@@ -155,24 +155,22 @@ export default function CheckoutPage() {
       if (paymentMethod === "COD") {
 
         const orderRes = await createOrder({
-  customerName: form.name,
+          customerName: form.name,
+          email: user.primaryEmailAddress?.emailAddress || "",
+          phone: form.phone,
+          address: form.houseDetails,
+          city: form.city,
+          state: form.state,
+          pincode: form.pincode,
 
-  email: user.primaryEmailAddress?.emailAddress || "",
+          items: checkoutItems,
 
-  phone: form.phone,
+          paymentMethod: "COD",
 
-  address: form.houseDetails,
-
-  city: form.city,
-
-  state: form.state,
-
-  pincode: form.pincode,
-
-  items: checkoutItems,
-
-  paymentMethod: "COD",
-})
+          shippingCharge,
+          deliveryCharge,
+          total,
+        })
 
         if (orderRes.success) {
           window.scrollTo({
@@ -214,30 +212,28 @@ export default function CheckoutPage() {
           setLoading(true)
 
           const orderRes = await createOrder({
-  customerName: form.name,
+            customerName: form.name,
+            email: user.primaryEmailAddress?.emailAddress || "",
+            phone: form.phone,
+            address: form.houseDetails,
+            city: form.city,
+            state: form.state,
+            pincode: form.pincode,
 
-  email: user.primaryEmailAddress?.emailAddress || "",
+            items: checkoutItems,
 
-  phone: form.phone,
+            paymentMethod: "ONLINE",
 
-  address: form.houseDetails,
+            shippingCharge,
+            deliveryCharge,
+            total,
 
-  city: form.city,
-
-  state: form.state,
-
-  pincode: form.pincode,
-
-  items: checkoutItems,
-
-  paymentMethod: "ONLINE",
-
-  payment: {
-    razorpayOrderId: response.razorpay_order_id,
-    razorpayPaymentId: response.razorpay_payment_id,
-    razorpaySignature: response.razorpay_signature,
-  },
-})
+            payment: {
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+            },
+          })
 
           if (orderRes.success) {
             window.scrollTo({

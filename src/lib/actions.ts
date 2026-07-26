@@ -191,6 +191,12 @@ export async function createOrder(data: {
 
   paymentMethod: "ONLINE" | "COD";
 
+  shippingCharge: number;
+
+  deliveryCharge: number;
+
+  total: number;
+
   payment?: PaymentDetails;
 }) {
   try {
@@ -306,8 +312,7 @@ export async function createOrder(data: {
       serverTotal += product.price * item.quantity;
     }
 
-    const finalTotal =
-      serverTotal + (serverTotal >= 999 ? 0 : 79) + (isCOD ? 49 : 0);
+    const finalTotal = data.total;
     if (!isCOD) {
       if (
         !data.payment?.razorpayOrderId ||
@@ -476,11 +481,11 @@ export async function createOrder(data: {
 
           subtotal: serverTotal,
 
-          deliveryCharge: serverTotal >= 999 ? 0 : 79,
+          deliveryCharge: data.shippingCharge,
 
-          codCharge: isCOD ? 49 : 0,
+          codCharge: data.deliveryCharge,
 
-          total: finalTotal,
+          total: data.total,
 
           razorpayOrderId: isCOD ? null : data.payment?.razorpayOrderId,
 
