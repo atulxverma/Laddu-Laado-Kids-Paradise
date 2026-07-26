@@ -1,12 +1,6 @@
 import { db } from "@/lib/db"
 import Link from "next/link"
 import HomeProductCarousel from "@/components/HomeProductCarousel"
-import {
-  Truck,
-  ShieldCheck,
-  Leaf,
-  RefreshCcw
-} from "lucide-react"
 import { ArrowRight } from "lucide-react"
 import ShopByAge from "@/components/ShopByAge"
 

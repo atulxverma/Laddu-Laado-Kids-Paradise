@@ -620,7 +620,7 @@ if (updatedProduct.count === 0) {
   throw new Error("Product stock mismatch.");
 }
 
-    }
+}
 
       await tx.cartItem.deleteMany({
         where: {
@@ -1383,6 +1383,7 @@ export async function cancelOrder(orderId: string) {
 if (updatedProduct.count === 0) {
   throw new Error("Product stock mismatch.");
 }
+      }
     });
 
     const customerEmail = user.primaryEmailAddress?.emailAddress;
