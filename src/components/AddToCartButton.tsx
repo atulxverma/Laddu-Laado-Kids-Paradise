@@ -5,8 +5,22 @@ import { useCart } from "@/hooks/use-cart"
 import { useWishlist } from "@/hooks/use-wishlist"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { Prisma } from "@prisma/client";
 
-export default function AddToCartButton({ product }: { product: any }) {
+type ProductType =
+  Prisma.ProductGetPayload<{
+    include: {
+      category: true;
+      images: true;
+      variants: true;
+    };
+  }>;
+
+export default function AddToCartButton({
+  product,
+}: {
+  product: ProductType;
+}) {
   const cart = useCart()
   const { toggleItem, items: wishlistItems } = useWishlist()
 
@@ -21,7 +35,7 @@ export default function AddToCartButton({ product }: { product: any }) {
 
   if (!mounted || !product) return null
 
-  const variants = product.variants || []
+  const variants = product.variants;
 
 
 
@@ -95,13 +109,18 @@ export default function AddToCartButton({ product }: { product: any }) {
       return
     }
 
-    const alreadyInCart = cart.items.some(
+    const alreadyItem = cart.items.find(
       (item: any) =>
         item.id === product.id &&
         item.size === selectedSize
-    )
+    );
 
-    if (!alreadyInCart) {
+    if (alreadyItem && alreadyItem.quantity >= stock) {
+      alert(`Only ${stock} item(s) available.`);
+      return;
+    }
+
+    if (!alreadyItem) {
       cart.addItem({
         id: product.id,
         name: product.name,
@@ -111,7 +130,7 @@ export default function AddToCartButton({ product }: { product: any }) {
         color: product.color || "",
         category: product.category?.name || "",
         stock: selectedVariant?.stock ?? 0,
-      })
+      });
     }
 
     router.push("/checkout")

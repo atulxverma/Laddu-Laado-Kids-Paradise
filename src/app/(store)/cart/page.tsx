@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowLeft, Check, ChevronRight, CreditCard, LockKeyhole, Minus, PackageCheck, Plus, ShoppingBag, Trash2, Truck } from "lucide-react"
+import { ArrowLeft, ChevronRight, CreditCard, LockKeyhole, PackageCheck, ShoppingBag, Trash2, Truck } from "lucide-react"
 import { AnimatePresence, motion } from "framer-motion"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useCart } from "@/hooks/use-cart"
@@ -15,24 +15,22 @@ export default function CartPage() {
 
   const [mounted, setMounted] = useState(false)
   const buttonRef = useRef<HTMLAnchorElement>(null)
-  const [floating, setFloating] = useState(false)
   const freeDeliveryThreshold = 999
 
   useEffect(() => {
     setMounted(true)
 
     window.scrollTo({
-    top: 0,
-    left: 0,
-    behavior: "instant",
-  })
+      top: 0,
+      left: 0,
+      behavior: "instant",
+    })
 
     const handleScroll = () => {
       if (!buttonRef.current) return
 
       const rect = buttonRef.current.getBoundingClientRect()
 
-      setFloating(rect.bottom < window.innerHeight - 40)
     }
 
     handleScroll()
@@ -50,8 +48,9 @@ export default function CartPage() {
   const itemCount = validItems.reduce((sum, item) => sum + item.quantity, 0)
   const amountAway = Math.max(freeDeliveryThreshold - subtotal, 0)
   const shippingProgress = Math.min((subtotal / freeDeliveryThreshold) * 100, 100)
-  const shippingCharge = subtotal >= 999 ? 0 : 79
-const total = subtotal + shippingCharge
+  const shippingCharge =
+    subtotal >= freeDeliveryThreshold ? 0 : 79;
+  const total = subtotal + shippingCharge
 
   if (!mounted) return null
 
@@ -208,11 +207,11 @@ const total = subtotal + shippingCharge
                               <span className="rounded-full bg-neutral-100 px-3 py-1 text-[10px] font-bold">
                                 Size {item.size}
                               </span>
-{typeof item.stock === "number" && (
-  <span className="rounded-full bg-neutral-100 px-3 py-1 text-[10px] font-bold">
-    {item.stock} Left
-  </span>
-)}
+                              {typeof item.stock === "number" && (
+                                <span className="rounded-full bg-neutral-100 px-3 py-1 text-[10px] font-bold">
+                                  {item.stock} Left
+                                </span>
+                              )}
                               {item.color && item.color !== "Standard" && (
                                 <span className="rounded-full bg-neutral-100 px-3 py-1 text-[10px] font-bold">
                                   {item.color}
@@ -268,9 +267,9 @@ const total = subtotal + shippingCharge
 
                           <button
                             disabled={
-  typeof item.stock === "number" &&
-  item.quantity >= item.stock
-}
+                              typeof item.stock === "number" &&
+                              item.quantity >= item.stock
+                            }
                             onClick={() => increaseQuantity(item.id, item.size)}
                             className="h-9 w-9 rounded-full hover:bg-neutral-100 transition disabled:opacity-40"
                           >

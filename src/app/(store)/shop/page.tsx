@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import ProductCard from "@/components/ProductCard";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search } from "lucide-react";
 import Link from "next/link";
 import { Baby, Shirt, Sparkles, ArrowRight } from "lucide-react";
 
@@ -128,9 +128,10 @@ export default async function ShopPage({
       }),
 
       ...(age && {
-        size: {
-          contains: age,
-          mode: "insensitive",
+        variants: {
+          some: {
+            size: age,
+          },
         },
       }),
 
@@ -322,10 +323,10 @@ font-black tracking-wide">
             </div>
 
             <div className="flex items-center justify-between md:block">
-  <div className="inline-flex items-center justify-center rounded-full bg-black px-3 py-1.5 text-[10px] md:px-5 md:py-2.5 md:text-xs font-bold text-white shadow-sm">
-    Premium Collection
-  </div>
-</div>
+              <div className="inline-flex items-center justify-center rounded-full bg-black px-3 py-1.5 text-[10px] md:px-5 md:py-2.5 md:text-xs font-bold text-white shadow-sm">
+                Premium Collection
+              </div>
+            </div>
 
           </div>
 
@@ -369,7 +370,15 @@ font-black tracking-wide">
             >
               High Price
             </Link>
-
+            <Link
+              href={createSortLink("top-rated")}
+              className={`inline-flex h-8 items-center justify-center whitespace-nowrap rounded-full px-5 text-xs font-bold transition ${sort === "top-rated"
+                  ? "bg-black text-white"
+                  : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                }`}
+            >
+              Top Rated
+            </Link>
           </div>
 
         </div>

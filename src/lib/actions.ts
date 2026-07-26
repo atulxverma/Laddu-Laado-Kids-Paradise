@@ -237,22 +237,22 @@ export async function createOrder(data: {
     const cleanAddress = data.address.trim();
     const cleanCustomerName = data.customerName.trim();
 
-if (!cleanCustomerName) {
-  return {
-    error: "Customer name is required.",
-  };
-}
+    if (!cleanCustomerName) {
+      return {
+        error: "Customer name is required.",
+      };
+    }
 
     const fullAddress = [cleanAddress, cleanCity, cleanState, cleanPincode]
       .filter(Boolean)
       .join(", ");
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-if (!emailRegex.test(cleanEmail)) {
-  return {
-    error: "Invalid email address.",
-  };
-}
+    if (!emailRegex.test(cleanEmail)) {
+      return {
+        error: "Invalid email address.",
+      };
+    }
 
     if (!cleanCity) {
       return {
@@ -603,24 +603,23 @@ if (!emailRegex.test(cleanEmail)) {
         }
 
         const updatedProduct = await tx.product.updateMany({
-  where: {
-    id: item.id,
-    stock: {
-      gte: item.quantity,
-    },
-  },
-  data: {
-    stock: {
-      decrement: item.quantity,
-    },
-  },
-});
+          where: {
+            id: item.id,
+            stock: {
+              gte: item.quantity,
+            },
+          },
+          data: {
+            stock: {
+              decrement: item.quantity,
+            },
+          },
+        });
 
-if (updatedProduct.count === 0) {
-  throw new Error("Product stock mismatch.");
-}
-
-}
+        if (updatedProduct.count === 0) {
+          throw new Error("Product stock mismatch.");
+        }
+      }
 
       await tx.cartItem.deleteMany({
         where: {
@@ -713,20 +712,20 @@ if (updatedProduct.count === 0) {
     } catch (err) {
       console.error("❌ Nimbus shipment failed", err);
 
-await db.order.update({
-  where: {
-    id: fullOrder.id,
-  },
-  data: {
-    isShipmentCreated: false,
-  },
-});
+      await db.order.update({
+        where: {
+          id: fullOrder.id,
+        },
+        data: {
+          isShipmentCreated: false,
+        },
+      });
     }
 
     const adminEmail = process.env.ADMIN_EMAIL;
 
     const orderIdShort = order.id.slice(-6).toUpperCase();
-        const customerEmail = user.primaryEmailAddress?.emailAddress;
+    const customerEmail = user.primaryEmailAddress?.emailAddress;
 
     if (process.env.RESEND_API_KEY) {
       try {
@@ -739,7 +738,6 @@ await db.order.update({
           color: item.product.color || "",
           gender: item.product.gender || "",
         }));
-
 
         if (customerEmail) {
           await resend.emails.send({
@@ -786,17 +784,17 @@ await db.order.update({
           );
         }
       } catch (emailError) {
-  console.error("Order email failed:", emailError);
+        console.error("Order email failed:", emailError);
 
-  await sendAdminMail(
-    "⚠️ Customer Email Failed",
-    `
+        await sendAdminMail(
+          "⚠️ Customer Email Failed",
+          `
       <p>Order: ${orderIdShort}</p>
       <p>Email: ${customerEmail ?? "N/A"}</p>
       <p>Please resend manually.</p>
     `,
-  );
-}
+        );
+      }
     }
     revalidatePath("/admin/orders");
     revalidatePath("/admin/products");
@@ -952,7 +950,11 @@ export async function getSearchSuggestions(
   }
 
   if (filter === "Newborn") {
-    where.age = "0-1Y";
+    where.variants = {
+      some: {
+        size: "0-1Y",
+      },
+    };
   }
 
   return await db.product.findMany({
@@ -993,16 +995,16 @@ export async function createCategory(
     const slug = slugify(name);
     const existing = await db.category.findFirst({
       where: {
-  OR: [
-    {
-      name: {
-        equals: name.trim(),
-        mode: "insensitive",
+        OR: [
+          {
+            name: {
+              equals: name.trim(),
+              mode: "insensitive",
+            },
+          },
+          { slug },
+        ],
       },
-    },
-    { slug },
-  ],
-},
     });
     if (existing) return { error: "This category already exists" };
 
@@ -1370,19 +1372,19 @@ export async function cancelOrder(orderId: string) {
         });
 
         const updatedProduct = await tx.product.updateMany({
-  where: {
-    id: item.productId,
-  },
-  data: {
-    stock: {
-      increment: item.quantity,
-    },
-  },
-});
+          where: {
+            id: item.productId,
+          },
+          data: {
+            stock: {
+              increment: item.quantity,
+            },
+          },
+        });
 
-if (updatedProduct.count === 0) {
-  throw new Error("Product stock mismatch.");
-}
+        if (updatedProduct.count === 0) {
+          throw new Error("Product stock mismatch.");
+        }
       }
     });
 
@@ -1460,11 +1462,11 @@ export async function createReview(data: {
         error: "Review must be at least 10 characters long.",
       };
     }
-if (cleanComment.length > 1000) {
-  return {
-    error: "Review is too long.",
-  };
-}
+    if (cleanComment.length > 1000) {
+      return {
+        error: "Review is too long.",
+      };
+    }
     if (!Number.isInteger(data.rating) || data.rating < 1 || data.rating > 5) {
       return {
         error: "Invalid rating.",
@@ -1662,23 +1664,23 @@ export async function updateCategory(
 
     // Duplicate slug check
     const existing = await db.category.findFirst({
-  where: {
-    NOT: {
-      id,
-    },
-    OR: [
-      {
-        slug,
-      },
-      {
-        name: {
-          equals: name.trim(),
-          mode: "insensitive",
+      where: {
+        NOT: {
+          id,
         },
+        OR: [
+          {
+            slug,
+          },
+          {
+            name: {
+              equals: name.trim(),
+              mode: "insensitive",
+            },
+          },
+        ],
       },
-    ],
-  },
-});
+    });
 
     if (existing) {
       return {
@@ -1971,19 +1973,19 @@ export async function sendContactMessage(data: {
     return { error: "Invalid email address" };
   }
   if (data.message.length > 2000) {
-  return {
-    error: "Message is too long.",
-  };
-}
+    return {
+      error: "Message is too long.",
+    };
+  }
   try {
     await db.contact.create({
-  data: {
-    name: data.name.trim(),
-    email: data.email.trim(),
-    subject: data.subject.trim(),
-    message: data.message.trim(),
-  },
-});
+      data: {
+        name: data.name.trim(),
+        email: data.email.trim(),
+        subject: data.subject.trim(),
+        message: data.message.trim(),
+      },
+    });
     await sendAdminMail(
       `📩 Contact Form - ${data.subject}`,
 

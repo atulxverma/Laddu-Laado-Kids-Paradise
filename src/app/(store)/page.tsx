@@ -13,15 +13,16 @@ export default async function HomePage() {
     await Promise.all([
       db.product.findMany({
         where: {
+          isArchived: false,
           gender: "Boy",
         },
         include: {
           category: true,
           images: {
-  orderBy: {
-    position: "asc",
-  },
-},
+            orderBy: {
+              position: "asc",
+            },
+          },
           reviews: true,
           variants: true,
         },
@@ -30,15 +31,16 @@ export default async function HomePage() {
 
       db.product.findMany({
         where: {
+          isArchived: false,
           gender: "Girl",
         },
         include: {
           category: true,
           images: {
-  orderBy: {
-    position: "asc",
-  },
-},
+            orderBy: {
+              position: "asc",
+            },
+          },
           reviews: true,
           variants: true,
         },
@@ -47,17 +49,21 @@ export default async function HomePage() {
 
       db.product.findMany({
         where: {
-          size: {
-            contains: "0-1Y",
+          isArchived: false,
+
+          variants: {
+            some: {
+              size: "0-1Y",
+            },
           },
         },
         include: {
           category: true,
           images: {
-  orderBy: {
-    position: "asc",
-  },
-},
+            orderBy: {
+              position: "asc",
+            },
+          },
           reviews: true,
           variants: true,
         },
@@ -141,11 +147,16 @@ export default async function HomePage() {
   const [latestProducts, categories, banners, reviews] =
     await Promise.all([
       db.product.findMany({
-        include: { category: true, images: {
-  orderBy: {
-    position: "asc",
-  },
-}, reviews: true, variants: true },
+        where: {
+          isArchived: false,
+        },
+        include: {
+          category: true, images: {
+            orderBy: {
+              position: "asc",
+            },
+          }, reviews: true, variants: true
+        },
         take: 8,
         orderBy: { createdAt: "desc" }
       }),
@@ -181,10 +192,10 @@ export default async function HomePage() {
           product: {
             include: {
               images: {
-  orderBy: {
-    position: "asc",
-  },
-},
+                orderBy: {
+                  position: "asc",
+                },
+              },
             },
           },
         },
@@ -199,16 +210,17 @@ export default async function HomePage() {
     await Promise.all([
       db.product.findMany({
         where: {
+          isArchived: false,
           isNewArrival: true,
 
         },
         include: {
           category: true,
           images: {
-  orderBy: {
-    position: "asc",
-  },
-},
+            orderBy: {
+              position: "asc",
+            },
+          },
           reviews: true,
           variants: true,
         },
@@ -219,15 +231,16 @@ export default async function HomePage() {
       }),
       db.product.findMany({
         where: {
+          isArchived: false,
           isTrending: true,
         },
         include: {
           category: true,
           images: {
-  orderBy: {
-    position: "asc",
-  },
-},
+            orderBy: {
+              position: "asc",
+            },
+          },
           reviews: true,
           variants: true,
         },
@@ -238,6 +251,7 @@ export default async function HomePage() {
       }),
       db.product.findMany({
         where: {
+          isArchived: false,
           isExclusive: true,
         },
         include: {
@@ -742,7 +756,7 @@ hover:scale-105
             </h3>
 
             <p className="mt-2 text-[9px] uppercase tracking-widest text-neutral-500">
-              Repeat Orders
+              Products
             </p>
 
           </div>

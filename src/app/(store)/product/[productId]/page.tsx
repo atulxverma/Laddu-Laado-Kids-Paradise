@@ -12,9 +12,6 @@ import {
   Tag,
   Calendar,
   Star,
-  Truck,
-  RotateCcw,
-  BadgeCheck,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -50,7 +47,13 @@ export default async function ProductPage({
   if (!product) notFound();
 
   const related = await db.product.findMany({
-    where: { categoryId: product.categoryId, NOT: { id: product.id } },
+    where: {
+      isArchived: false,
+      categoryId: product.categoryId,
+      NOT: {
+        id: product.id,
+      },
+    },
     include: {
       category: true, images: {
         orderBy: {
@@ -70,7 +73,13 @@ export default async function ProductPage({
       )
       : "0.0";
 
-  const stock = Number(product.stock ?? 0)
+  const stock =
+    product.variants.length > 0
+      ? product.variants.reduce(
+        (sum, variant) => sum + variant.stock,
+        0
+      )
+      : product.stock;
 
   const stockBadge =
     stock === 0
@@ -250,30 +259,31 @@ md:text-5xl
             {/* Accordions */}
             <div className="pt-2 space-y-2">
 
-              {product.specifications?.length > 0 && (
-                <div className="mt-8">
-                  <h3 className="text-sm font-black uppercase tracking-widest mb-4">
-                    Specifications
-                  </h3>
+              {Array.isArray(product.specifications) &&
+                product.specifications.length > 0 && (
+                  <div className="mt-8">
+                    <h3 className="text-sm font-black uppercase tracking-widest mb-4">
+                      Specifications
+                    </h3>
 
-                  <div className="rounded-[28px] overflow-hidden border border-gray-100 bg-[#fafafa]">
-                    {product.specifications.map((item: any, index: number) => (
-                      <div
-                        key={index}
-                        className="grid grid-cols-[140px_1fr] md:grid-cols-[180px_1fr] gap-4 px-5 py-4 border-b border-gray-100 last:border-none bg-white"
-                      >
-                        <span className="font-bold text-gray-500">
-                          {item.key}
-                        </span>
+                    <div className="rounded-[28px] overflow-hidden border border-gray-100 bg-[#fafafa]">
+                      {product.specifications.map((item: any, index: number) => (
+                        <div
+                          key={index}
+                          className="grid grid-cols-[140px_1fr] md:grid-cols-[180px_1fr] gap-4 px-5 py-4 border-b border-gray-100 last:border-none bg-white"
+                        >
+                          <span className="font-bold text-gray-500">
+                            {item.key}
+                          </span>
 
-                        <span className="text-black font-medium">
-                          {item.value}
-                        </span>
-                      </div>
-                    ))}
+                          <span className="text-black font-medium">
+                            {item.value}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               <details className="group border-t border-gray-100">
                 <summary className="flex items-center justify-between cursor-pointer text-[11px] font-black uppercase tracking-[0.2em] py-5 list-none">

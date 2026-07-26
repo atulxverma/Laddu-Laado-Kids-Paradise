@@ -1,10 +1,25 @@
 "use client"
 
 import Link from "next/link"
-import { Heart, ShoppingBag, Pencil } from "lucide-react"
+import { Heart, ShoppingBag } from "lucide-react"
 import { useWishlist } from "@/hooks/use-wishlist"
+import { Prisma } from "@prisma/client";
 
-export default function ProductCard({ product }: { product: any }) {
+type ProductCardType =
+  Prisma.ProductGetPayload<{
+    include: {
+      category: true;
+      images: true;
+      reviews: true;
+      variants: true;
+    };
+  }>;
+
+export default function ProductCard({
+  product,
+}: {
+  product: ProductCardType;
+}) {
   const { toggleItem, items } = useWishlist()
   const isLiked = items.some(i => i.id === product.id)
   const reviews = product.reviews || [];
@@ -15,42 +30,41 @@ export default function ProductCard({ product }: { product: any }) {
     totalReviews > 0
       ? (
         reviews.reduce(
-          (acc: number, r: any) => acc + r.rating,
+          (acc, r) => acc + r.rating,
           0
         ) / totalReviews
       ).toFixed(1)
       : "0.0";
-      const stock =
-  product.variants?.length
-    ? product.variants.reduce(
-        (total: number, variant: any) =>
-          total + Number(variant.stock ?? 0),
+  const stock =
+    product.variants.length > 0
+      ? product.variants.reduce(
+        (sum, variant) => sum + variant.stock,
         0
       )
-    : Number(product.stock ?? 0)
+      : product.stock;
 
-const stockBadge =
-  stock === 0
-    ? {
+  const stockBadge =
+    stock === 0
+      ? {
         text: "Out of Stock",
         className: "text-red-600",
       }
-    : stock <= 5
-    ? {
-        text: `Only ${stock} Left`,
-        className: "text-amber-600",
-      }
-    : {
-        text: "In Stock",
-        className: "text-emerald-600",
-      }
+      : stock <= 5
+        ? {
+          text: `Only ${stock} Left`,
+          className: "text-amber-600",
+        }
+        : {
+          text: "In Stock",
+          className: "text-emerald-600",
+        }
   return (
     <div className="group relative flex flex-col">
       <Link href={`/product/${product.id}`} className="flex flex-col h-full">
 
         {/* Image Container — Amazon/Flipkart style: taller on mobile */}
         <div
-  className="
+          className="
   relative
   w-full
   aspect-[4/5]
@@ -58,10 +72,10 @@ const stockBadge =
   rounded-2xl
   bg-neutral-100
   "
->
+        >
           {product.images?.[0]?.url ? (
             <img
-              loading="eager"
+              loading="lazy"
               src={product.images[0].url}
               onError={(e) => {
                 e.currentTarget.src = "/placeholder.png";
@@ -86,6 +100,12 @@ const stockBadge =
 
           {/* Wishlist button — always visible on mobile, hover on desktop */}
           <button
+            type="button"
+            aria-label={
+              isLiked
+                ? "Remove from wishlist"
+                : "Add to wishlist"
+            }
             onClick={(e) => { e.preventDefault(); toggleItem(product) }}
             className={`absolute top-2.5 right-2.5 h-9 w-9 rounded-full backdrop-blur-md flex items-center justify-center shadow-lg transition-all md:opacity-0 md:group-hover:opacity-100 ${isLiked
               ? "bg-red-50 border border-red-200"
@@ -136,19 +156,19 @@ const stockBadge =
           {/* Size tag if available */}
           <div className="mt-2 flex items-center justify-between">
 
-  <p
-    className={`text-[10px] font-bold ${stockBadge.className}`}
-  >
-    {stockBadge.text}
-  </p>
+            <p
+              className={`text-[10px] font-bold ${stockBadge.className}`}
+            >
+              {stockBadge.text}
+            </p>
 
-  {product.size && (
-    <p className="text-[9px] text-gray-400 truncate">
-      {product.size}
-    </p>
-  )}
+            {product.size && (
+              <p className="text-[9px] text-gray-400 truncate">
+                {product.size}
+              </p>
+            )}
 
-</div>
+          </div>
         </div>
       </Link>
     </div>
