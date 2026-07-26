@@ -519,7 +519,7 @@ if (!emailRegex.test(cleanEmail)) {
       const newOrder = await tx.order.create({
         data: {
           clerkId: user.id,
-          customerName: data.customerName,
+          customerName: cleanCustomerName,
           email: cleanEmail,
           phone: cleanPhone,
           address: fullAddress,
@@ -602,17 +602,25 @@ if (!emailRegex.test(cleanEmail)) {
           );
         }
 
-        await tx.product.update({
-          where: {
-            id: item.id,
-          },
-          data: {
-            stock: {
-              decrement: item.quantity,
-            },
-          },
-        });
-      }
+        const updatedProduct = await tx.product.updateMany({
+  where: {
+    id: item.id,
+    stock: {
+      gte: item.quantity,
+    },
+  },
+  data: {
+    stock: {
+      decrement: item.quantity,
+    },
+  },
+});
+
+if (updatedProduct.count === 0) {
+  throw new Error("Product stock mismatch.");
+}
+
+    }
 
       await tx.cartItem.deleteMany({
         where: {
@@ -984,7 +992,17 @@ export async function createCategory(
 
     const slug = slugify(name);
     const existing = await db.category.findFirst({
-      where: { OR: [{ name: name.trim() }, { slug }] },
+      where: {
+  OR: [
+    {
+      name: {
+        equals: name.trim(),
+        mode: "insensitive",
+      },
+    },
+    { slug },
+  ],
+},
     });
     if (existing) return { error: "This category already exists" };
 
@@ -1441,7 +1459,11 @@ export async function createReview(data: {
         error: "Review must be at least 10 characters long.",
       };
     }
-
+if (cleanComment.length > 1000) {
+  return {
+    error: "Review is too long.",
+  };
+}
     if (!Number.isInteger(data.rating) || data.rating < 1 || data.rating > 5) {
       return {
         error: "Invalid rating.",
@@ -1503,17 +1525,18 @@ export async function createReview(data: {
 }
 
 export async function subscribeNewsletter(email: string) {
+  const cleanEmail = email.trim().toLowerCase();
   try {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(cleanEmail)) {
       return {
         error: "Invalid email address",
       };
     }
 
     await db.newsletter.create({
-      data: { email },
+      data: { email: cleanEmail },
     });
 
     await sendAdminMail(
@@ -1521,18 +1544,18 @@ export async function subscribeNewsletter(email: string) {
       `
     <h2>New Subscriber</h2>
 
-    <p><b>Email:</b> ${email}</p>
+    <p><b>Email:</b> ${cleanEmail}</p>
 
     <p><b>Time:</b> ${new Date()}</p>
   `,
     );
     await resend.emails.send({
       from: "Laddoo Laado <orders@laddoolaado.com>",
-      to: email,
+      to: cleanEmail,
       subject: "✨ Welcome to the Laddoo Laado Family",
       html: await render(
         WelcomeNewsletterEmail({
-          email,
+          email: cleanEmail,
         }),
       ),
     });
@@ -1638,13 +1661,23 @@ export async function updateCategory(
 
     // Duplicate slug check
     const existing = await db.category.findFirst({
-      where: {
+  where: {
+    NOT: {
+      id,
+    },
+    OR: [
+      {
         slug,
-        NOT: {
-          id,
+      },
+      {
+        name: {
+          equals: name.trim(),
+          mode: "insensitive",
         },
       },
-    });
+    ],
+  },
+});
 
     if (existing) {
       return {
@@ -1936,7 +1969,20 @@ export async function sendContactMessage(data: {
   if (!emailRegex.test(data.email)) {
     return { error: "Invalid email address" };
   }
+  if (data.message.length > 2000) {
+  return {
+    error: "Message is too long.",
+  };
+}
   try {
+    await db.contact.create({
+  data: {
+    name: data.name.trim(),
+    email: data.email.trim(),
+    subject: data.subject.trim(),
+    message: data.message.trim(),
+  },
+});
     await sendAdminMail(
       `📩 Contact Form - ${data.subject}`,
 
