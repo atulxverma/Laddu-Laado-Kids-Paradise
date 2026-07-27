@@ -12,9 +12,8 @@ import { render } from "@react-email/render";
 import OrderConfirmationEmail from "@/app/(store)/emails/OrderConfirmationEmail";
 import AdminOrderEmail from "@/app/(store)/emails/AdminOrderEmail";
 import WelcomeNewsletterEmail from "@/app/(store)/emails/WelcomeNewsletterEmail";
-import CancelledOrderEmail from "@/app/(store)/emails/CancelledOrderEmail";
 import { createShipment } from "@/lib/createShipment";
-import { Prisma } from "@prisma/client";
+import StatusEmail from "@/app/(store)/emails/StatusEmail";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -1251,6 +1250,8 @@ export async function updateOrderStatus(orderId: string, status: string) {
       },
       select: {
         status: true,
+        email: true,
+        customerName: true,
       },
     });
 
@@ -1284,25 +1285,45 @@ export async function updateOrderStatus(orderId: string, status: string) {
 `,
       );
     }
-    if (status === "Delivered") {
-      await sendAdminMail(
-        "✅ Order Delivered",
-        `
-<p>Order : ${orderId}</p>
-
-<p>Status : Delivered</p>
-`,
-      );
+    if (status === "Delivered" && order.email) {
+      await resend.emails.send({
+        from: "Laddoo Laado <orders@laddoolaado.com>",
+        to: order.email,
+        subject: `✅ Order #${orderId.slice(-6).toUpperCase()} Delivered`,
+        html: await render(
+          StatusEmail({
+            preview: "Your order has been delivered",
+            title: "Order Delivered",
+            icon: "✅",
+            customerName: order.customerName,
+            orderId: orderId.slice(-6).toUpperCase(),
+            message:
+              "Your order has been delivered successfully. We hope you love your purchase. Thank you for shopping with us.",
+            buttonText: "Shop Again",
+            buttonLink: "https://laddoolaado.com/shop",
+          }),
+        ),
+      });
     }
-    if (status === "Shipped") {
-      await sendAdminMail(
-        "🚚 Order Shipped",
-        `
-<p>Order : ${orderId}</p>
-
-<p>Status : Shipped</p>
-`,
-      );
+    if (status === "Shipped" && order.email) {
+      await resend.emails.send({
+        from: "Laddoo Laado <orders@laddoolaado.com>",
+        to: order.email,
+        subject: `🚚 Order #${orderId.slice(-6).toUpperCase()} Shipped`,
+        html: await render(
+          StatusEmail({
+            preview: "Your order has been shipped",
+            title: "Order Shipped",
+            icon: "🚚",
+            customerName: order.customerName,
+            orderId: orderId.slice(-6).toUpperCase(),
+            message:
+              "Great news! Your order has been shipped and is on its way to you.",
+            buttonText: "Track Order",
+            buttonLink: `https://laddoolaado.com/orders/${orderId}`,
+          }),
+        ),
+      });
     }
 
     revalidatePath("/admin/orders");
@@ -1398,9 +1419,16 @@ export async function cancelOrder(orderId: string) {
           to: customerEmail,
           subject: `❌ Order #${shortOrderId} Cancelled`,
           html: await render(
-            CancelledOrderEmail({
+            StatusEmail({
+              preview: "Your order has been cancelled",
+              title: "Order Cancelled",
+              icon: "❌",
               customerName: order.customerName,
               orderId: shortOrderId,
+              message:
+                "Your order has been cancelled successfully. If this wasn't requested by you, please contact our support team immediately.",
+              buttonText: "Continue Shopping",
+              buttonLink: "https://laddoolaado.com/shop",
             }),
           ),
         });
