@@ -2,17 +2,26 @@ import { resend } from "./resend";
 
 export async function sendAdminMail(subject: string, html: string) {
   try {
-    console.log("ADMIN_EMAIL:", process.env.ADMIN_EMAIL);
+    const adminEmail = process.env.ADMIN_EMAIL;
+
+    if (!adminEmail) {
+      throw new Error("ADMIN_EMAIL is missing in .env");
+    }
+
+    console.log("📧 Sending admin mail to:", adminEmail);
 
     const response = await resend.emails.send({
-      from: "Laddoo Laado <onboarding@resend.dev>",
-      to: process.env.ADMIN_EMAIL!,
+      from: "Laddoo Laado <orders@laddoolaado.com>",
+      to: adminEmail,
       subject,
       html,
     });
 
-    console.log("ADMIN MAIL RESPONSE:", response);
+    console.log("✅ ADMIN MAIL RESPONSE:", response);
+
+    return response;
   } catch (error) {
-    console.error("Admin mail failed:", error);
+    console.error("❌ Admin mail failed:", error);
+    throw error;
   }
 }
