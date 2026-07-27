@@ -13,7 +13,7 @@ import OrderConfirmationEmail from "@/app/(store)/emails/OrderConfirmationEmail"
 import AdminOrderEmail from "@/app/(store)/emails/AdminOrderEmail";
 import WelcomeNewsletterEmail from "@/app/(store)/emails/WelcomeNewsletterEmail";
 import { createShipment } from "@/lib/createShipment";
-import StatusEmail from "@/app/(store)/emails/StatusEmail";
+import OrderStatusEmail from "@/app/(store)/emails/OrderStatusEmail";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -35,19 +35,17 @@ async function checkAdmin() {
   const user = await currentUser();
 
   const adminEmail = process.env.ADMIN_EMAIL;
+
   if (!user || user.primaryEmailAddress?.emailAddress !== adminEmail) {
     await sendAdminMail(
       "🚨 Unauthorized Access Attempt",
       `
       <p><b>User:</b> ${user?.fullName || "Unknown User"}</p>
       <p><b>Email:</b> ${user?.primaryEmailAddress?.emailAddress || "Unknown Email"}</p>
-    `,
+      `,
     );
-    throw new Error("Unauthorized");
-  }
 
-  if (!user || user.primaryEmailAddress?.emailAddress !== adminEmail) {
-    throw new Error("Unauthorized: Access Denied");
+    throw new Error("Unauthorized");
   }
 }
 
@@ -724,7 +722,7 @@ export async function createOrder(data: {
     const adminEmail = process.env.ADMIN_EMAIL;
 
     const orderIdShort = order.id.slice(-6).toUpperCase();
-    const customerEmail = user.primaryEmailAddress?.emailAddress;
+    const customerEmail = order.email;
 
     if (process.env.RESEND_API_KEY) {
       try {
@@ -1248,10 +1246,20 @@ export async function updateOrderStatus(orderId: string, status: string) {
       where: {
         id: orderId,
       },
-      select: {
-        status: true,
-        email: true,
-        customerName: true,
+      include: {
+        orderItems: {
+          include: {
+            product: {
+              include: {
+                images: {
+                  orderBy: {
+                    position: "asc",
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
@@ -1260,7 +1268,15 @@ export async function updateOrderStatus(orderId: string, status: string) {
         error: "Order not found",
       };
     }
-
+    const products = order.orderItems.map((item) => ({
+      name: item.product.name,
+      image: item.product.images[0]?.url || "",
+      quantity: item.quantity,
+      price: item.product.price,
+      size: item.size,
+      color: item.product.color || "",
+      gender: item.product.gender || "",
+    }));
     if (order.status === "Delivered" || order.status === "Cancelled") {
       return {
         error: `${order.status} orders cannot be modified`,
@@ -1276,54 +1292,150 @@ export async function updateOrderStatus(orderId: string, status: string) {
       },
     });
     if (status === "Cancelled") {
-      await sendAdminMail(
-        "❌ Order Cancelled",
-        `
-<p><b>Order:</b> ${orderId}</p>
+      if (order.email) {
+        await resend.emails.send({
+          from: "Laddoo Laado <orders@laddoolaado.com>",
+          to: order.email,
+          subject: `❌ Order #${orderId.slice(-6).toUpperCase()} Cancelled`,
+          html: await render(
+            OrderStatusEmail({
+              title: "❌ Order Cancelled",
 
-<p>Status : Cancelled</p>
-`,
+              message:
+                "Your order has been cancelled successfully. If your payment was made online, your refund will be initiated to the original payment method within 5–7 business days.",
+
+              buttonText: "Continue Shopping",
+
+              buttonLink: "https://laddoolaado.com/shop",
+
+              customerName: order.customerName,
+
+              orderId: orderId.slice(-6).toUpperCase(),
+
+              phone: order.phone,
+
+              address: order.address,
+
+              paymentMethod: order.paymentMethod,
+
+              paymentStatus: order.isPaid ? "Paid" : "Pending",
+
+              subtotal: order.subtotal,
+
+              deliveryCharge: order.deliveryCharge,
+
+              codCharge: order.codCharge,
+
+              total: order.total,
+
+              products,
+            }),
+          ),
+        });
+      }
+
+      await sendAdminMail(
+        `❌ Order #${orderId.slice(-6).toUpperCase()} Cancelled`,
+        `
+      <h2>Order Cancelled</h2>
+
+      <p><b>Order:</b> ${orderId.slice(-6).toUpperCase()}</p>
+
+      <p><b>Customer:</b> ${order.customerName}</p>
+
+      <p><b>Email:</b> ${order.email ?? "N/A"}</p>
+
+      <p><b>Status:</b> Cancelled</p>
+    `,
       );
     }
-    if (status === "Delivered" && order.email) {
-      await resend.emails.send({
-        from: "Laddoo Laado <orders@laddoolaado.com>",
-        to: order.email,
-        subject: `✅ Order #${orderId.slice(-6).toUpperCase()} Delivered`,
-        html: await render(
-          StatusEmail({
-            preview: "Your order has been delivered",
-            title: "Order Delivered",
-            icon: "✅",
-            customerName: order.customerName,
-            orderId: orderId.slice(-6).toUpperCase(),
-            message:
-              "Your order has been delivered successfully. We hope you love your purchase. Thank you for shopping with us.",
-            buttonText: "Shop Again",
-            buttonLink: "https://laddoolaado.com/shop",
-          }),
-        ),
-      });
-    }
-    if (status === "Shipped" && order.email) {
-      await resend.emails.send({
-        from: "Laddoo Laado <orders@laddoolaado.com>",
-        to: order.email,
-        subject: `🚚 Order #${orderId.slice(-6).toUpperCase()} Shipped`,
-        html: await render(
-          StatusEmail({
-            preview: "Your order has been shipped",
-            title: "Order Shipped",
-            icon: "🚚",
-            customerName: order.customerName,
-            orderId: orderId.slice(-6).toUpperCase(),
-            message:
-              "Great news! Your order has been shipped and is on its way to you.",
-            buttonText: "Track Order",
-            buttonLink: `https://laddoolaado.com/orders/${orderId}`,
-          }),
-        ),
-      });
+    try {
+      if (status === "Delivered" && order.email) {
+        await resend.emails.send({
+          from: "Laddoo Laado <orders@laddoolaado.com>",
+          to: order.email,
+          subject: `✅ Order #${orderId.slice(-6).toUpperCase()} Delivered`,
+          html: await render(
+            OrderStatusEmail({
+              title: "✅ Order Delivered",
+              message:
+                "Your order has been delivered successfully. We hope your little one loves every outfit. Thank you for choosing Laddoo Laado.",
+              buttonText: "Shop Again",
+              buttonLink: "https://laddoolaado.com/shop",
+
+              customerName: order.customerName,
+              orderId: orderId.slice(-6).toUpperCase(),
+
+              phone: order.phone,
+              address: order.address,
+
+              paymentMethod: order.paymentMethod,
+              paymentStatus: order.isPaid ? "Paid" : "Pending",
+
+              subtotal: order.subtotal,
+              deliveryCharge: order.deliveryCharge,
+              codCharge: order.codCharge,
+              total: order.total,
+
+              products,
+            }),
+          ),
+        });
+      }
+
+      if (status === "Shipped" && order.email) {
+        await resend.emails.send({
+          from: "Laddoo Laado <orders@laddoolaado.com>",
+          to: order.email,
+          subject: `🚚 Order #${orderId.slice(-6).toUpperCase()} Shipped`,
+          html: await render(
+            OrderStatusEmail({
+              title: "🚚 Order Shipped",
+              message:
+                "Great news! Your order has been shipped and is on its way to you. You can track its progress anytime from your account.",
+              buttonText: "Track Order",
+              buttonLink:
+                order.trackingUrl ??
+                `https://laddoolaado.com/orders/${orderId}`,
+
+              customerName: order.customerName,
+              orderId: orderId.slice(-6).toUpperCase(),
+
+              phone: order.phone,
+              address: order.address,
+
+              paymentMethod: order.paymentMethod,
+              paymentStatus: order.isPaid ? "Paid" : "Pending",
+
+              subtotal: order.subtotal,
+              deliveryCharge: order.deliveryCharge,
+              codCharge: order.codCharge,
+              total: order.total,
+
+              products,
+            }),
+          ),
+        });
+      }
+    } catch (emailError) {
+      console.error("Status email failed:", emailError);
+
+      await sendAdminMail(
+        "⚠️ Customer Status Email Failed",
+        `
+      <h2>Status Email Failed</h2>
+
+      <p><b>Order:</b> ${orderId.slice(-6).toUpperCase()}</p>
+
+      <p><b>Customer:</b> ${order.customerName}</p>
+
+      <p><b>Email:</b> ${order.email}</p>
+
+      <p><b>Status:</b> ${status}</p>
+
+      <p>Please resend this email manually.</p>
+    `,
+      );
     }
 
     revalidatePath("/admin/orders");
@@ -1355,13 +1467,35 @@ export async function cancelOrder(orderId: string) {
         clerkId: user.id,
       },
       include: {
-        orderItems: true,
+        orderItems: {
+          include: {
+            product: {
+              include: {
+                images: {
+                  orderBy: {
+                    position: "asc",
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
     if (!order) {
       return { error: "Order not found." };
     }
+
+    const products = order.orderItems.map((item) => ({
+      name: item.product.name,
+      image: item.product.images[0]?.url || "",
+      quantity: item.quantity,
+      price: item.product.price,
+      size: item.size,
+      color: item.product.color || "",
+      gender: item.product.gender || "",
+    }));
 
     if (order.status !== "Pending") {
       return {
@@ -1409,7 +1543,7 @@ export async function cancelOrder(orderId: string) {
       }
     });
 
-    const customerEmail = user.primaryEmailAddress?.emailAddress;
+    const customerEmail = order.email;
     const shortOrderId = order.id.slice(-6).toUpperCase();
 
     if (process.env.RESEND_API_KEY) {
@@ -1419,16 +1553,37 @@ export async function cancelOrder(orderId: string) {
           to: customerEmail,
           subject: `❌ Order #${shortOrderId} Cancelled`,
           html: await render(
-            StatusEmail({
-              preview: "Your order has been cancelled",
-              title: "Order Cancelled",
-              icon: "❌",
-              customerName: order.customerName,
-              orderId: shortOrderId,
+            OrderStatusEmail({
+              title: "❌ Order Cancelled",
+
               message:
-                "Your order has been cancelled successfully. If this wasn't requested by you, please contact our support team immediately.",
+                "Your order has been cancelled successfully. If your payment was made online, your refund will be initiated to the original payment method within 5–7 business days.",
+
               buttonText: "Continue Shopping",
+
               buttonLink: "https://laddoolaado.com/shop",
+
+              customerName: order.customerName,
+
+              orderId: shortOrderId,
+
+              phone: order.phone,
+
+              address: order.address,
+
+              paymentMethod: order.paymentMethod,
+
+              paymentStatus: order.isPaid ? "Paid" : "Pending",
+
+              subtotal: order.subtotal,
+
+              deliveryCharge: order.deliveryCharge,
+
+              codCharge: order.codCharge,
+
+              total: order.total,
+
+              products,
             }),
           ),
         });
