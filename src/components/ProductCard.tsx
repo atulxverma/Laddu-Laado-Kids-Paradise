@@ -35,9 +35,11 @@ export default function ProductCard({
         ) / totalReviews
       ).toFixed(1)
       : "0.0";
+  const variants = product.variants ?? [];
+
   const stock =
-    product.variants.length > 0
-      ? product.variants.reduce(
+    variants.length > 0
+      ? variants.reduce(
         (sum, variant) => sum + variant.stock,
         0
       )

@@ -34,6 +34,7 @@ export default async function CategoryPage({
             },
             category: true,
             reviews: true,
+            variants: true,
         },
         orderBy: {
             createdAt: "desc",
@@ -63,7 +64,7 @@ export default async function CategoryPage({
 
                         <div className="min-w-0">
                             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-400">Premium Collection</p>
-                            <h1 className="mt-1 text-xl font-black tracking-TIGHT TEXT-neutral-950 sm:mt-2 sm:text-3xl lg:text-5xl">{category.name}</h1>
+                            <h1 className="mt-1 text-xl font-black tracking-tight text-neutral-950 sm:mt-2 sm:text-3xl lg:text-5xl">{category.name}</h1>
                             <div className="mt-2 flex items-center gap-2 text-xs font-medium text-neutral-500 sm:text-sm">
                                 <FolderOpen size={16} />
                                 {products.length} {products.length === 1 ? "Product" : "Products"} Available
