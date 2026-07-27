@@ -348,13 +348,13 @@ export default function CheckoutPage() {
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-emerald-600">
             {successfulPaymentMethod === "ONLINE"
               ? "PAYMENT SUCCESSFUL"
-              : "ORDER PLACED"}
+              : "ORDER Confirmed"}
           </p>
 
           <h1 className="mt-4 text-4xl font-black tracking-tight text-zinc-900">
             {successfulPaymentMethod === "ONLINE"
               ? "Order Confirmed 🎉"
-              : "Order Placed 🎉"}
+              : "Order Confirmed 🎉"}
           </h1>
 
           <p className="mx-auto mt-5 max-w-sm text-sm leading-7 text-zinc-500">
@@ -370,7 +370,7 @@ export default function CheckoutPage() {
                 Thank you for shopping with
                 <span className="font-semibold text-black"> Laddoo Laado</span>.
                 <br />
-                Your Cash on Delivery order has been placed successfully and will be confirmed shortly.
+                Your Cash on Delivery order has been confirmed successfully.
               </>
             )}
           </p>
