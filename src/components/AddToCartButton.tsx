@@ -40,11 +40,9 @@ export default function AddToCartButton({ product }: { product: ProductType }) {
       ([entry]) => {
         const rect = entry.boundingClientRect;
 
-        // Buttons screen ke niche hain -> sticky dikhao
         if (rect.top > window.innerHeight) {
           setShowSticky(true);
         }
-        // Buttons screen me aa gaye -> sticky hide
         else {
           setShowSticky(false);
         }
