@@ -8,22 +8,28 @@ export default async function DashboardPage() {
     // ✅ Fixed: added images to include
     db.product.findMany({
       where: { stock: { lte: 5 } },
-      include: { images: {
-  orderBy: {
-    position: "asc",
-  },
-} },
+      include: {
+        images: {
+          orderBy: {
+            position: "asc",
+          },
+        }
+      },
       take: 5
     }),
     db.order.findMany({
       include: {
         orderItems: {
           include: {
-            product: { include: { images: {
-  orderBy: {
-    position: "asc",
-  },
-} } }
+            product: {
+              include: {
+                images: {
+                  orderBy: {
+                    position: "asc",
+                  },
+                }
+              }
+            }
           }
         }
       },
@@ -148,7 +154,18 @@ export default async function DashboardPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-black text-black tracking-tight">₹{order.total.toLocaleString()}</p>
-                    <span className="text-[8px] font-black text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-full uppercase">PAID</span>
+                    <span
+                      className={`text-[8px] font-black px-2 py-0.5 rounded-full uppercase ${order.isPaid
+                          ? "bg-emerald-50 text-emerald-600"
+                          : "bg-orange-50 text-orange-600"
+                        }`}
+                    >
+                      {order.isPaid
+                        ? "PAID"
+                        : order.paymentMethod === "COD"
+                          ? "COD"
+                          : "UNPAID"}
+                    </span>
                   </div>
                 </div>
               ))
