@@ -8,6 +8,12 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, ArrowRight, Building2, CheckCircle2, CreditCard, Home, Landmark, LockKeyhole, MapPin, Navigation, PackageCheck, Phone, ShieldCheck, ShoppingBag, Truck, User, Sparkles } from "lucide-react"
 import Script from "next/script"
+import AddressDrawer from "@/components/checkout/AddressDrawer";
+import AddressCard from "@/components/checkout/AddressCard";
+import AddressForm from "@/components/checkout/AddressForm";
+import {
+  CircleDollarSign,
+} from "lucide-react";
 
 export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] =
@@ -16,6 +22,7 @@ export default function CheckoutPage() {
   const router = useRouter()
   const items = useCart((state) => state.items)
   const clearCart = useCart((state) => state.clearCart)
+  const [addressDrawerOpen, setAddressDrawerOpen] = useState(false);
 
   const validItems = items.filter(
     (item) => item && item.id && item.name
@@ -43,14 +50,18 @@ export default function CheckoutPage() {
   const [pincodeLoading, setPincodeLoading] = useState(false)
   const [locating, setLocating] = useState(false)
 
-  const [form, setForm] = useState({
+  const emptyAddress = {
     name: "",
     phone: "",
     pincode: "",
     city: "",
     state: "",
     houseDetails: "",
-  });
+  };
+
+  const [savedAddress, setSavedAddress] = useState(emptyAddress);
+
+  const [draftAddress, setDraftAddress] = useState(emptyAddress);
 
   const particles = Array.from({ length: 18 }, (_, i) => ({
     id: i,
@@ -69,7 +80,7 @@ export default function CheckoutPage() {
           const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
           const data = await res.json()
           const addr = data.address
-          setForm(prev => ({
+          setDraftAddress(prev => ({
             ...prev,
             pincode: addr.postcode?.replace(/\s/g, "") || "",
             city: addr.city || addr.town || addr.village || addr.district || "",
@@ -93,15 +104,31 @@ export default function CheckoutPage() {
 
   const handlePincodeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const pin = e.target.value.replace(/\D/g, "").slice(0, 6)
-    setForm({ ...form, pincode: pin })
+    setDraftAddress((prev) => ({
+      ...prev,
+      pincode: pin,
+    }));
     if (pin.length === 6) {
       setPincodeLoading(true)
       try {
         const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`)
         const data = await res.json()
         if (data[0].Status === "Success") {
-          const details = data[0].PostOffice[0]
-          setForm(prev => ({ ...prev, city: details.District, state: details.State }))
+          const details = data[0].PostOffice[0];
+
+          setDraftAddress(prev => ({
+            ...prev,
+            city: details.District,
+            state: details.State,
+          }));
+        } else {
+          setDraftAddress(prev => ({
+            ...prev,
+            city: "",
+            state: "",
+          }));
+
+          alert("Invalid Pincode");
         }
       } catch (err) {
         console.error(err)
@@ -111,40 +138,44 @@ export default function CheckoutPage() {
     }
   }
 
-  const handlePayment = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (loading) return
-    if (!user) return
-    setLoading(true)
+  const handlePayment = async () => {
+    if (loading) return;
+    if (!user) return;
 
-    if (!form.pincode) {
+    if (!savedAddress.name.trim()) {
+      alert("Please enter your name.");
+      return;
+    }
+
+    setLoading(true);
+
+    if (!savedAddress.pincode) {
       alert("Please enter your pincode.");
       document.querySelector<HTMLInputElement>('input[placeholder="6 Digit PIN"]')?.focus();
       setLoading(false);
       return;
     }
 
-    if (!form.city || !form.state) {
+    if (!savedAddress.city || !savedAddress.state) {
       alert("Please enter a valid pincode to fetch your city and state.");
       document.querySelector<HTMLInputElement>('input[placeholder="6 Digit PIN"]')?.focus();
       setLoading(false);
       return;
     }
 
-    if (!form.houseDetails.trim()) {
+    if (!savedAddress.houseDetails.trim()) {
       alert("Please enter your complete delivery address.");
       document.querySelector<HTMLTextAreaElement>("textarea")?.focus();
       setLoading(false);
       return;
     }
 
-    if (form.phone.length !== 10) {
-      alert("Please enter valid phone number")
-      setLoading(false)
-      return
+    if (!/^[6-9]\d{9}$/.test(savedAddress.phone)) {
+      alert("Please enter a valid Indian mobile number.");
+      setLoading(false);
+      return;
     }
 
-    const fullAddress = `${form.houseDetails}, ${form.city}, ${form.state} - ${form.pincode}`
 
     try {
       const checkoutItems = validItems.map((item) => ({
@@ -155,13 +186,13 @@ export default function CheckoutPage() {
       if (paymentMethod === "COD") {
 
         const orderRes = await createOrder({
-          customerName: form.name,
+          customerName: savedAddress.name,
           email: user.primaryEmailAddress?.emailAddress || "",
-          phone: form.phone,
-          address: form.houseDetails,
-          city: form.city,
-          state: form.state,
-          pincode: form.pincode,
+          phone: savedAddress.phone,
+          address: savedAddress.houseDetails,
+          city: savedAddress.city,
+          state: savedAddress.state,
+          pincode: savedAddress.pincode,
 
           items: checkoutItems,
 
@@ -215,13 +246,13 @@ export default function CheckoutPage() {
           setLoading(true)
 
           const orderRes = await createOrder({
-            customerName: form.name,
+            customerName: savedAddress.name,
             email: user.primaryEmailAddress?.emailAddress || "",
-            phone: form.phone,
-            address: form.houseDetails,
-            city: form.city,
-            state: form.state,
-            pincode: form.pincode,
+            phone: savedAddress.phone,
+            address: savedAddress.houseDetails,
+            city: savedAddress.city,
+            state: savedAddress.state,
+            pincode: savedAddress.pincode,
 
             items: checkoutItems,
 
@@ -256,9 +287,9 @@ export default function CheckoutPage() {
         },
 
         prefill: {
-          name: form.name,
-          email: user?.primaryEmailAddress?.emailAddress,
-          contact: form.phone,
+          name: savedAddress.name.trim(),
+          email: user?.primaryEmailAddress?.emailAddress ?? "",
+          contact: savedAddress.phone.trim(),
         },
         theme: { color: "#000000" },
         modal: { ondismiss: () => setLoading(false) }
@@ -272,7 +303,7 @@ export default function CheckoutPage() {
 
 
       //       const orderRes = await createOrder({
-      //   phone: form.phone,
+      //   phone: savedAddress.phone,
       //   address: fullAddress,
       //   items: checkoutItems,
       //   payment: {
@@ -296,10 +327,10 @@ export default function CheckoutPage() {
       //till there without razorpay
 
     } catch (err) {
-  console.error(err);
-  alert("Something went wrong. Please try again.");
-  setLoading(false);
-}
+      console.error(err);
+      alert("Something went wrong. Please try again.");
+      setLoading(false);
+    }
   }
 
   if (isSuccess) {
@@ -469,83 +500,51 @@ export default function CheckoutPage() {
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_390px] lg:gap-10">
           <section className="space-y-6">
-            <div className="rounded-[28px] bg-white p-5 shadow-[0_12px_50px_rgba(0,0,0,0.04)] sm:p-8">
-              <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h2 className="text-xl font-semibold tracking-tight text-zinc-950">Shipping address</h2>
-                  <p className="mt-1 text-sm text-zinc-500">Where should we deliver your order?</p>
-                </div>
-                <button type="button" onClick={detectLocation} disabled={locating} className="inline-flex w-fit items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-2.5 text-xs font-semibold text-blue-700 transition-all hover:-translate-y-0.5 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-60">
-                  <Navigation size={15} className={locating ? "animate-spin" : ""} />
-                  {locating ? "Locating…" : "Use Live Location"}
+            <AddressCard
+              form={savedAddress}
+              onOpen={() => {
+                setDraftAddress(savedAddress);
+                setAddressDrawerOpen(true);
+              }}
+            />
+
+            <AddressDrawer
+              open={addressDrawerOpen}
+              onClose={() => setAddressDrawerOpen(false)}
+              footer={
+                <button
+                  onClick={() => {
+                    if (
+                      !draftAddress.name.trim() ||
+                      !/^[6-9]\d{9}$/.test(draftAddress.phone) ||
+                      draftAddress.pincode.length !== 6 ||
+                      !draftAddress.city ||
+                      !draftAddress.state ||
+                      !draftAddress.houseDetails.trim()
+                    ) {
+                      alert("Please complete your address.");
+                      return;
+                    }
+
+                    setSavedAddress(draftAddress);
+                    setAddressDrawerOpen(false);
+                  }}
+                  className="h-12 w-full rounded-xl bg-black text-sm font-semibold text-white transition hover:bg-neutral-800 disabled:bg-neutral-300"
+                >
+                  Save Address
                 </button>
-              </div>
-
-              <form id="checkout-form" onSubmit={handlePayment} className="space-y-5">
-                <div>
-                  <label className="mb-2 block text-xs font-semibold text-zinc-700">Recipient Name</label>
-                  <div className="relative">
-                    <User size={17} className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                    <input
-                      required
-                      type="text"
-                      placeholder="Your Name"
-                      value={form.name}
-                      onChange={(e) =>
-                        setForm({ ...form, name: e.target.value })
-                      }
-                      className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 h-14 pl-12 pr-5 text-sm font-medium text-zinc-950 outline-none transition-all placeholder:text-zinc-400 focus:border-zinc-950 focus:bg-white focus:ring-4 focus:ring-zinc-100"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-xs font-semibold text-zinc-700">Phone Number</label>
-                  <div className="relative">
-                    <Phone size={17} className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                    <span className="pointer-events-none absolute left-12 top-1/2 -translate-y-1/2 border-r border-zinc-200 pr-3 text-sm font-medium text-zinc-500">+91</span>
-                    <input required type="tel" placeholder="00000 00000" pattern="[6-9]{1}[0-9]{9}" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })} className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 h-14 pl-[104px] pr-5 text-sm font-medium text-zinc-950 outline-none transition-all placeholder:text-zinc-400 focus:border-zinc-950 focus:bg-white focus:ring-4 focus:ring-zinc-100" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                  <div>
-                    <label className="mb-2 block text-xs font-semibold text-zinc-700">Pincode</label>
-                    <div className="relative">
-                      <MapPin size={17} className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                      <input required placeholder="6 Digit PIN" value={form.pincode} onChange={handlePincodeChange} className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 h-14 pl-12 pr-10 text-sm font-medium text-zinc-950 outline-none transition-all placeholder:text-zinc-400 focus:border-zinc-950 focus:bg-white focus:ring-4 focus:ring-zinc-100" />
-                      {pincodeLoading && <div className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 rounded-full border-2 border-zinc-900 border-t-transparent animate-spin" />}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="mb-2 block text-xs font-semibold text-zinc-700">City</label>
-                    <div className="relative">
-                      <Building2 size={17} className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                      <input readOnly placeholder="Auto-detected" value={form.city} className="w-full rounded-2xl border border-zinc-100 bg-zinc-100 h-14 pl-12 pr-5 text-sm font-medium text-zinc-500 outline-none" />
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-xs font-semibold text-zinc-700">State</label>
-                  <div className="relative">
-                    <Landmark size={17} className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                    <input readOnly placeholder="Auto-detected" value={form.state} className="w-full rounded-2xl border border-zinc-100 bg-zinc-100 h-14 pl-12 pr-5 text-sm font-medium text-zinc-500 outline-none" />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-xs font-semibold text-zinc-700">Enter Full Address</label>
-                  <div className="relative">
-                    <Home size={17} className="pointer-events-none absolute left-5 top-5 text-zinc-400" />
-                    <textarea minLength={10} required rows={4} placeholder="Flat/House No, Building Name, Near Landmark, Road Name..." value={form.houseDetails} onChange={(e) => setForm({ ...form, houseDetails: e.target.value })} className="w-full resize-none rounded-2xl border border-zinc-200 bg-zinc-50 h-14 pl-12 pr-5 text-sm font-medium leading-6 text-zinc-950 outline-none transition-all placeholder:text-zinc-400 focus:border-zinc-950 focus:bg-white focus:ring-4 focus:ring-zinc-100" />
-                  </div>
-                </div>
-              </form>
-            </div>
-
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              }
+            >
+              <AddressForm
+                form={draftAddress}
+                setForm={setDraftAddress}
+                locating={locating}
+                detectLocation={detectLocation}
+                pincodeLoading={pincodeLoading}
+                handlePincodeChange={handlePincodeChange}
+              />
+            </AddressDrawer>
+            <div className="hidden lg:grid lg:grid-cols-4 gap-4">
               <div className="rounded-2xl bg-white p-4 shadow-sm"><ShieldCheck size={19} className="text-zinc-900" /><p className="mt-3 text-xs font-semibold text-zinc-800">Secure Checkout</p><p className="mt-1 text-[11px] text-zinc-500">Protected data</p></div>
               <div className="rounded-2xl bg-white p-4 shadow-sm"><PackageCheck size={19} className="text-zinc-900" /><p className="mt-3 text-xs font-semibold text-zinc-800">Easy Returns</p><p className="mt-1 text-[11px] text-zinc-500">Simple process</p></div>
               <div className="rounded-2xl bg-white p-4 shadow-sm"><Truck size={19} className="text-zinc-900" /><p className="mt-3 text-xs font-semibold text-zinc-800">Fast Delivery</p><p className="mt-1 text-[11px] text-zinc-500">Tracked shipping</p></div>
@@ -719,42 +718,205 @@ duration-300
 
                 </div>
 
-                <div className="mt-5 grid grid-cols-2 gap-3">
+                <div className="rounded-[22px] border border-neutral-200 bg-white p-5 mt-4 shadow-sm">
+                  <h3 className="text-lg font-semibold text-neutral-900">
+                    Payment Method
+                  </h3>
 
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod("ONLINE")}
-                    className={`rounded-xl border p-3 transition ${paymentMethod === "ONLINE"
-                      ? "border-black bg-black text-white"
-                      : "border-zinc-200 bg-white"
-                      }`}
-                  >
-                    <p className="text-xs font-bold">
-                      ONLINE PAYMENT
-                    </p>
-                  </button>
+                  <p className="mt-1 text-sm text-neutral-500">
+                    Choose how you'd like to pay.
+                  </p>
 
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod("COD")}
-                    className={`rounded-xl border p-3 transition ${paymentMethod === "COD"
-                      ? "border-black bg-black text-white"
-                      : "border-zinc-200 bg-white"
-                      }`}
-                  >
-                    <p className="text-xs font-bold">
-                      CASH ON DELIVERY
-                    </p>
+                  <div className="mt-5 space-y-3">
 
-                  </button>
+                    {/* Online Payment */}
 
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod("ONLINE")}
+                      className={`
+w-full
+flex
+items-center
+justify-between
+
+rounded-2xl
+border
+
+px-4
+py-4
+
+transition-all
+
+${paymentMethod === "ONLINE"
+                          ? "border-black bg-neutral-50"
+                          : "border-neutral-200 bg-white hover:border-neutral-300"
+                        }
+`}
+                    >
+                      <div className="flex items-center gap-4">
+
+                        <div
+                          className={`
+flex
+h-11
+w-11
+items-center
+justify-center
+
+rounded-full
+
+${paymentMethod === "ONLINE"
+                              ? "bg-black text-white"
+                              : "bg-neutral-100 text-neutral-700"
+                            }
+`}
+                        >
+                          <CreditCard size={20} />
+                        </div>
+
+                        <div className="text-left">
+                          <p className="font-medium text-neutral-900">
+                            Online Payment
+                          </p>
+
+                          <p className="text-xs text-neutral-500">
+                            UPI • Cards • Net Banking
+                          </p>
+                        </div>
+
+                      </div>
+
+                      <div
+                        className={`
+flex
+h-5
+w-5
+items-center
+justify-center
+
+rounded-full
+border-2
+
+${paymentMethod === "ONLINE"
+                            ? "border-black"
+                            : "border-neutral-300"
+                          }
+`}
+                      >
+                        {paymentMethod === "ONLINE" && (
+                          <div className="h-2.5 w-2.5 rounded-full bg-black" />
+                        )}
+                      </div>
+
+                    </button>
+
+                    {/* Cash On Delivery */}
+
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod("COD")}
+                      className={`
+w-full
+flex
+items-center
+justify-between
+
+rounded-2xl
+border
+
+px-4
+py-4
+
+transition-all
+
+${paymentMethod === "COD"
+                          ? "border-black bg-neutral-50"
+                          : "border-neutral-200 bg-white hover:border-neutral-300"
+                        }
+`}
+                    >
+                      <div className="flex items-center gap-4">
+
+                        <div
+                          className={`
+flex
+h-11
+w-11
+items-center
+justify-center
+
+rounded-full
+
+${paymentMethod === "COD"
+                              ? "bg-black text-white"
+                              : "bg-neutral-100 text-neutral-700"
+                            }
+`}
+                        >
+                          <CircleDollarSign size={20} />
+                        </div>
+
+                        <div className="text-left">
+                          <p className="font-medium text-neutral-900">
+                            Cash on Delivery
+                          </p>
+
+                          <p className="text-xs text-neutral-500">
+                            Pay after your order arrives
+                          </p>
+                        </div>
+
+                      </div>
+
+                      <div
+                        className={`
+flex
+h-5
+w-5
+items-center
+justify-center
+
+rounded-full
+border-2
+
+${paymentMethod === "COD"
+                            ? "border-black"
+                            : "border-neutral-300"
+                          }
+`}
+                      >
+                        {paymentMethod === "COD" && (
+                          <div className="h-2.5 w-2.5 rounded-full bg-black" />
+                        )}
+                      </div>
+
+                    </button>
+
+                  </div>
                 </div>
 
                 <button
-                  form="checkout-form"
-                  type="submit"
-                  disabled={loading}
-                  className="mt-7 flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-black text-white font-black transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[.98] disabled:opacity-40"
+                  type="button"
+                  onClick={() => {
+                    const addressComplete =
+                      savedAddress.name.trim() &&
+                      /^[6-9]\d{9}$/.test(savedAddress.phone) &&
+                      savedAddress.pincode.length === 6 &&
+                      savedAddress.city &&
+                      savedAddress.state &&
+                      savedAddress.houseDetails.trim();
+
+                    if (!addressComplete) {
+                      setDraftAddress(savedAddress);
+                      setAddressDrawerOpen(true);
+                      return;
+                    }
+
+                    handlePayment();
+                  }}
+
+                  className="mt-7 flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-black text-white font-black transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[.98] disabled:opacity-60"
                 >
                   {loading ? (
                     "Processing..."
@@ -805,6 +967,7 @@ duration-300
                 </div>
               </div>
             </div>
+            
           </aside>
         </div>
 
