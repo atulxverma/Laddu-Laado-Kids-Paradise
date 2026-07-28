@@ -36,27 +36,24 @@ export default function AddToCartButton({ product }: { product: ProductType }) {
   useEffect(() => {
     if (window.innerWidth >= 768) return;
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        const rect = entry.boundingClientRect;
+    const handleScroll = () => {
+      if (!actionButtonsRef.current) return;
 
-        if (rect.top > window.innerHeight) {
-          setShowSticky(true);
-        }
-        else {
-          setShowSticky(false);
-        }
-      },
-      {
-        threshold: 0.2,
+      const rect = actionButtonsRef.current.getBoundingClientRect();
+
+      // Jab original buttons viewport me aa jayein
+      if (rect.top <= window.innerHeight && rect.bottom >= 0) {
+        setShowSticky(false);
+      } else {
+        setShowSticky(true);
       }
-    );
+    };
 
-    if (actionButtonsRef.current) {
-      observer.observe(actionButtonsRef.current);
-    }
+    handleScroll(); // page load par bhi chalega
 
-    return () => observer.disconnect();
+    window.addEventListener("scroll", handleScroll);
+
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   if (!mounted || !product) return null;
@@ -246,7 +243,7 @@ export default function AddToCartButton({ product }: { product: ProductType }) {
               className={`h-12 md:h-11 rounded-xl border-2 text-[13px] md:text-sm font-medium transition-all
               ${selectedSize === variant.size
                   ? "bg-black text-white border-black"
-                  : "bg-white border-gray-200 hover:border-black"
+                  : "bg-white/95 backdrop-blur-2xl border-gray-200 hover:border-black"
                 }
               ${variant.stock === 0 ? "opacity-40 cursor-not-allowed" : ""}
               `}
@@ -388,7 +385,7 @@ ${showSticky
       >
         <div
           className="
-border-t
+border-t border-neutral-100
 bg-white/95
 backdrop-blur-xl
 px-3
@@ -427,13 +424,17 @@ shadow-2xl
               Buy Now
             </button>
 
-            <p className="mt-1 text-center text-[10px] font-bold text-neutral-900">
-              ₹{product.price.toLocaleString("en-IN")}
-            </p>
+            <div className="col-span-2 mt-2 flex items-center justify-center gap-2">
+              <span className="text-sm font-bold text-neutral-900">
+                ₹{product.price.toLocaleString("en-IN")}
+              </span>
 
-            <p className="text-center text-[8px] uppercase tracking-wider text-gray-400">
-              Inclusive of all taxes
-            </p>
+              <span className="h-1 w-1 rounded-full bg-neutral-300" />
+
+              <span className="text-[10px] text-neutral-500">
+                Inclusive of all taxes
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -465,9 +466,12 @@ left-0
 right-0
 bottom-0
 z-[111]
-rounded-t-[24px]
+rounded-t-[32px]
+border-t
+border-neutral-200
 bg-white
-transition-transform
+shadow-[0_-25px_60px_rgba(0,0,0,0.14)]
+transition-all
 duration-300
 ease-[cubic-bezier(.22,1,.36,1)]
 ${isSizeDrawerOpen
@@ -481,12 +485,12 @@ ${isSizeDrawerOpen
             {/* Handle */}
 
             <div className="flex justify-center pt-2">
-              <div className="h-1.5 w-12 rounded-full bg-neutral-300" />
+              <div className="h-1 w-14 rounded-full bg-neutral-300" />
             </div>
 
             {/* Header */}
 
-            <div className="flex items-center justify-between px-5 mt-3">
+            <div className="flex items-center justify-between px-6 pt-2 pb-3 border-b border-neutral-100">
 
               <div>
 
@@ -560,7 +564,7 @@ duration-200
 
 ${active
                         ? "bg-black text-white border-black scale-95"
-                        : "bg-white border-neutral-200"
+                        : "bg-white/95 backdrop-blur-2xl border-neutral-200"
                       }
 
 ${variant.stock === 0
