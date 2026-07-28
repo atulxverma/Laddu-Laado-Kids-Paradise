@@ -38,7 +38,16 @@ export default function AddToCartButton({ product }: { product: ProductType }) {
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setShowSticky(!entry.isIntersecting);
+        const rect = entry.boundingClientRect;
+
+        // Buttons screen ke niche hain -> sticky dikhao
+        if (rect.top > window.innerHeight) {
+          setShowSticky(true);
+        }
+        // Buttons screen me aa gaye -> sticky hide
+        else {
+          setShowSticky(false);
+        }
       },
       {
         threshold: 0.2,
@@ -371,6 +380,12 @@ bottom-0
 left-0
 right-0
 z-[100]
+transition-all
+duration-300
+${showSticky
+            ? "translate-y-0 opacity-100"
+            : "translate-y-full opacity-0 pointer-events-none"
+          }
 `}
       >
         <div
