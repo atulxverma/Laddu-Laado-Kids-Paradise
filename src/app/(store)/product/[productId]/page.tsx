@@ -98,7 +98,7 @@ export default async function ProductPage({
         }
 
   return (
-    <main className="bg-gradient-to-b from-white via-[#fcfcfc] to-white pb-20">
+    <main className="bg-gradient-to-b from-white via-[#fcfcfc] to-white pb-32 md:pb-20">
       <div className="max-w-7xl mx-auto px-4 pt-2 md:pt-8">
         {/* Breadcrumb */}
         <div className="py-2 md:py-4">
@@ -305,7 +305,7 @@ md:text-5xl
                   ].map((item) => (
                     <div
                       key={item.label}
-                      className="flex items-center gap-3 p-5 bg-white border border-gray-100 rounded-[24px] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                      className="flex items-center gap-3 p-5 bg-white border border-gray-100 rounded-[24px] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 ease-out"
                     >
                       <item.icon size={18} className="text-black" />
                       <div>
@@ -348,7 +348,7 @@ md:text-5xl
 
               {/* Fast Delivery */}
 
-              <div className="rounded-2xl md:rounded-[28px] border border-sky-100 bg-gradient-to-br from-sky-50 to-cyan-50 p-4 md:p-6 shadow-sm hover:shadow-lg transition-all">
+              <div className="rounded-2xl md:rounded-[28px] border border-sky-100 bg-gradient-to-br from-sky-50 to-cyan-50 px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] md:p-6 shadow-sm hover:shadow-lg transition-all">
                 <p className="text-[9px] md:text-[10px] uppercase tracking-[0.22em] text-sky-600 font-black">
                   Fast Delivery
                 </p>
@@ -413,7 +413,7 @@ md:text-5xl
                 reviews.map((review) => (
                   <div
                     key={review.id}
-                    className="rounded-[32px] border border-gray-100 bg-white p-5 md:p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+                    className="rounded-[32px] border border-gray-100 bg-white p-5 md:p-8 transition-all duration-500 ease-out hover:-translate-y-1 hover:shadow-2xl"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-4">
