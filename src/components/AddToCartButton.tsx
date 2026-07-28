@@ -38,7 +38,6 @@ export default function AddToCartButton({ product }: { product: ProductType }) {
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // Original buttons visible => Sticky hide
         setShowSticky(!entry.isIntersecting);
       },
       {
