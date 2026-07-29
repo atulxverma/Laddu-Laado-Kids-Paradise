@@ -238,8 +238,8 @@ export default function Footer() {
 
           <div className="flex flex-col gap-3 md:gap-5  md:flex-row md:items-center md:justify-between">
 
-            <p className="text-sm text-neutral-500">
-              © {new Date().getFullYear()}<span className="font-semibold text-black">Laddoo Laado</span>. Crafted with ❤️ for every little star.
+            <p className="text-sm text-neutral-500 gap-1">
+              © {new Date().getFullYear()}<span className="font-semibold text-black "> Laddoo Laado</span>. Crafted with ❤️ for every little star.
             </p>
 
             <div className="flex flex-wrap items-center gap-4 text-sm">
