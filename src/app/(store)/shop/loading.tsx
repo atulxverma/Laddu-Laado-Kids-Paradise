@@ -5,7 +5,6 @@ export default function Loading() {
     <main className="min-h-screen bg-white pb-20 pt-8 md:pt-10">
       <div className="max-w-7xl mx-auto px-4">
 
-        {/* Heading Skeleton */}
 
         <div className="space-y-3 mb-8">
 
@@ -17,11 +16,10 @@ export default function Loading() {
 
         </div>
 
-        {/* Category */}
 
         <div className="grid grid-cols-3 gap-3 mb-8">
 
-          {[1,2,3].map(i=>(
+          {[1, 2, 3].map(i => (
             <div
               key={i}
               className="h-32 rounded-2xl bg-neutral-100 animate-pulse"
@@ -30,7 +28,7 @@ export default function Loading() {
 
         </div>
 
-        <ProductGridSkeleton count={10}/>
+        <ProductGridSkeleton count={10} />
       </div>
     </main>
   );
