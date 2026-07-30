@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useCart } from "@/hooks/use-cart"
 import { createOrder, initiateRazorpayPayment } from "@/lib/actions"
 import { useUser, SignInButton } from "@clerk/nextjs"
@@ -17,13 +17,13 @@ import {
 
 export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] =
-    useState<"ONLINE" | "COD">("ONLINE");
+    useState<"ONLINE" | "COD" | null>(null);
   const { user, isLoaded } = useUser()
   const router = useRouter()
   const items = useCart((state) => state.items)
   const clearCart = useCart((state) => state.clearCart)
   const [addressDrawerOpen, setAddressDrawerOpen] = useState(false);
-
+  const paymentMethodRef = useRef<HTMLDivElement>(null);
   const validItems = items.filter(
     (item) => item && item.id && item.name
   )
@@ -38,10 +38,20 @@ export default function CheckoutPage() {
   const deliveryCharge =
     paymentMethod === "COD" ? 79 : 0;
 
+
   const total =
     subtotal +
     shippingCharge +
     deliveryCharge;
+
+  const codTotal = total + 79;
+
+  const ctaLabel =
+    paymentMethod === null
+      ? "Review & Continue"
+      : paymentMethod === "ONLINE"
+        ? "Pay Securely"
+        : "Place COD Order";
 
   const [loading, setLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
@@ -49,6 +59,7 @@ export default function CheckoutPage() {
     useState<"ONLINE" | "COD" | null>(null);
   const [pincodeLoading, setPincodeLoading] = useState(false)
   const [locating, setLocating] = useState(false)
+  const [codDrawerOpen, setCodDrawerOpen] = useState(false);
 
   const emptyAddress = {
     name: "",
@@ -62,6 +73,14 @@ export default function CheckoutPage() {
   const [savedAddress, setSavedAddress] = useState(emptyAddress);
 
   const [draftAddress, setDraftAddress] = useState(emptyAddress);
+
+  useEffect(() => {
+    document.body.style.overflow = codDrawerOpen ? "hidden" : "auto";
+
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [codDrawerOpen]);
 
   const particles = Array.from({ length: 18 }, (_, i) => ({
     id: i,
@@ -137,6 +156,29 @@ export default function CheckoutPage() {
       }
     }
   }
+  const isAddressComplete = () => {
+    return (
+      savedAddress.name.trim() &&
+      /^[6-9]\d{9}$/.test(savedAddress.phone) &&
+      savedAddress.pincode.length === 6 &&
+      savedAddress.city &&
+      savedAddress.state &&
+      savedAddress.houseDetails.trim()
+    );
+  };
+
+  const proceedToPayment = () => {
+    if (!isAddressComplete()) {
+      setDraftAddress(savedAddress);
+      setAddressDrawerOpen(true);
+      return;
+    }
+
+    paymentMethodRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+  };
 
   const handlePayment = async () => {
     if (loading) return;
@@ -474,11 +516,11 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#fafafa] pb-24 pt-6 md:pt-8 lg:pt-10 lg:pb-12">
+    <main className="min-h-screen bg-[#fafafa] pb-36 pt-4 md:pt-6 lg:pt-10 lg:pb-12">
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-0">
-        <header className="mb-8">
+        <header className="mb-5 lg:mb-8">
 
           <Link
             href="/cart"
@@ -498,8 +540,8 @@ export default function CheckoutPage() {
 
         </header>
 
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_390px] lg:gap-10">
-          <section className="space-y-6">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_390px] lg:gap-10">
+          <section className="space-y-4 lg:space-y-6">
             <AddressCard
               form={savedAddress}
               onOpen={() => {
@@ -596,7 +638,6 @@ duration-300
                   </div>
 
                 </div>
-
               </div>
 
               <div className="my-6 max-h-[310px] space-y-4 overflow-y-auto pr-1">
@@ -646,49 +687,58 @@ duration-300
 
               </div>
 
-              <div className="border-t border-neutral-200 pt-5">
+              <div className="border-t border-neutral-200 pt-4">
 
-                <div className="space-y-3">
+                <div className="space-y-2.5">
 
-                  <div className="flex justify-between">
+                  <div className="flex items-center justify-between text-[13px]">
 
                     <span className="text-neutral-500">
                       Subtotal
                     </span>
 
-                    <span className="font-bold">
+                    <span className="font-semibold text-neutral-900">
                       ₹{subtotal.toLocaleString("en-IN")}
                     </span>
 
                   </div>
 
-                  <div className="flex justify-between">
+                  <div className="flex items-center justify-between text-[13px]">
+
                     <span className="text-neutral-500">
-                      Shipping Charges
+                      Shipping
                     </span>
 
-                    <span className="font-bold">
+                    <span className="font-semibold text-neutral-900">
                       {shippingCharge === 0 ? "FREE" : "₹79"}
                     </span>
+
                   </div>
 
-                  <div className="flex justify-between">
+                  <div className="flex items-center justify-between text-[13px]">
+
                     <span className="text-neutral-500">
-                      Delivery Charges
+                      Delivery
                     </span>
 
-                    <span className="font-bold">
-                      {paymentMethod === "COD" ? "₹79" : "FREE"}
+                    <span
+                      className={`font-semibold transition-colors duration-300 ${paymentMethod === "COD"
+                        ? "text-orange-600"
+                        : "text-emerald-600"
+                        }`}
+                    >
+                      {paymentMethod === "COD" ? "+₹79" : "FREE"}
                     </span>
+
                   </div>
 
-                  <div className="flex justify-between">
+                  <div className="flex items-center justify-between text-[13px]">
 
                     <span className="text-neutral-500">
                       Taxes
                     </span>
 
-                    <span className="font-bold">
+                    <span className="font-semibold text-neutral-900">
                       Included
                     </span>
 
@@ -696,278 +746,218 @@ duration-300
 
                 </div>
 
-                <div className="my-5 h-px bg-neutral-200" />
+                <div className="my-4 h-px bg-neutral-200" />
 
-                <div className="flex justify-between items-end">
+                <div className="flex items-end justify-between">
 
                   <div>
 
-                    <p className="text-sm text-neutral-500">
+                    <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">
                       Grand Total
                     </p>
 
-                    <p className="text-[11px] text-neutral-400">
+                    <p className="mt-0.5 text-[10px] text-neutral-400">
                       Inclusive of all taxes
                     </p>
 
                   </div>
 
-                  <h3 className="text-3xl font-black">
+                  <h3 className="text-[28px] font-black tracking-tight">
                     ₹{total.toLocaleString("en-IN")}
                   </h3>
 
                 </div>
 
-                <div className="rounded-[22px] border border-neutral-200 bg-white p-5 mt-4 shadow-sm">
-                  <h3 className="text-lg font-semibold text-neutral-900">
-                    Payment Method
-                  </h3>
+                <div
+                  ref={paymentMethodRef}
+                  className="mt-5 rounded-2xl border border-neutral-200 bg-white p-4"
+                >
+                  <div className="mb-3 flex items-center justify-between">
+                    <h3 className="text-sm font-semibold text-neutral-900">
+                      Payment Method
+                    </h3>
 
-                  <p className="mt-1 text-sm text-neutral-500">
-                    Choose how you'd like to pay.
-                  </p>
+                    <span className="text-[11px] text-neutral-400">
+                      Select one
+                    </span>
+                  </div>
 
-                  <div className="mt-5 space-y-3">
+                  <div className="flex items-center gap-6">
 
-                    {/* Online Payment */}
+                    {/* Online */}
 
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod("ONLINE")}
-                      className={`
-w-full
-flex
-items-center
-justify-between
-
-rounded-2xl
-border
-
-px-4
-py-4
-
-transition-all
-
-${paymentMethod === "ONLINE"
-                          ? "border-black bg-neutral-50"
-                          : "border-neutral-200 bg-white hover:border-neutral-300"
-                        }
-`}
+                    <label
+                      className="flex cursor-pointer items-center gap-2 text-sm font-medium text-neutral-800"
                     >
-                      <div className="flex items-center gap-4">
+                      <input
+                        type="radio"
+                        name="payment"
+                        checked={paymentMethod === "ONLINE"}
+                        onChange={() => setPaymentMethod("ONLINE")}
+                        className="h-4 w-4 accent-black"
+                      />
 
-                        <div
-                          className={`
-flex
-h-11
-w-11
-items-center
-justify-center
+                      <span>Online Payment</span>
+                    </label>
 
-rounded-full
+                    {/* COD */}
 
-${paymentMethod === "ONLINE"
-                              ? "bg-black text-white"
-                              : "bg-neutral-100 text-neutral-700"
-                            }
-`}
-                        >
-                          <CreditCard size={20} />
-                        </div>
-
-                        <div className="text-left">
-                          <p className="font-medium text-neutral-900">
-                            Online Payment
-                          </p>
-
-                          <p className="text-xs text-neutral-500">
-                            UPI • Cards • Net Banking
-                          </p>
-                        </div>
-
-                      </div>
-
-                      <div
-                        className={`
-flex
-h-5
-w-5
-items-center
-justify-center
-
-rounded-full
-border-2
-
-${paymentMethod === "ONLINE"
-                            ? "border-black"
-                            : "border-neutral-300"
-                          }
-`}
-                      >
-                        {paymentMethod === "ONLINE" && (
-                          <div className="h-2.5 w-2.5 rounded-full bg-black" />
-                        )}
-                      </div>
-
-                    </button>
-
-                    {/* Cash On Delivery */}
-
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod("COD")}
-                      className={`
-w-full
-flex
-items-center
-justify-between
-
-rounded-2xl
-border
-
-px-4
-py-4
-
-transition-all
-
-${paymentMethod === "COD"
-                          ? "border-black bg-neutral-50"
-                          : "border-neutral-200 bg-white hover:border-neutral-300"
-                        }
-`}
+                    <label
+                      className="flex cursor-pointer items-center gap-2 text-sm font-medium text-neutral-800"
                     >
-                      <div className="flex items-center gap-4">
+                      <input
+                        type="radio"
+                        name="payment"
+                        checked={paymentMethod === "COD"}
+                        onChange={() => setCodDrawerOpen(true)}
+                        className="h-4 w-4 accent-black"
+                      />
 
-                        <div
-                          className={`
-flex
-h-11
-w-11
-items-center
-justify-center
-
-rounded-full
-
-${paymentMethod === "COD"
-                              ? "bg-black text-white"
-                              : "bg-neutral-100 text-neutral-700"
-                            }
-`}
-                        >
-                          <CircleDollarSign size={20} />
-                        </div>
-
-                        <div className="text-left">
-                          <p className="font-medium text-neutral-900">
-                            Cash on Delivery
-                          </p>
-
-                          <p className="text-xs text-neutral-500">
-                            Pay after your order arrives
-                          </p>
-                        </div>
-
-                      </div>
-
-                      <div
-                        className={`
-flex
-h-5
-w-5
-items-center
-justify-center
-
-rounded-full
-border-2
-
-${paymentMethod === "COD"
-                            ? "border-black"
-                            : "border-neutral-300"
-                          }
-`}
-                      >
-                        {paymentMethod === "COD" && (
-                          <div className="h-2.5 w-2.5 rounded-full bg-black" />
-                        )}
-                      </div>
-
-                    </button>
+                      <span>Cash on Delivery</span>
+                    </label>
 
                   </div>
                 </div>
 
+                {codDrawerOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-[60] bg-black/40"
+                      onClick={() => setCodDrawerOpen(false)}
+                    />
+
+                    <div
+                      className="
+fixed
+bottom-0
+left-0
+right-0
+z-[70]
+rounded-t-[30px]
+bg-white
+p-6
+shadow-2xl
+animate-[slideUp_.28s_cubic-bezier(.22,1,.36,1)]
+"
+                    >
+
+                      <div className="mx-auto mb-5 h-1.5 w-14 rounded-full bg-neutral-300" />
+
+                      <h3 className="text-lg font-bold">
+                        Cash on Delivery
+                      </h3>
+
+                      <p className="mt-2 text-sm text-neutral-500">
+                        A convenience charge of
+                        <span className="font-semibold text-black">
+                          {" "}₹79
+                        </span>
+                        {" "}will be added to your order.
+                      </p>
+
+                      <div className="mt-6 rounded-2xl border border-neutral-200 bg-neutral-50 px-5 py-4">
+
+                        <div className="flex items-center justify-between">
+
+                          <div>
+
+                            <p className="text-xs uppercase tracking-wide text-neutral-500">
+                              Updated Total
+                            </p>
+
+                            <p className="mt-1 text-[11px] text-neutral-400">
+                              Includes COD convenience charge
+                            </p>
+
+                          </div>
+
+                          <span className="text-2xl font-black text-neutral-900">
+                            ₹{codTotal.toLocaleString("en-IN")}
+                          </span>
+
+                        </div>
+
+                      </div>
+
+                      <div className="mt-6 grid grid-cols-2 gap-3">
+
+                        <button
+                          onClick={() => setCodDrawerOpen(false)}
+                          className="h-12 rounded-xl border border-neutral-300 font-medium"
+                        >
+                          Cancel
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setPaymentMethod("COD");
+                            setCodDrawerOpen(false);
+                          }}
+                          className="h-12 rounded-xl bg-black font-medium text-white"
+                        >
+                          Confirm COD
+                        </button>
+
+                      </div>
+
+                    </div>
+                  </>
+                )}
+
+                <div className="mt-5 rounded-[24px] bg-white p-5 shadow-sm">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-zinc-900"><CreditCard size={17} /> Accepted payment methods</div>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {["Visa", "Mastercard", "RuPay", "UPI", "Paytm", "PhonePe", "Google Pay", "Cash on Delivery"].map((method) => (
+                      <span key={method} className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[10px] font-semibold text-zinc-600">{method}</span>
+                    ))}
+                  </div>
+
+                </div>
+              </div>
+              <div className="fixed inset-x-0 bottom-0 z-50 border-t border-neutral-200 bg-white/95 p-4 backdrop-blur lg:hidden">
+
                 <button
                   type="button"
+                  disabled={loading}
                   onClick={() => {
-                    const addressComplete =
-                      savedAddress.name.trim() &&
-                      /^[6-9]\d{9}$/.test(savedAddress.phone) &&
-                      savedAddress.pincode.length === 6 &&
-                      savedAddress.city &&
-                      savedAddress.state &&
-                      savedAddress.houseDetails.trim();
 
-                    if (!addressComplete) {
-                      setDraftAddress(savedAddress);
-                      setAddressDrawerOpen(true);
+                    if (!isAddressComplete()) {
+                      proceedToPayment();
+                      return;
+                    }
+
+                    if (paymentMethod === null) {
+                      paymentMethodRef.current?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center",
+                      });
                       return;
                     }
 
                     handlePayment();
-                  }}
 
-                  className="mt-7 flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-black text-white font-black transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[.98] disabled:opacity-60"
+                  }}
+                  className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-black text-sm font-bold text-white transition active:scale-[.98]"
                 >
+
                   {loading ? (
                     "Processing..."
                   ) : (
                     <>
-                      <LockKeyhole size={17} />
-                      {paymentMethod === "ONLINE"
-                        ? "Pay Securely"
-                        : "Place COD Order"}
-                      <ArrowRight size={17} />
+                      {paymentMethod === "COD" ? (
+                        <CircleDollarSign size={18} />
+                      ) : (
+                        <LockKeyhole size={18} />
+                      )}
+                      {ctaLabel}
+                      <ArrowRight size={18} />
                     </>
                   )}
+
                 </button>
 
-                <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-
-                  <div className="flex items-center gap-3">
-
-                    <ShieldCheck
-                      size={18}
-                      className="text-emerald-600"
-                    />
-
-                    <div>
-
-                      <p className="text-sm font-bold">
-                        Secure Checkout
-                      </p>
-
-                      <p className="text-[11px] text-neutral-500">
-                        SSL encrypted payment powered by Razorpay
-                      </p>
-
-                    </div>
-
-                  </div>
-
-                </div>
-
-              </div>
-
-              <div className="mt-5 rounded-[24px] bg-white p-5 shadow-sm">
-                <div className="flex items-center gap-2 text-sm font-semibold text-zinc-900"><CreditCard size={17} /> Accepted payment methods</div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {["Visa", "Mastercard", "RuPay", "UPI", "Paytm", "PhonePe", "Google Pay", "Cash on Delivery"].map((method) => (
-                    <span key={method} className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[10px] font-semibold text-zinc-600">{method}</span>
-                  ))}
-                </div>
               </div>
             </div>
-            
           </aside>
         </div>
 

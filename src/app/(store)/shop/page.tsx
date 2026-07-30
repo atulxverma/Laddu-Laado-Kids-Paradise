@@ -3,6 +3,7 @@ import ProductCard from "@/components/ProductCard";
 import { Search } from "lucide-react";
 import Link from "next/link";
 import { Baby, Shirt, Sparkles, ArrowRight } from "lucide-react";
+import ScrollToProducts from "@/components/ScrollToProducts";
 
 export default async function ShopPage({
   searchParams,
@@ -190,6 +191,7 @@ export default async function ShopPage({
 
   return (
     <main className="min-h-screen bg-white pb-20 pt-8 md:pt-10">
+      <ScrollToProducts />
       <div className="max-w-7xl mx-auto px-4">
         <div className="mb-6">
 
@@ -335,7 +337,10 @@ font-black tracking-wide">
 
         <div className="mt-8 mb-8 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
 
-          <h2 className="text-xl md:text-3xl font-black">
+          <h2
+            id="products"
+            className="text-xl md:text-3xl font-black"
+          >
             Explore Collection
           </h2>
 
@@ -373,8 +378,8 @@ font-black tracking-wide">
             <Link
               href={createSortLink("top-rated")}
               className={`inline-flex h-8 items-center justify-center whitespace-nowrap rounded-full px-5 text-xs font-bold transition ${sort === "top-rated"
-                  ? "bg-black text-white"
-                  : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                ? "bg-black text-white"
+                : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
                 }`}
             >
               Top Rated

@@ -1,17 +1,37 @@
+import ProductGridSkeleton from "@/components/skeleton/ProductGridSkeleton";
+
 export default function Loading() {
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <div className="animate-pulse space-y-4">
-        <div className="h-10 w-64 rounded bg-gray-200" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-          {Array.from({ length: 8 }).map((_, i) => (
+    <main className="min-h-screen bg-white pb-20 pt-8 md:pt-10">
+      <div className="max-w-7xl mx-auto px-4">
+
+        {/* Heading Skeleton */}
+
+        <div className="space-y-3 mb-8">
+
+          <div className="h-3 w-36 rounded bg-neutral-200 animate-pulse" />
+
+          <div className="h-10 w-72 rounded bg-neutral-200 animate-pulse" />
+
+          <div className="h-4 w-80 rounded bg-neutral-200 animate-pulse" />
+
+        </div>
+
+        {/* Category */}
+
+        <div className="grid grid-cols-3 gap-3 mb-8">
+
+          {[1,2,3].map(i=>(
             <div
               key={i}
-              className="h-80 rounded-xl bg-gray-200"
+              className="h-32 rounded-2xl bg-neutral-100 animate-pulse"
             />
           ))}
+
         </div>
+
+        <ProductGridSkeleton count={10}/>
       </div>
-    </div>
+    </main>
   );
 }

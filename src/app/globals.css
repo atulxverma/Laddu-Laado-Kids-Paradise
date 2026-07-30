@@ -81,3 +81,15 @@
   background-size: 200% 100%;
   animation: shimmer 1.4s linear infinite;
 }
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
