@@ -30,7 +30,6 @@ import {
   Shirt,
   Sparkles,
 } from "lucide-react"
-import { isCurrentUserAdmin } from "@/lib/admin";
 
 const genderFilters = [
   {
@@ -61,7 +60,13 @@ const navLinks = [
   },
 ]
 
-export default function Navbar() {
+type NavbarProps = {
+  isAdmin: boolean;
+};
+
+export default function Navbar({
+  isAdmin,
+}: NavbarProps) {
   const {
     user,
     isSignedIn,
@@ -77,20 +82,8 @@ export default function Navbar() {
   const [mounted, setMounted] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
-  const [isAdmin, setIsAdmin] = useState(false)
 
   const cartCount = cart.items.length
-
-
-
-  useEffect(() => {
-    async function checkAdmin() {
-      const admin = await isCurrentUserAdmin();
-      setIsAdmin(admin);
-    }
-
-    checkAdmin();
-  }, []);
 
   useEffect(() => {
     if (!isLoaded) return
@@ -234,6 +227,12 @@ export default function Navbar() {
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    setMounted(true);
+  }, [isLoaded]);
 
   useEffect(() => {
     const down = (
@@ -661,7 +660,7 @@ border-white
                   ml-1
                 "
               >
-                {mounted && (
+                {mounted && isLoaded && (
                   <>
                     {isSignedIn ? (
                       <div className="flex items-center gap-2">
@@ -1235,6 +1234,7 @@ transition-all
                 "
               >
                 {mounted &&
+                  isLoaded &&
                   isAdmin && (
                     <Link
                       href="/admin/dashboard"
@@ -1266,6 +1266,7 @@ rounded-xl
                   )}
 
                 {mounted &&
+                  isLoaded &&
                   isSignedIn &&
                   user && (
                     <div
