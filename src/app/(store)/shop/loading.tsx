@@ -11,8 +11,7 @@ export default function Loading() {
           <div className="h-10 w-72 rounded bg-neutral-200 animate-pulse" />
           <div className="h-4 w-80 rounded bg-neutral-200 animate-pulse" />
         </div>
-
-
+        
         <div className="grid grid-cols-3 gap-3 mb-8">
 
           {[1, 2, 3].map(i => (
