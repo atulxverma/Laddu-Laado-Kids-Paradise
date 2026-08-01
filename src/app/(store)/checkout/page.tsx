@@ -1476,10 +1476,7 @@ animate-[slideUp_.28s_cubic-bezier(.22,1,.36,1)]
             </div>
           </aside>
         </div>
-
       </div>
-
-
     </main>
   )
 }
