@@ -1409,9 +1409,7 @@ animate-[slideUp_.28s_cubic-bezier(.22,1,.36,1)]
                         ) : (
                           <LockKeyhole size={18} />
                         )}
-
                         {ctaLabel}
-
                         <ArrowRight size={18} />
                       </>
                     )}
