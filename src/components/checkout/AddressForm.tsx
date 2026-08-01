@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  BriefcaseBusiness,
   Check,
   Home,
   LocateFixed,
@@ -10,35 +11,34 @@ import {
   User,
 } from "lucide-react";
 
+type AddressLabel = "Home" | "Office" | "Other";
+
+type AddressDraft = {
+  name: string;
+  phone: string;
+  pincode: string;
+  city: string;
+  state: string;
+  houseDetails: string;
+  label: AddressLabel;
+};
+
 type AddressFormProps = {
-  form: {
-    name: string;
-    phone: string;
-    pincode: string;
-    city: string;
-    state: string;
-    houseDetails: string;
-  };
+  form: AddressDraft;
 
   setForm: React.Dispatch<
-    React.SetStateAction<{
-      name: string;
-      phone: string;
-      pincode: string;
-      city: string;
-      state: string;
-      houseDetails: string;
-    }>
+    React.SetStateAction<AddressDraft>
   >;
 
   locating: boolean;
   detectLocation: () => void;
-
   pincodeLoading: boolean;
 
   handlePincodeChange: (
     e: React.ChangeEvent<HTMLInputElement>
   ) => void;
+
+  showLabelSelector?: boolean;
 };
 
 export default function AddressForm({
@@ -48,9 +48,13 @@ export default function AddressForm({
   detectLocation,
   pincodeLoading,
   handlePincodeChange,
+  showLabelSelector = true,
 }: AddressFormProps) {
   const nameValid = form.name.trim().length >= 2;
-  const phoneValid = form.phone.length === 10;
+
+  const phoneValid =
+    /^[6-9]\d{9}$/.test(form.phone);
+
   const pincodeValid =
     form.pincode.length === 6 &&
     !!form.city &&
@@ -78,10 +82,36 @@ export default function AddressForm({
   const labelClass =
     "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500";
 
+  const addressLabels: {
+    value: AddressLabel;
+    title: string;
+    description: string;
+    icon: React.ReactNode;
+  }[] = [
+    {
+      value: "Home",
+      title: "Home",
+      description: "Home address",
+      icon: <Home size={17} />,
+    },
+    {
+      value: "Office",
+      title: "Office",
+      description: "Work address",
+      icon: <BriefcaseBusiness size={17} />,
+    },
+    {
+      value: "Other",
+      title: "Other",
+      description: "Other place",
+      icon: <MapPin size={17} />,
+    },
+  ];
+
   return (
     <div className="space-y-5">
 
-      {/* CONTACT INFORMATION */}
+      {/* CONTACT */}
 
       <section>
         <div className="mb-3">
@@ -186,11 +216,9 @@ export default function AddressForm({
         </div>
       </section>
 
-      {/* DIVIDER */}
-
       <div className="h-px bg-neutral-100" />
 
-      {/* DELIVERY ADDRESS */}
+      {/* DELIVERY */}
 
       <section>
         <div className="mb-3">
@@ -203,33 +231,20 @@ export default function AddressForm({
           </p>
         </div>
 
-        {/* LOCATION ACTION */}
+        {/* LOCATION */}
 
         <button
           type="button"
           onClick={detectLocation}
           disabled={locating}
           className="
-            group
-            mb-4
-            flex
-            w-full
-            items-center
-            gap-3
-            rounded-[16px]
-            border
-            border-neutral-200
-            bg-neutral-50
-            px-3.5
-            py-3
-            text-left
-            transition-all
-            duration-200
-            hover:border-neutral-300
-            hover:bg-neutral-100/80
+            group mb-4 flex w-full items-center gap-3
+            rounded-[16px] border border-neutral-200
+            bg-neutral-50 px-3.5 py-3 text-left
+            transition-all duration-200
+            hover:border-neutral-300 hover:bg-neutral-100/80
             active:scale-[0.995]
-            disabled:cursor-not-allowed
-            disabled:opacity-60
+            disabled:cursor-not-allowed disabled:opacity-60
           "
         >
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black text-white shadow-sm">
@@ -256,13 +271,11 @@ export default function AddressForm({
           </div>
 
           {!locating && (
-            <span className="shrink-0 text-lg leading-none text-neutral-400 transition-transform group-hover:translate-x-0.5">
+            <span className="text-lg text-neutral-400">
               →
             </span>
           )}
         </button>
-
-        {/* OR */}
 
         <div className="mb-4 flex items-center gap-3">
           <div className="h-px flex-1 bg-neutral-100" />
@@ -284,7 +297,6 @@ export default function AddressForm({
           <div className="relative">
             <MapPin
               size={17}
-              strokeWidth={1.8}
               className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400"
             />
 
@@ -303,47 +315,34 @@ export default function AddressForm({
             {pincodeLoading ? (
               <div className="absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin rounded-full border-2 border-neutral-300 border-t-black" />
             ) : pincodeValid ? (
-              <div className="pointer-events-none absolute right-3.5 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full bg-neutral-900 text-white">
+              <div className="absolute right-3.5 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full bg-black text-white">
                 <Check size={12} strokeWidth={3} />
               </div>
             ) : null}
           </div>
         </div>
 
-        {/* DETECTED LOCATION */}
+        {/* LOCATION RESULT */}
 
         {form.city && form.state && (
-          <div
-            className="
-              mt-2.5
-              flex
-              items-center
-              gap-3
-              rounded-[14px]
-              border
-              border-emerald-100
-              bg-emerald-50/60
-              px-3.5
-              py-2.5
-            "
-          >
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white">
-              <Check size={14} strokeWidth={2.5} />
+          <div className="mt-2.5 flex items-center gap-3 rounded-[14px] border border-emerald-100 bg-emerald-50/60 px-3.5 py-2.5">
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600 text-white">
+              <Check size={14} />
             </div>
 
-            <div className="min-w-0">
+            <div>
               <p className="text-[11px] font-medium text-emerald-700">
                 Location detected
               </p>
 
-              <p className="truncate text-[13px] font-semibold text-neutral-900">
+              <p className="text-[13px] font-semibold text-neutral-900">
                 {form.city}, {form.state}
               </p>
             </div>
           </div>
         )}
 
-        {/* ADDRESS DETAILS */}
+        {/* ADDRESS */}
 
         <div className="mt-4">
           <label className={labelClass}>
@@ -353,7 +352,6 @@ export default function AddressForm({
           <div className="relative">
             <Home
               size={17}
-              strokeWidth={1.8}
               className="pointer-events-none absolute left-3.5 top-3.5 text-neutral-400"
             />
 
@@ -361,54 +359,137 @@ export default function AddressForm({
               rows={3}
               required
               value={form.houseDetails}
-              autoComplete="street-address"
               maxLength={250}
+              autoComplete="street-address"
               onChange={(e) =>
                 setForm((previous) => ({
                   ...previous,
-                  houseDetails: e.target.value.slice(0, 250),
+                  houseDetails:
+                    e.target.value.slice(0, 250),
                 }))
               }
               placeholder="House / Flat no., building, street, area, landmark"
               className="
-                min-h-[86px]
-                w-full
-                resize-none
-                rounded-[14px]
-                border
-                border-neutral-200
-                bg-white
-                py-3
-                pl-10
-                pr-3
-                text-[14px]
-                leading-5
-                text-neutral-900
-                outline-none
-                transition-all
-                duration-200
+                min-h-[86px] w-full resize-none
+                rounded-[14px] border border-neutral-200
+                bg-white py-3 pl-10 pr-3
+                text-[14px] leading-5 text-neutral-900
+                outline-none transition-all
                 placeholder:text-neutral-400
                 hover:border-neutral-300
-                focus:border-black
-                focus:ring-2
-                focus:ring-black/5
+                focus:border-black focus:ring-2 focus:ring-black/5
               "
             />
           </div>
 
           {form.houseDetails.length > 0 && (
-            <div className="mt-1.5 flex items-center justify-between px-0.5">
+            <div className="mt-1.5 flex justify-between">
               <p className="text-[10px] text-neutral-400">
-                Include house number and nearby landmark if possible.
+                Include house number and landmark if possible.
               </p>
 
-              <span className="text-[10px] tabular-nums text-neutral-400">
+              <span className="text-[10px] text-neutral-400">
                 {form.houseDetails.length}/250
               </span>
             </div>
           )}
         </div>
       </section>
+
+      {/* SAVE AS */}
+
+      {showLabelSelector && (
+        <>
+          <div className="h-px bg-neutral-100" />
+
+          <section>
+            <div className="mb-3">
+              <h3 className="text-[15px] font-semibold text-neutral-950">
+                Save address as
+              </h3>
+
+              <p className="mt-0.5 text-[12px] text-neutral-500">
+                This helps you find this address faster next time.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              {addressLabels.map((item) => {
+                const selected =
+                  form.label === item.value;
+
+                return (
+                  <button
+                    key={item.value}
+                    type="button"
+                    onClick={() =>
+                      setForm((previous) => ({
+                        ...previous,
+                        label: item.value,
+                      }))
+                    }
+                    className={`
+                      relative flex min-w-0 flex-col
+                      items-center justify-center
+                      rounded-[14px] border
+                      px-2 py-3
+                      transition-all duration-200
+                      active:scale-[0.97]
+
+                      ${
+                        selected
+                          ? "border-black bg-black text-white shadow-sm"
+                          : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300 hover:bg-neutral-50"
+                      }
+                    `}
+                  >
+                    {selected && (
+                      <div className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full bg-white text-black">
+                        <Check
+                          size={10}
+                          strokeWidth={3}
+                        />
+                      </div>
+                    )}
+
+                    <div
+                      className={`
+                        flex h-8 w-8 items-center
+                        justify-center rounded-full
+
+                        ${
+                          selected
+                            ? "bg-white/15"
+                            : "bg-neutral-100"
+                        }
+                      `}
+                    >
+                      {item.icon}
+                    </div>
+
+                    <span className="mt-2 text-[11px] font-semibold">
+                      {item.title}
+                    </span>
+
+                    <span
+                      className={`
+                        mt-0.5 hidden text-[9px] sm:block
+                        ${
+                          selected
+                            ? "text-white/60"
+                            : "text-neutral-400"
+                        }
+                      `}
+                    >
+                      {item.description}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        </>
+      )}
     </div>
   );
 }

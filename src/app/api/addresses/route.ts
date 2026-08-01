@@ -99,7 +99,7 @@ export async function GET() {
 }
 
 // ==========================================
-// POST — Save new address
+// POST — Create NEW address
 // ==========================================
 
 export async function POST(req: Request) {
@@ -132,7 +132,6 @@ export async function POST(req: Request) {
 
     const addressData = validation.data;
 
-    // Limit addresses so one user cannot create unlimited records.
     const addressCount = await db.address.count({
       where: {
         clerkId: user.id,
@@ -149,7 +148,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // First address automatically becomes default.
+    // First saved address automatically becomes default
     const shouldBeDefault =
       addressCount === 0 || body.isDefault === true;
 
@@ -198,6 +197,218 @@ export async function POST(req: Request) {
       {
         success: false,
         error: "Failed to save address.",
+      },
+      { status: 500 }
+    );
+  }
+}
+
+// ==========================================
+// PATCH — Update EXISTING address
+// ==========================================
+
+export async function PATCH(req: Request) {
+  try {
+    const user = await currentUser();
+
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Unauthorized",
+        },
+        { status: 401 }
+      );
+    }
+
+    const body = await req.json();
+
+    const addressId = String(body.id || "").trim();
+
+    if (!addressId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Address ID is required.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const validation = validateAddress(body);
+
+    if ("error" in validation) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: validation.error,
+        },
+        { status: 400 }
+      );
+    }
+
+    const addressData = validation.data;
+
+    // IMPORTANT:
+    // User sirf apna hi address edit kar sake.
+    const existingAddress = await db.address.findFirst({
+      where: {
+        id: addressId,
+        clerkId: user.id,
+      },
+    });
+
+    if (!existingAddress) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Address not found.",
+        },
+        { status: 404 }
+      );
+    }
+
+    const shouldBeDefault =
+      body.isDefault === true || existingAddress.isDefault;
+
+    const updatedAddress = await db.$transaction(async (tx) => {
+      if (body.isDefault === true) {
+        await tx.address.updateMany({
+          where: {
+            clerkId: user.id,
+            NOT: {
+              id: addressId,
+            },
+          },
+          data: {
+            isDefault: false,
+          },
+        });
+      }
+
+      return tx.address.update({
+        where: {
+          id: addressId,
+        },
+        data: {
+          name: addressData.name,
+          phone: addressData.phone,
+
+          pincode: addressData.pincode,
+          city: addressData.city,
+          state: addressData.state,
+          houseDetails: addressData.houseDetails,
+
+          label: addressData.label,
+
+          isDefault: shouldBeDefault,
+        },
+      });
+    });
+
+    return NextResponse.json({
+      success: true,
+      address: updatedAddress,
+    });
+  } catch (error) {
+    console.error("UPDATE_ADDRESS_ERROR:", error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to update address.",
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    const user = await currentUser();
+
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Unauthorized",
+        },
+        { status: 401 }
+      );
+    }
+
+    const body = await req.json();
+
+    const addressId = String(body.id || "").trim();
+
+    if (!addressId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Address ID is required.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const existingAddress =
+      await db.address.findFirst({
+        where: {
+          id: addressId,
+          clerkId: user.id,
+        },
+      });
+
+    if (!existingAddress) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Address not found.",
+        },
+        { status: 404 }
+      );
+    }
+
+    await db.address.delete({
+      where: {
+        id: addressId,
+      },
+    });
+
+    // If default was deleted, make another address default.
+    if (existingAddress.isDefault) {
+      const nextAddress =
+        await db.address.findFirst({
+          where: {
+            clerkId: user.id,
+          },
+          orderBy: {
+            updatedAt: "desc",
+          },
+        });
+
+      if (nextAddress) {
+        await db.address.update({
+          where: {
+            id: nextAddress.id,
+          },
+          data: {
+            isDefault: true,
+          },
+        });
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+    });
+  } catch (error) {
+    console.error("DELETE_ADDRESS_ERROR:", error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to delete address.",
       },
       { status: 500 }
     );

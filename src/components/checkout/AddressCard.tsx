@@ -1,38 +1,69 @@
 "use client";
 
 import {
+  BriefcaseBusiness,
+  Check,
   CheckCircle2,
   ChevronRight,
+  Home,
   MapPin,
   Pencil,
   Plus,
+  Trash2,
 } from "lucide-react";
 
 type Address = {
+  id: string;
   name: string;
   phone: string;
   pincode: string;
   city: string;
   state: string;
   houseDetails: string;
+  label: string;
+  isDefault: boolean;
 };
 
 type AddressCardProps = {
-  form: Address;
-  onOpen: () => void;
+  addresses: Address[];
+  selectedAddressId: string | null;
+  loading?: boolean;
+
+  onSelect: (address: Address) => void;
+  onAddNew: () => void;
+  onEdit: (address: Address) => void;
+  onDelete: (address: Address) => void;
 };
 
 export default function AddressCard({
-  form,
-  onOpen,
+  addresses,
+  selectedAddressId,
+  loading = false,
+  onSelect,
+  onAddNew,
+  onEdit,
+  onDelete,
 }: AddressCardProps) {
-  const hasAddress =
-    form.name.trim() !== "" &&
-    form.phone.length === 10 &&
-    form.pincode.length === 6 &&
-    form.houseDetails.trim() !== "" &&
-    form.city.trim() !== "" &&
-    form.state.trim() !== "";
+  if (loading) {
+    return (
+      <section className="overflow-hidden rounded-[20px] border border-neutral-200 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.035)] md:rounded-[26px]">
+        <div className="border-b border-neutral-100 px-4 py-3 md:px-5 md:py-4">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 animate-pulse rounded-full bg-neutral-200" />
+
+            <div className="space-y-2">
+              <div className="h-3.5 w-28 animate-pulse rounded bg-neutral-200" />
+              <div className="h-2.5 w-40 animate-pulse rounded bg-neutral-100" />
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-3 p-4 md:p-5">
+          <div className="h-24 animate-pulse rounded-2xl bg-neutral-100" />
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section
@@ -43,11 +74,10 @@ export default function AddressCard({
         border-neutral-200
         bg-white
         shadow-[0_4px_20px_rgba(0,0,0,0.035)]
-
         md:rounded-[26px]
       "
     >
-      {/* Header */}
+      {/* HEADER */}
 
       <div
         className="
@@ -58,24 +88,12 @@ export default function AddressCard({
           border-neutral-100
           px-4
           py-3
-
           md:px-5
           md:py-4
         "
       >
         <div className="flex items-center gap-2.5">
-          <div
-            className="
-              flex
-              h-8
-              w-8
-              items-center
-              justify-center
-              rounded-full
-              bg-neutral-950
-              text-white
-            "
-          >
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-950 text-white">
             <MapPin size={15} strokeWidth={2} />
           </div>
 
@@ -85,7 +103,7 @@ export default function AddressCard({
                 Delivery address
               </h2>
 
-              {hasAddress && (
+              {selectedAddressId && (
                 <CheckCircle2
                   size={14}
                   className="text-emerald-600"
@@ -94,26 +112,27 @@ export default function AddressCard({
             </div>
 
             <p className="mt-0.5 text-[11px] text-neutral-400">
-              {hasAddress
-                ? "Your order will be delivered here"
+              {addresses.length > 0
+                ? "Choose where you want your order delivered"
                 : "Required to continue checkout"}
             </p>
           </div>
         </div>
 
-        {hasAddress && (
+        {addresses.length > 0 && (
           <button
             type="button"
-            onClick={onOpen}
+            onClick={onAddNew}
             className="
               flex
               h-8
+              shrink-0
               items-center
-              gap-1.5
+              gap-1
               rounded-full
               border
               border-neutral-200
-              px-3
+              px-2.5
               text-[11px]
               font-semibold
               text-neutral-700
@@ -123,18 +142,18 @@ export default function AddressCard({
               active:scale-95
             "
           >
-            <Pencil size={12} />
-            Edit
+            <Plus size={13} />
+            Add
           </button>
         )}
       </div>
 
-      {/* BODY */}
+      {/* NO ADDRESS */}
 
-      {!hasAddress ? (
+      {addresses.length === 0 ? (
         <button
           type="button"
-          onClick={onOpen}
+          onClick={onAddNew}
           className="
             group
             flex
@@ -147,7 +166,6 @@ export default function AddressCard({
             transition
             hover:bg-neutral-50
             active:bg-neutral-100
-
             md:px-5
             md:py-5
           "
@@ -167,10 +185,7 @@ export default function AddressCard({
               bg-neutral-50
             "
           >
-            <Plus
-              size={18}
-              className="text-neutral-600"
-            />
+            <Plus size={18} className="text-neutral-600" />
           </div>
 
           <div className="min-w-0 flex-1">
@@ -195,72 +210,245 @@ export default function AddressCard({
           />
         </button>
       ) : (
-        <div className="px-4 py-4 md:px-5 md:py-5">
-          <div className="flex items-start gap-3">
+        /* SAVED ADDRESSES */
 
-            {/* Initial */}
+        <div className="space-y-2.5 p-3 md:p-4">
+          {addresses.map((address) => {
+            const selected =
+              selectedAddressId === address.id;
 
-            <div
-              className="
-                flex
-                h-9
-                w-9
-                shrink-0
-                items-center
-                justify-center
-                rounded-full
-                bg-neutral-100
-                text-[13px]
-                font-bold
-                uppercase
-                text-neutral-800
-              "
-            >
-              {form.name.trim().charAt(0) || "U"}
-            </div>
+            return (
+              <div
+                key={address.id}
+                onClick={() => onSelect(address)}
+                className={`
+                  group
+                  relative
+                  cursor-pointer
+                  rounded-[16px]
+                  border
+                  p-3.5
+                  transition-all
+                  duration-200
 
-            {/* Details */}
-
-            <div className="min-w-0 flex-1">
-
-              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                <p className="text-[13px] font-semibold text-neutral-950">
-                  {form.name}
-                </p>
-
-                <span className="text-neutral-300">
-                  •
-                </span>
-
-                <p className="text-[12px] text-neutral-500">
-                  +91 {form.phone}
-                </p>
-              </div>
-
-              <p
-                className="
-                  mt-1.5
-                  text-[12px]
-                  leading-[19px]
-                  text-neutral-600
-
-                  md:text-[13px]
-                "
+                  ${selected
+                    ? "border-black bg-neutral-50 shadow-sm"
+                    : "border-neutral-200 bg-white hover:border-neutral-300 hover:bg-neutral-50/60"
+                  }
+                `}
               >
-                {form.houseDetails}
-              </p>
+                <div className="flex items-start gap-3">
 
-              <div className="mt-1 flex flex-wrap items-center gap-1 text-[12px] font-medium text-neutral-700">
-                <span>{form.city},</span>
+                  {/* RADIO */}
 
-                <span>{form.state}</span>
+                  <div
+                    className={`
+                      mt-0.5
+                      flex
+                      h-[18px]
+                      w-[18px]
+                      shrink-0
+                      items-center
+                      justify-center
+                      rounded-full
+                      border
+                      transition-all
 
-                <span className="text-neutral-400">
-                  — {form.pincode}
-                </span>
+                      ${selected
+                        ? "border-black bg-black"
+                        : "border-neutral-300 bg-white"
+                      }
+                    `}
+                  >
+                    {selected && (
+                      <Check
+                        size={11}
+                        strokeWidth={3}
+                        className="text-white"
+                      />
+                    )}
+                  </div>
+
+                  {/* DETAILS */}
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5">
+
+                      <p className="text-[13px] font-semibold text-neutral-950">
+                        {address.name}
+                      </p>
+
+                      {address.label && (
+                        <span
+                          className="
+                            inline-flex
+                            items-center
+                            gap-1
+                            rounded-full
+                            bg-neutral-100
+                            px-2
+                            py-0.5
+                            text-[9px]
+                            font-semibold
+                            text-neutral-600
+                          "
+                        >
+                          {address.label === "Office" ? (
+                            <BriefcaseBusiness size={9} />
+                          ) : address.label === "Other" ? (
+                            <MapPin size={9} />
+                          ) : (
+                            <Home size={9} />
+                          )}
+
+                          {address.label}
+                        </span>
+                      )}
+
+                      {address.isDefault && (
+                        <span
+                          className="
+                            rounded-full
+                            bg-emerald-50
+                            px-2
+                            py-0.5
+                            text-[9px]
+                            font-bold
+                            text-emerald-700
+                          "
+                        >
+                          Default
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="mt-1 text-[11px] text-neutral-500">
+                      +91 {address.phone}
+                    </p>
+
+                    <p
+                      className="
+                        mt-2
+                        text-[12px]
+                        leading-[18px]
+                        text-neutral-600
+                        md:text-[13px]
+                      "
+                    >
+                      {address.houseDetails}
+                    </p>
+
+                    <p className="mt-1 text-[11px] font-medium text-neutral-600">
+                      {address.city}, {address.state} — {address.pincode}
+                    </p>
+                  </div>
+
+                  <div className="flex shrink-0 items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(address);
+                      }}
+                      className="
+      flex
+      h-8
+      w-8
+      items-center
+      justify-center
+      rounded-full
+      text-neutral-400
+      transition
+      hover:bg-white
+      hover:text-black
+      active:scale-90
+    "
+                      aria-label="Edit address"
+                    >
+                      <Pencil size={13} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(address);
+                      }}
+                      className="
+      flex
+      h-8
+      w-8
+      items-center
+      justify-center
+      rounded-full
+      text-neutral-400
+      transition
+      hover:bg-red-50
+      hover:text-red-600
+      active:scale-90
+    "
+                      aria-label="Delete address"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* SELECTED MESSAGE */}
+
+                {selected && (
+                  <div
+                    className="
+                      mt-3
+                      flex
+                      items-center
+                      gap-1.5
+                      border-t
+                      border-neutral-200
+                      pt-2.5
+                      text-[10px]
+                      font-semibold
+                      text-emerald-700
+                    "
+                  >
+                    <CheckCircle2 size={12} />
+
+                    Delivering to this address
+                  </div>
+                )}
               </div>
-            </div>
-          </div>
+            );
+          })}
+
+          {/* ADD ANOTHER */}
+
+          <button
+            type="button"
+            onClick={onAddNew}
+            className="
+              flex
+              w-full
+              items-center
+              justify-center
+              gap-1.5
+              rounded-[14px]
+              border
+              border-dashed
+              border-neutral-300
+              py-3
+              text-[11px]
+              font-semibold
+              text-neutral-600
+              transition
+              hover:border-neutral-400
+              hover:bg-neutral-50
+              hover:text-black
+              active:scale-[0.99]
+            "
+          >
+            <Plus size={14} />
+            Add another address
+          </button>
         </div>
       )}
     </section>

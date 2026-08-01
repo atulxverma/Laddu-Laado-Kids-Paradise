@@ -6,7 +6,7 @@ import { createOrder, initiateRazorpayPayment } from "@/lib/actions"
 import { useUser, SignInButton } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, ArrowRight, Building2, CheckCircle2, CreditCard, Home, Landmark, LockKeyhole, MapPin, Navigation, PackageCheck, Phone, ShieldCheck, ShoppingBag, Truck, User, Sparkles } from "lucide-react"
+import { ArrowLeft, ArrowRight, CheckCircle2, CreditCard, LockKeyhole, PackageCheck, ShieldCheck, ShoppingBag, Truck, Sparkles } from "lucide-react"
 import Script from "next/script"
 import AddressDrawer from "@/components/checkout/AddressDrawer";
 import AddressCard from "@/components/checkout/AddressCard";
@@ -44,7 +44,7 @@ export default function CheckoutPage() {
     shippingCharge +
     deliveryCharge;
 
-  const codTotal = total + 79;
+  const codTotal = subtotal + shippingCharge + 79;
 
   const ctaLabel =
     paymentMethod === null
@@ -61,14 +61,7 @@ export default function CheckoutPage() {
   const [locating, setLocating] = useState(false)
   const [codDrawerOpen, setCodDrawerOpen] = useState(false);
 
-  const emptyAddress = {
-    name: "",
-    phone: "",
-    pincode: "",
-    city: "",
-    state: "",
-    houseDetails: "",
-  };
+  type AddressLabel = "Home" | "Office" | "Other";
 
   type SavedAddress = {
     id: string;
@@ -82,11 +75,41 @@ export default function CheckoutPage() {
     isDefault: boolean;
   };
 
-  const [savedAddress, setSavedAddress] = useState(emptyAddress);
+  type CheckoutAddress = {
+    name: string;
+    phone: string;
+    pincode: string;
+    city: string;
+    state: string;
+    houseDetails: string;
+  };
 
-  const [draftAddress, setDraftAddress] = useState(emptyAddress);
+  type AddressDraft = CheckoutAddress & {
+    label: AddressLabel;
+  };
 
-  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
+  const emptyAddress: CheckoutAddress = {
+    name: "",
+    phone: "",
+    pincode: "",
+    city: "",
+    state: "",
+    houseDetails: "",
+  };
+
+  const emptyDraftAddress: AddressDraft = {
+    ...emptyAddress,
+    label: "Home",
+  };
+
+  const [savedAddress, setSavedAddress] =
+    useState<CheckoutAddress>(emptyAddress);
+
+  const [draftAddress, setDraftAddress] =
+    useState<AddressDraft>(emptyDraftAddress);
+
+  const [savedAddresses, setSavedAddresses] =
+    useState<SavedAddress[]>([]);
 
   const [selectedAddressId, setSelectedAddressId] =
     useState<string | null>(null);
@@ -94,6 +117,8 @@ export default function CheckoutPage() {
   const [addressesLoading, setAddressesLoading] = useState(true);
 
   const [savingAddress, setSavingAddress] = useState(false);
+  const [editingAddressId, setEditingAddressId] =
+    useState<string | null>(null);
 
   const loadSavedAddresses = async () => {
     try {
@@ -241,7 +266,13 @@ export default function CheckoutPage() {
 
   const proceedToPayment = () => {
     if (!isAddressComplete()) {
-      setDraftAddress(savedAddress);
+      setEditingAddressId(null);
+
+      setDraftAddress({
+        ...emptyAddress,
+        label: "Home",
+      });
+
       setAddressDrawerOpen(true);
       return;
     }
@@ -255,6 +286,12 @@ export default function CheckoutPage() {
   const handlePayment = async () => {
     if (loading) return;
     if (!user) return;
+
+    // Payment method must be selected
+    if (!paymentMethod) {
+      alert("Please select a payment method.");
+      return;
+    }
 
     if (!savedAddress.name.trim()) {
       alert("Please enter your name.");
@@ -322,18 +359,17 @@ export default function CheckoutPage() {
             top: 0,
             behavior: "smooth",
           });
+
           setSuccessfulPaymentMethod("COD");
           setIsSuccess(true);
           clearCart();
 
+          setTimeout(() => router.push("/"), 4000);
         } else {
-
-          alert(orderRes.error)
-
+          alert(orderRes.error || "Order failed");
         }
-        setTimeout(() => router.push("/"), 4000);
-        setLoading(false)
 
+        setLoading(false);
         return;
 
       }
@@ -615,21 +651,108 @@ export default function CheckoutPage() {
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_390px] lg:gap-10">
           <section className="space-y-4 lg:space-y-6">
             <AddressCard
-              form={savedAddress}
-              onOpen={() => {
-                setDraftAddress(savedAddress);
+              addresses={savedAddresses}
+              selectedAddressId={selectedAddressId}
+              loading={addressesLoading}
+
+              onSelect={(address) => {
+                setSelectedAddressId(address.id);
+
+                setSavedAddress({
+                  name: address.name,
+                  phone: address.phone,
+                  pincode: address.pincode,
+                  city: address.city,
+                  state: address.state,
+                  houseDetails: address.houseDetails,
+                });
+              }}
+
+              onAddNew={() => {
+                setEditingAddressId(null);
+                setDraftAddress(emptyDraftAddress);
                 setAddressDrawerOpen(true);
+              }}
+
+              onEdit={(address) => {
+                setEditingAddressId(address.id);
+                setSelectedAddressId(address.id);
+
+                setDraftAddress({
+                  name: address.name,
+                  phone: address.phone,
+                  pincode: address.pincode,
+                  city: address.city,
+                  state: address.state,
+                  houseDetails: address.houseDetails,
+                  label:
+                    address.label === "Office" ||
+                      address.label === "Other"
+                      ? address.label
+                      : "Home",
+                });
+
+                setAddressDrawerOpen(true);
+              }}
+
+              onDelete={async (address) => {
+                const confirmed = window.confirm(
+                  `Delete this ${address.label || "saved"} address?`
+                );
+
+                if (!confirmed) return;
+
+                try {
+                  const response = await fetch("/api/addresses", {
+                    method: "DELETE",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      id: address.id,
+                    }),
+                  });
+
+                  const data = await response.json();
+
+                  if (!response.ok || !data.success) {
+                    throw new Error(
+                      data.error || "Failed to delete address."
+                    );
+                  }
+
+                  await loadSavedAddresses();
+                } catch (error) {
+                  console.error("DELETE_ADDRESS_ERROR:", error);
+
+                  alert(
+                    error instanceof Error
+                      ? error.message
+                      : "Failed to delete address."
+                  );
+                }
               }}
             />
 
             <AddressDrawer
               open={addressDrawerOpen}
-              onClose={() => setAddressDrawerOpen(false)}
+
+              onClose={() => {
+                setAddressDrawerOpen(false);
+                setEditingAddressId(null);
+                setDraftAddress(emptyDraftAddress);
+              }}
+
               footer={
                 <button
                   type="button"
                   disabled={savingAddress}
+
                   onClick={async () => {
+                    // ============================
+                    // VALIDATION
+                    // ============================
+
                     if (
                       !draftAddress.name.trim() ||
                       !/^[6-9]\d{9}$/.test(draftAddress.phone) ||
@@ -645,14 +768,27 @@ export default function CheckoutPage() {
                     try {
                       setSavingAddress(true);
 
+                      // ==========================================
+                      // EDIT MODE  -> PATCH
+                      // ADD MODE   -> POST
+                      // ==========================================
+
+                      const isEditing = editingAddressId !== null;
+
                       const response = await fetch("/api/addresses", {
-                        method: "POST",
+                        method: isEditing ? "PATCH" : "POST",
 
                         headers: {
                           "Content-Type": "application/json",
                         },
 
                         body: JSON.stringify({
+                          ...(isEditing
+                            ? {
+                              id: editingAddressId,
+                            }
+                            : {}),
+
                           name: draftAddress.name,
                           phone: draftAddress.phone,
                           pincode: draftAddress.pincode,
@@ -660,7 +796,7 @@ export default function CheckoutPage() {
                           state: draftAddress.state,
                           houseDetails: draftAddress.houseDetails,
 
-                          label: "Home",
+                          label: draftAddress.label,
                         }),
                       });
 
@@ -668,65 +804,111 @@ export default function CheckoutPage() {
 
                       if (!response.ok || !data.success) {
                         throw new Error(
-                          data.error || "Failed to save address."
+                          data.error ||
+                          (isEditing
+                            ? "Failed to update address."
+                            : "Failed to save address.")
                         );
                       }
 
-                      const newAddress = data.address;
+                      const returnedAddress: SavedAddress = data.address;
 
-                      setSavedAddresses((previous) => [
-                        newAddress,
-                        ...previous,
-                      ]);
+                      // ==========================================
+                      // EDIT EXISTING ADDRESS
+                      // ==========================================
 
-                      setSelectedAddressId(newAddress.id);
+                      if (isEditing) {
+                        setSavedAddresses((previous) =>
+                          previous.map((address) =>
+                            address.id === returnedAddress.id
+                              ? returnedAddress
+                              : address
+                          )
+                        );
+                      }
+
+                      // ==========================================
+                      // CREATE NEW ADDRESS
+                      // ==========================================
+
+                      else {
+                        setSavedAddresses((previous) => [
+                          returnedAddress,
+                          ...previous,
+                        ]);
+                      }
+
+                      // ==========================================
+                      // SELECT SAVED / UPDATED ADDRESS
+                      // ==========================================
+
+                      setSelectedAddressId(returnedAddress.id);
 
                       setSavedAddress({
-                        name: newAddress.name,
-                        phone: newAddress.phone,
-                        pincode: newAddress.pincode,
-                        city: newAddress.city,
-                        state: newAddress.state,
-                        houseDetails: newAddress.houseDetails,
+                        name: returnedAddress.name,
+                        phone: returnedAddress.phone,
+                        pincode: returnedAddress.pincode,
+                        city: returnedAddress.city,
+                        state: returnedAddress.state,
+                        houseDetails: returnedAddress.houseDetails,
                       });
+
+                      // ==========================================
+                      // CLEANUP
+                      // ==========================================
 
                       setAddressDrawerOpen(false);
 
-                      setDraftAddress(emptyAddress);
+                      setEditingAddressId(null);
+
+                      setDraftAddress(emptyDraftAddress);
                     } catch (error) {
-                      console.error("SAVE_ADDRESS_ERROR:", error);
+                      console.error(
+                        editingAddressId
+                          ? "UPDATE_ADDRESS_ERROR:"
+                          : "SAVE_ADDRESS_ERROR:",
+                        error
+                      );
 
                       alert(
                         error instanceof Error
                           ? error.message
-                          : "Failed to save address."
+                          : editingAddressId
+                            ? "Failed to update address."
+                            : "Failed to save address."
                       );
                     } finally {
                       setSavingAddress(false);
                     }
                   }}
+
                   className="
-      flex
-      h-12
-      w-full
-      items-center
-      justify-center
-      rounded-xl
-      bg-black
-      text-sm
-      font-semibold
-      text-white
-      transition
-      hover:bg-neutral-800
-      disabled:cursor-not-allowed
-      disabled:bg-neutral-300
-    "
+        flex
+        h-12
+        w-full
+        items-center
+        justify-center
+        rounded-xl
+        bg-black
+        text-sm
+        font-semibold
+        text-white
+        transition
+        hover:bg-neutral-800
+        disabled:cursor-not-allowed
+        disabled:bg-neutral-300
+      "
                 >
                   {savingAddress ? (
                     <span className="flex items-center gap-2">
                       <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                      Saving...
+
+                      {editingAddressId
+                        ? "Updating..."
+                        : "Saving..."}
                     </span>
+                  ) : editingAddressId ? (
+                    "Update Address"
                   ) : (
                     "Save Address"
                   )}
@@ -740,6 +922,10 @@ export default function CheckoutPage() {
                 detectLocation={detectLocation}
                 pincodeLoading={pincodeLoading}
                 handlePincodeChange={handlePincodeChange}
+                showLabelSelector={
+                  savedAddresses.length > 0 ||
+                  editingAddressId !== null
+                }
               />
             </AddressDrawer>
             <div className="hidden lg:grid lg:grid-cols-4 gap-4">
