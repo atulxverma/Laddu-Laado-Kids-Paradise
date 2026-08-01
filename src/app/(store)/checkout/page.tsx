@@ -1455,7 +1455,6 @@ animate-[slideUp_.28s_cubic-bezier(.22,1,.36,1)]
                   }}
                   className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-black text-sm font-bold text-white transition active:scale-[.98]"
                 >
-
                   {loading ? (
                     "Processing..."
                   ) : (
