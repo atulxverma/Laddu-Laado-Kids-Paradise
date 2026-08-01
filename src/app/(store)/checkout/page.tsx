@@ -1441,7 +1441,6 @@ animate-[slideUp_.28s_cubic-bezier(.22,1,.36,1)]
                       proceedToPayment();
                       return;
                     }
-
                     if (paymentMethod === null) {
                       paymentMethodRef.current?.scrollIntoView({
                         behavior: "smooth",
