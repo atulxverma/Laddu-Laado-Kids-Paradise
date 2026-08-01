@@ -1111,52 +1111,171 @@ duration-300
 
                 <div
                   ref={paymentMethodRef}
-                  className="mt-5 rounded-2xl border border-neutral-200 bg-white p-4"
+                  className="mt-5 overflow-hidden rounded-[22px] border border-neutral-200 bg-white"
                 >
-                  <div className="mb-3 flex items-center justify-between">
-                    <h3 className="text-sm font-semibold text-neutral-900">
-                      Payment Method
-                    </h3>
+                  {/* Header */}
+                  <div className="border-b border-neutral-100 px-4 py-3.5">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-sm font-semibold text-neutral-950">
+                          Payment Method
+                        </h3>
 
-                    <span className="text-[11px] text-neutral-400">
-                      Select one
-                    </span>
+                        <p className="mt-0.5 text-[11px] text-neutral-400">
+                          Choose how you would like to pay
+                        </p>
+                      </div>
+
+                      {paymentMethod && (
+                        <div className="flex items-center gap-1 text-[10px] font-semibold text-emerald-600">
+                          <CheckCircle2 size={13} />
+                          Selected
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-6">
+                  {/* Options */}
+                  <div className="space-y-2 p-3">
 
-                    {/* Online */}
+                    {/* ONLINE */}
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod("ONLINE")}
+                      className={`
+        flex w-full items-center gap-3
+        rounded-[16px] border
+        p-3.5 text-left
+        transition-all duration-200
 
-                    <label
-                      className="flex cursor-pointer items-center gap-2 text-sm font-medium text-neutral-800"
+        ${paymentMethod === "ONLINE"
+                          ? "border-black bg-neutral-50 shadow-sm"
+                          : "border-neutral-200 bg-white hover:border-neutral-300 hover:bg-neutral-50"
+                        }
+      `}
                     >
-                      <input
-                        type="radio"
-                        name="payment"
-                        checked={paymentMethod === "ONLINE"}
-                        onChange={() => setPaymentMethod("ONLINE")}
-                        className="h-4 w-4 accent-black"
-                      />
+                      <div
+                        className={`
+          flex h-10 w-10 shrink-0
+          items-center justify-center
+          rounded-xl
+          ${paymentMethod === "ONLINE"
+                            ? "bg-black text-white"
+                            : "bg-neutral-100 text-neutral-700"
+                          }
+        `}
+                      >
+                        <CreditCard size={18} />
+                      </div>
 
-                      <span>Online Payment</span>
-                    </label>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-[13px] font-semibold text-neutral-950">
+                            Pay Online
+                          </p>
+
+                          <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-bold text-emerald-700">
+                            RECOMMENDED
+                          </span>
+                        </div>
+
+                        <p className="mt-0.5 text-[11px] text-neutral-500">
+                          UPI, Cards, Net Banking & Wallets
+                        </p>
+                      </div>
+
+                      <div
+                        className={`
+          flex h-5 w-5 shrink-0
+          items-center justify-center
+          rounded-full border-2
+          ${paymentMethod === "ONLINE"
+                            ? "border-black"
+                            : "border-neutral-300"
+                          }
+        `}
+                      >
+                        {paymentMethod === "ONLINE" && (
+                          <div className="h-2.5 w-2.5 rounded-full bg-black" />
+                        )}
+                      </div>
+                    </button>
 
                     {/* COD */}
+                    <button
+                      type="button"
+                      onClick={() => setCodDrawerOpen(true)}
+                      className={`
+        flex w-full items-center gap-3
+        rounded-[16px] border
+        p-3.5 text-left
+        transition-all duration-200
 
-                    <label
-                      className="flex cursor-pointer items-center gap-2 text-sm font-medium text-neutral-800"
+        ${paymentMethod === "COD"
+                          ? "border-black bg-neutral-50 shadow-sm"
+                          : "border-neutral-200 bg-white hover:border-neutral-300 hover:bg-neutral-50"
+                        }
+      `}
                     >
-                      <input
-                        type="radio"
-                        name="payment"
-                        checked={paymentMethod === "COD"}
-                        onChange={() => setCodDrawerOpen(true)}
-                        className="h-4 w-4 accent-black"
-                      />
+                      <div
+                        className={`
+          flex h-10 w-10 shrink-0
+          items-center justify-center
+          rounded-xl
+          ${paymentMethod === "COD"
+                            ? "bg-black text-white"
+                            : "bg-neutral-100 text-neutral-700"
+                          }
+        `}
+                      >
+                        <CircleDollarSign size={18} />
+                      </div>
 
-                      <span>Cash on Delivery</span>
-                    </label>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-[13px] font-semibold text-neutral-950">
+                            Cash on Delivery
+                          </p>
 
+                          <span className="rounded-full bg-orange-50 px-2 py-0.5 text-[9px] font-bold text-orange-700">
+                            +₹79
+                          </span>
+                        </div>
+
+                        <p className="mt-0.5 text-[11px] text-neutral-500">
+                          Pay when your order arrives
+                        </p>
+                      </div>
+
+                      <div
+                        className={`
+          flex h-5 w-5 shrink-0
+          items-center justify-center
+          rounded-full border-2
+          ${paymentMethod === "COD"
+                            ? "border-black"
+                            : "border-neutral-300"
+                          }
+        `}
+                      >
+                        {paymentMethod === "COD" && (
+                          <div className="h-2.5 w-2.5 rounded-full bg-black" />
+                        )}
+                      </div>
+                    </button>
+
+                  </div>
+
+                  {/* Security footer */}
+                  <div className="flex items-center gap-2 border-t border-neutral-100 bg-neutral-50/70 px-4 py-2.5">
+                    <ShieldCheck
+                      size={13}
+                      className="text-emerald-600"
+                    />
+
+                    <p className="text-[10px] text-neutral-500">
+                      Online payments are securely processed by Razorpay
+                    </p>
                   </div>
                 </div>
 
@@ -1244,7 +1363,65 @@ animate-[slideUp_.28s_cubic-bezier(.22,1,.36,1)]
                     </div>
                   </>
                 )}
+                {/* DESKTOP CHECKOUT CTA */}
+                <div className="mt-6 hidden lg:block">
+                  <button
+                    type="button"
+                    disabled={loading}
+                    onClick={() => {
+                      if (!isAddressComplete()) {
+                        proceedToPayment();
+                        return;
+                      }
 
+                      if (paymentMethod === null) {
+                        paymentMethodRef.current?.scrollIntoView({
+                          behavior: "smooth",
+                          block: "center",
+                        });
+                        return;
+                      }
+
+                      handlePayment();
+                    }}
+                    className="
+      flex h-14 w-full
+      items-center justify-center gap-3
+      rounded-2xl
+      bg-black
+      text-sm font-bold text-white
+      transition
+      hover:bg-neutral-800
+      active:scale-[.99]
+      disabled:cursor-not-allowed
+      disabled:bg-neutral-300
+    "
+                  >
+                    {loading ? (
+                      <>
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        {paymentMethod === "COD" ? (
+                          <CircleDollarSign size={18} />
+                        ) : (
+                          <LockKeyhole size={18} />
+                        )}
+
+                        {ctaLabel}
+
+                        <ArrowRight size={18} />
+                      </>
+                    )}
+                  </button>
+
+                  <div className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-neutral-400">
+                    <ShieldCheck size={13} />
+                    Secure checkout · Your payment information is protected
+                  </div>
+                </div>
                 <div className="mt-5 rounded-[24px] bg-white p-5 shadow-sm">
                   <div className="flex items-center gap-2 text-sm font-semibold text-zinc-900"><CreditCard size={17} /> Accepted payment methods</div>
                   <div className="mt-4 flex flex-wrap gap-2">
