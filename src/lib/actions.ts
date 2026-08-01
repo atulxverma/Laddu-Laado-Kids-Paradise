@@ -2301,3 +2301,426 @@ export async function createNimbusShipment(orderId: string) {
     };
   }
 }
+
+// ======================================================
+// ADDRESS ACTIONS
+// ======================================================
+
+type AddressInput = {
+  name: string;
+  phone: string;
+  houseDetails: string;
+  city: string;
+  state: string;
+  pincode: string;
+  label?: string;
+};
+
+
+// ------------------------------------------------------
+// GET CURRENT USER ADDRESSES
+// ------------------------------------------------------
+
+export async function getSavedAddresses() {
+  try {
+    const user = await currentUser();
+
+    if (!user) {
+      return [];
+    }
+
+    return await db.address.findMany({
+      where: {
+        clerkId: user.id,
+      },
+
+      orderBy: [
+        {
+          isDefault: "desc",
+        },
+        {
+          createdAt: "desc",
+        },
+      ],
+    });
+  } catch (error) {
+    console.error("GET_ADDRESSES_ERROR", error);
+
+    return [];
+  }
+}
+
+
+// ------------------------------------------------------
+// CREATE ADDRESS
+// ------------------------------------------------------
+
+export async function createAddress(data: AddressInput) {
+  try {
+    const user = await currentUser();
+
+    if (!user) {
+      return {
+        error: "Please sign in first.",
+      };
+    }
+
+    const name = data.name.trim();
+    const phone = data.phone.replace(/\D/g, "");
+    const pincode = data.pincode.replace(/\D/g, "");
+    const city = data.city.trim();
+    const state = data.state.trim();
+    const houseDetails = data.houseDetails.trim();
+
+    const label = data.label?.trim() || "Home";
+
+
+    // VALIDATION
+
+    if (!name) {
+      return {
+        error: "Name is required.",
+      };
+    }
+
+    if (!/^[6-9][0-9]{9}$/.test(phone)) {
+      return {
+        error: "Enter a valid 10-digit mobile number.",
+      };
+    }
+
+    if (!/^[1-9][0-9]{5}$/.test(pincode)) {
+      return {
+        error: "Enter a valid 6-digit pincode.",
+      };
+    }
+
+    if (!city) {
+      return {
+        error: "City is required.",
+      };
+    }
+
+    if (!state) {
+      return {
+        error: "State is required.",
+      };
+    }
+
+    if (!houseDetails) {
+      return {
+        error: "Complete address is required.",
+      };
+    }
+
+
+    // Check how many addresses user already has
+
+    const addressCount = await db.address.count({
+      where: {
+        clerkId: user.id,
+      },
+    });
+
+
+    // First address automatically becomes default
+
+    const address = await db.address.create({
+      data: {
+        clerkId: user.id,
+
+        name,
+        phone,
+
+        pincode,
+        city,
+        state,
+        houseDetails,
+
+        label,
+
+        isDefault: addressCount === 0,
+      },
+    });
+
+
+    revalidatePath("/checkout");
+
+    return {
+      success: true,
+      address,
+    };
+
+  } catch (error) {
+    console.error("CREATE_ADDRESS_ERROR", error);
+
+    return {
+      error: "Failed to save address.",
+    };
+  }
+}
+
+
+// ------------------------------------------------------
+// UPDATE ADDRESS
+// ------------------------------------------------------
+
+export async function updateAddress(
+  addressId: string,
+  data: AddressInput,
+) {
+  try {
+    const user = await currentUser();
+
+    if (!user) {
+      return {
+        error: "Unauthorized.",
+      };
+    }
+
+
+    // IMPORTANT:
+    // User must only be able to edit their own address.
+
+    const existingAddress = await db.address.findFirst({
+      where: {
+        id: addressId,
+        clerkId: user.id,
+      },
+    });
+
+    if (!existingAddress) {
+      return {
+        error: "Address not found.",
+      };
+    }
+
+
+    const name = data.name.trim();
+    const phone = data.phone.replace(/\D/g, "");
+    const pincode = data.pincode.replace(/\D/g, "");
+    const city = data.city.trim();
+    const state = data.state.trim();
+    const houseDetails = data.houseDetails.trim();
+
+    const label = data.label?.trim() || existingAddress.label;
+
+
+    if (!name) {
+      return {
+        error: "Name is required.",
+      };
+    }
+
+    if (!/^[6-9][0-9]{9}$/.test(phone)) {
+      return {
+        error: "Enter a valid 10-digit mobile number.",
+      };
+    }
+
+    if (!/^[1-9][0-9]{5}$/.test(pincode)) {
+      return {
+        error: "Enter a valid pincode.",
+      };
+    }
+
+    if (!city || !state || !houseDetails) {
+      return {
+        error: "Complete address is required.",
+      };
+    }
+
+
+    const address = await db.address.update({
+      where: {
+        id: existingAddress.id,
+      },
+
+      data: {
+        name,
+        phone,
+        pincode,
+        city,
+        state,
+        houseDetails,
+        label,
+      },
+    });
+
+
+    revalidatePath("/checkout");
+
+    return {
+      success: true,
+      address,
+    };
+
+  } catch (error) {
+    console.error("UPDATE_ADDRESS_ERROR", error);
+
+    return {
+      error: "Failed to update address.",
+    };
+  }
+}
+
+
+// ------------------------------------------------------
+// SET DEFAULT ADDRESS
+// ------------------------------------------------------
+
+export async function setDefaultAddress(addressId: string) {
+  try {
+    const user = await currentUser();
+
+    if (!user) {
+      return {
+        error: "Unauthorized.",
+      };
+    }
+
+
+    // Make sure requested address belongs to current user
+
+    const address = await db.address.findFirst({
+      where: {
+        id: addressId,
+        clerkId: user.id,
+      },
+    });
+
+    if (!address) {
+      return {
+        error: "Address not found.",
+      };
+    }
+
+
+    await db.$transaction(async (tx) => {
+
+      // Remove existing default
+
+      await tx.address.updateMany({
+        where: {
+          clerkId: user.id,
+        },
+
+        data: {
+          isDefault: false,
+        },
+      });
+
+
+      // Set selected address as default
+
+      await tx.address.update({
+        where: {
+          id: address.id,
+        },
+
+        data: {
+          isDefault: true,
+        },
+      });
+
+    });
+
+
+    revalidatePath("/checkout");
+
+    return {
+      success: true,
+    };
+
+  } catch (error) {
+    console.error("SET_DEFAULT_ADDRESS_ERROR", error);
+
+    return {
+      error: "Failed to change default address.",
+    };
+  }
+}
+
+
+// ------------------------------------------------------
+// DELETE ADDRESS
+// ------------------------------------------------------
+
+export async function deleteAddress(addressId: string) {
+  try {
+    const user = await currentUser();
+
+    if (!user) {
+      return {
+        error: "Unauthorized.",
+      };
+    }
+
+
+    const address = await db.address.findFirst({
+      where: {
+        id: addressId,
+        clerkId: user.id,
+      },
+    });
+
+    if (!address) {
+      return {
+        error: "Address not found.",
+      };
+    }
+
+
+    await db.address.delete({
+      where: {
+        id: address.id,
+      },
+    });
+
+
+    // If deleted address was default,
+    // automatically make another one default.
+
+    if (address.isDefault) {
+
+      const nextAddress = await db.address.findFirst({
+        where: {
+          clerkId: user.id,
+        },
+
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+
+      if (nextAddress) {
+
+        await db.address.update({
+          where: {
+            id: nextAddress.id,
+          },
+
+          data: {
+            isDefault: true,
+          },
+        });
+
+      }
+    }
+
+
+    revalidatePath("/checkout");
+
+    return {
+      success: true,
+    };
+
+  } catch (error) {
+    console.error("DELETE_ADDRESS_ERROR", error);
+
+    return {
+      error: "Failed to delete address.",
+    };
+  }
+}

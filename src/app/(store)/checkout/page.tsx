@@ -70,9 +70,81 @@ export default function CheckoutPage() {
     houseDetails: "",
   };
 
+  type SavedAddress = {
+    id: string;
+    name: string;
+    phone: string;
+    pincode: string;
+    city: string;
+    state: string;
+    houseDetails: string;
+    label: string;
+    isDefault: boolean;
+  };
+
   const [savedAddress, setSavedAddress] = useState(emptyAddress);
 
   const [draftAddress, setDraftAddress] = useState(emptyAddress);
+
+  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
+
+  const [selectedAddressId, setSelectedAddressId] =
+    useState<string | null>(null);
+
+  const [addressesLoading, setAddressesLoading] = useState(true);
+
+  const [savingAddress, setSavingAddress] = useState(false);
+
+  const loadSavedAddresses = async () => {
+    try {
+      setAddressesLoading(true);
+
+      const response = await fetch("/api/addresses", {
+        method: "GET",
+        cache: "no-store",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Failed to load addresses.");
+      }
+
+      const addresses: SavedAddress[] = data.addresses || [];
+
+      setSavedAddresses(addresses);
+
+      if (addresses.length > 0) {
+        const defaultAddress =
+          addresses.find((address) => address.isDefault) ||
+          addresses[0];
+
+        setSelectedAddressId(defaultAddress.id);
+
+        setSavedAddress({
+          name: defaultAddress.name,
+          phone: defaultAddress.phone,
+          pincode: defaultAddress.pincode,
+          city: defaultAddress.city,
+          state: defaultAddress.state,
+          houseDetails: defaultAddress.houseDetails,
+        });
+      } else {
+        setSelectedAddressId(null);
+        setSavedAddress(emptyAddress);
+      }
+    } catch (error) {
+      console.error("LOAD_ADDRESSES_ERROR:", error);
+    } finally {
+      setAddressesLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isLoaded || !user) return;
+
+    loadSavedAddresses();
+  }, [isLoaded, user?.id]);
 
   useEffect(() => {
     document.body.style.overflow = codDrawerOpen ? "hidden" : "auto";
@@ -516,21 +588,21 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#fafafa] pb-36 pt-4 md:pt-6 lg:pt-10 lg:pb-12">
+    <main className="min-h-screen bg-[#fafafa] pb-28 pt-2 md:pt-6 lg:pt-10 lg:pb-12">
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-0">
-        <header className="mb-5 lg:mb-8">
+        <header className="mb-3 lg:mb-8">
 
           <Link
             href="/cart"
-            className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-black mb-5"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-500 hover:text-black mb-3 md:mb-5"
           >
             <ArrowLeft size={16} />
             Back to Cart
           </Link>
 
-          <h1 className="text-3xl md:text-5xl font-black tracking-tight">
+          <h1 className="text-[26px] md:text-5xl font-black tracking-tight">
             Checkout
           </h1>
 
@@ -555,25 +627,109 @@ export default function CheckoutPage() {
               onClose={() => setAddressDrawerOpen(false)}
               footer={
                 <button
-                  onClick={() => {
+                  type="button"
+                  disabled={savingAddress}
+                  onClick={async () => {
                     if (
                       !draftAddress.name.trim() ||
                       !/^[6-9]\d{9}$/.test(draftAddress.phone) ||
                       draftAddress.pincode.length !== 6 ||
-                      !draftAddress.city ||
-                      !draftAddress.state ||
+                      !draftAddress.city.trim() ||
+                      !draftAddress.state.trim() ||
                       !draftAddress.houseDetails.trim()
                     ) {
                       alert("Please complete your address.");
                       return;
                     }
 
-                    setSavedAddress(draftAddress);
-                    setAddressDrawerOpen(false);
+                    try {
+                      setSavingAddress(true);
+
+                      const response = await fetch("/api/addresses", {
+                        method: "POST",
+
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+
+                        body: JSON.stringify({
+                          name: draftAddress.name,
+                          phone: draftAddress.phone,
+                          pincode: draftAddress.pincode,
+                          city: draftAddress.city,
+                          state: draftAddress.state,
+                          houseDetails: draftAddress.houseDetails,
+
+                          label: "Home",
+                        }),
+                      });
+
+                      const data = await response.json();
+
+                      if (!response.ok || !data.success) {
+                        throw new Error(
+                          data.error || "Failed to save address."
+                        );
+                      }
+
+                      const newAddress = data.address;
+
+                      setSavedAddresses((previous) => [
+                        newAddress,
+                        ...previous,
+                      ]);
+
+                      setSelectedAddressId(newAddress.id);
+
+                      setSavedAddress({
+                        name: newAddress.name,
+                        phone: newAddress.phone,
+                        pincode: newAddress.pincode,
+                        city: newAddress.city,
+                        state: newAddress.state,
+                        houseDetails: newAddress.houseDetails,
+                      });
+
+                      setAddressDrawerOpen(false);
+
+                      setDraftAddress(emptyAddress);
+                    } catch (error) {
+                      console.error("SAVE_ADDRESS_ERROR:", error);
+
+                      alert(
+                        error instanceof Error
+                          ? error.message
+                          : "Failed to save address."
+                      );
+                    } finally {
+                      setSavingAddress(false);
+                    }
                   }}
-                  className="h-12 w-full rounded-xl bg-black text-sm font-semibold text-white transition hover:bg-neutral-800 disabled:bg-neutral-300"
+                  className="
+      flex
+      h-12
+      w-full
+      items-center
+      justify-center
+      rounded-xl
+      bg-black
+      text-sm
+      font-semibold
+      text-white
+      transition
+      hover:bg-neutral-800
+      disabled:cursor-not-allowed
+      disabled:bg-neutral-300
+    "
                 >
-                  Save Address
+                  {savingAddress ? (
+                    <span className="flex items-center gap-2">
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                      Saving...
+                    </span>
+                  ) : (
+                    "Save Address"
+                  )}
                 </button>
               }
             >

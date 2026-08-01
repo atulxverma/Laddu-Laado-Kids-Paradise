@@ -190,3 +190,24 @@ model ProductVariant {
 
   @@unique([productId, size])
 }
+
+model Address {
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  clerkId String
+
+  name  String
+  phone String
+
+  houseDetails String
+  city         String
+  state        String
+  pincode      String
+
+  label     String  @default("Home")
+  isDefault Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([clerkId])
+}
