@@ -287,7 +287,6 @@ export default function CheckoutPage() {
     if (loading) return;
     if (!user) return;
 
-    // Payment method must be selected
     if (!paymentMethod) {
       alert("Please select a payment method.");
       return;
