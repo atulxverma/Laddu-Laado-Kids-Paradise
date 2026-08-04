@@ -12,12 +12,16 @@ export default function ScrollToProducts() {
     if (!el) return;
 
     requestAnimationFrame(() => {
-      el.scrollIntoView({
+      const y =
+        el.getBoundingClientRect().top +
+        window.scrollY -
+        180; 
+
+      window.scrollTo({
+        top: y,
         behavior: "smooth",
-        block: "start",
       });
     });
-
   }, [params]);
 
   return null;

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import ProductCard from "@/components/ProductCard"
 import { ArrowRight, ChevronRight, FolderOpen, Layers, PackageOpen } from "lucide-react"
+import ScrollToProducts from "@/components/ScrollToProducts"
 
 export default async function CategoryPage({
     params,
@@ -43,6 +44,7 @@ export default async function CategoryPage({
 
     return (
         <main className="min-h-screen bg-white pb-20 pt-6 sm:pt-8 lg:pt-10 sm:px-6">
+            <ScrollToProducts />
             <div className="mx-auto max-w-7xl px-4 sm:px-0">
                 <nav aria-label="Breadcrumb" className="mb-7 flex flex-wrap items-center gap-1.5 text-xs font-medium text-neutral-400 sm:mb-9">
                     <Link href="/" className="transition-colors hover:text-neutral-950">Home</Link>
@@ -74,7 +76,10 @@ export default async function CategoryPage({
                     </div>
                 </header>
 
-                <div className="my-7 flex items-center justify-between">
+                <div
+                    id="products"
+                    className="scroll-mt-6 my-7 flex items-center justify-between"
+                >
                     <h2 className="text-lg font-black sm:text-2xl">
                         {category.name} Collection
                     </h2>
