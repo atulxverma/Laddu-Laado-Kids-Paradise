@@ -36,7 +36,6 @@
     outline: none;
   }
 
-  /* Chrome autofill fix */
   select:-webkit-autofill {
     -webkit-text-fill-color: #000000 !important;
     background-color: #ffffff !important;
