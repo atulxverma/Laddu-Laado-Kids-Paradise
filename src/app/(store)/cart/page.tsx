@@ -195,7 +195,7 @@ export default function CartPage() {
                           <div>
 
                             <p className="text-[10px] uppercase tracking-[0.22em] font-black text-neutral-400">
-                              {item.category}
+                              {category}
                             </p>
 
                             <h3 className="mt-1 text-[15px] md:text-lg font-bold leading-snug">

@@ -145,7 +145,8 @@ export async function initiateRazorpayPayment(
       serverTotal += product.price * item.quantity;
     }
 
-    const shippingCharge = serverTotal >= 999 ? 0 : 79;
+    const shippingCharge =
+      paymentMethod === "COD" ? 79 : serverTotal >= 999 ? 0 : 79;
 
     const codCharge = paymentMethod === "COD" ? 79 : 0;
 
@@ -335,7 +336,7 @@ export async function createOrder(data: {
       serverTotal += product.price * item.quantity;
     }
 
-    const shippingCharge = serverTotal >= 999 ? 0 : 79;
+    const shippingCharge = isCOD ? 79 : serverTotal >= 999 ? 0 : 79;
 
     const codCharge = isCOD ? 79 : 0;
 
@@ -2316,7 +2317,6 @@ type AddressInput = {
   label?: string;
 };
 
-
 // ------------------------------------------------------
 // GET CURRENT USER ADDRESSES
 // ------------------------------------------------------
@@ -2350,7 +2350,6 @@ export async function getSavedAddresses() {
   }
 }
 
-
 // ------------------------------------------------------
 // CREATE ADDRESS
 // ------------------------------------------------------
@@ -2373,7 +2372,6 @@ export async function createAddress(data: AddressInput) {
     const houseDetails = data.houseDetails.trim();
 
     const label = data.label?.trim() || "Home";
-
 
     // VALIDATION
 
@@ -2413,7 +2411,6 @@ export async function createAddress(data: AddressInput) {
       };
     }
 
-
     // Check how many addresses user already has
 
     const addressCount = await db.address.count({
@@ -2421,7 +2418,6 @@ export async function createAddress(data: AddressInput) {
         clerkId: user.id,
       },
     });
-
 
     // First address automatically becomes default
 
@@ -2443,14 +2439,12 @@ export async function createAddress(data: AddressInput) {
       },
     });
 
-
     revalidatePath("/checkout");
 
     return {
       success: true,
       address,
     };
-
   } catch (error) {
     console.error("CREATE_ADDRESS_ERROR", error);
 
@@ -2460,15 +2454,11 @@ export async function createAddress(data: AddressInput) {
   }
 }
 
-
 // ------------------------------------------------------
 // UPDATE ADDRESS
 // ------------------------------------------------------
 
-export async function updateAddress(
-  addressId: string,
-  data: AddressInput,
-) {
+export async function updateAddress(addressId: string, data: AddressInput) {
   try {
     const user = await currentUser();
 
@@ -2477,7 +2467,6 @@ export async function updateAddress(
         error: "Unauthorized.",
       };
     }
-
 
     // IMPORTANT:
     // User must only be able to edit their own address.
@@ -2495,7 +2484,6 @@ export async function updateAddress(
       };
     }
 
-
     const name = data.name.trim();
     const phone = data.phone.replace(/\D/g, "");
     const pincode = data.pincode.replace(/\D/g, "");
@@ -2504,7 +2492,6 @@ export async function updateAddress(
     const houseDetails = data.houseDetails.trim();
 
     const label = data.label?.trim() || existingAddress.label;
-
 
     if (!name) {
       return {
@@ -2530,7 +2517,6 @@ export async function updateAddress(
       };
     }
 
-
     const address = await db.address.update({
       where: {
         id: existingAddress.id,
@@ -2547,14 +2533,12 @@ export async function updateAddress(
       },
     });
 
-
     revalidatePath("/checkout");
 
     return {
       success: true,
       address,
     };
-
   } catch (error) {
     console.error("UPDATE_ADDRESS_ERROR", error);
 
@@ -2563,7 +2547,6 @@ export async function updateAddress(
     };
   }
 }
-
 
 // ------------------------------------------------------
 // SET DEFAULT ADDRESS
@@ -2578,7 +2561,6 @@ export async function setDefaultAddress(addressId: string) {
         error: "Unauthorized.",
       };
     }
-
 
     // Make sure requested address belongs to current user
 
@@ -2595,9 +2577,7 @@ export async function setDefaultAddress(addressId: string) {
       };
     }
 
-
     await db.$transaction(async (tx) => {
-
       // Remove existing default
 
       await tx.address.updateMany({
@@ -2610,7 +2590,6 @@ export async function setDefaultAddress(addressId: string) {
         },
       });
 
-
       // Set selected address as default
 
       await tx.address.update({
@@ -2622,16 +2601,13 @@ export async function setDefaultAddress(addressId: string) {
           isDefault: true,
         },
       });
-
     });
-
 
     revalidatePath("/checkout");
 
     return {
       success: true,
     };
-
   } catch (error) {
     console.error("SET_DEFAULT_ADDRESS_ERROR", error);
 
@@ -2640,7 +2616,6 @@ export async function setDefaultAddress(addressId: string) {
     };
   }
 }
-
 
 // ------------------------------------------------------
 // DELETE ADDRESS
@@ -2656,7 +2631,6 @@ export async function deleteAddress(addressId: string) {
       };
     }
 
-
     const address = await db.address.findFirst({
       where: {
         id: addressId,
@@ -2670,19 +2644,16 @@ export async function deleteAddress(addressId: string) {
       };
     }
 
-
     await db.address.delete({
       where: {
         id: address.id,
       },
     });
 
-
     // If deleted address was default,
     // automatically make another one default.
 
     if (address.isDefault) {
-
       const nextAddress = await db.address.findFirst({
         where: {
           clerkId: user.id,
@@ -2693,9 +2664,7 @@ export async function deleteAddress(addressId: string) {
         },
       });
 
-
       if (nextAddress) {
-
         await db.address.update({
           where: {
             id: nextAddress.id,
@@ -2705,17 +2674,14 @@ export async function deleteAddress(addressId: string) {
             isDefault: true,
           },
         });
-
       }
     }
-
 
     revalidatePath("/checkout");
 
     return {
       success: true,
     };
-
   } catch (error) {
     console.error("DELETE_ADDRESS_ERROR", error);
 

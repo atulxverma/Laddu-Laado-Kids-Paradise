@@ -33,18 +33,22 @@ export default function CheckoutPage() {
     0
   )
 
-  const shippingCharge = subtotal >= 999 ? 0 : 79;
+  const shippingCharge =
+    paymentMethod === "COD"
+      ? 79
+      : subtotal >= 999
+        ? 0
+        : 79;
 
   const deliveryCharge =
     paymentMethod === "COD" ? 79 : 0;
-
 
   const total =
     subtotal +
     shippingCharge +
     deliveryCharge;
 
-  const codTotal = subtotal + shippingCharge + 79;
+  const codTotal = subtotal + 79 + 79;
 
   const ctaLabel =
     paymentMethod === null
@@ -970,9 +974,8 @@ duration-300
 
                     <ul className="mt-2 space-y-1 text-xs text-neutral-600">
 
-                      <li>• Free Shipping on orders above ₹999.</li>
-
-                      <li>• Delivery Charges are included on Cash on Delivery(COD) .</li>
+                      <li>• Free Shipping on orders above ₹999 for online payments.</li>
+                      <li>• COD orders include ₹79 shipping + ₹79 COD convenience charge.</li>
 
                     </ul>
 
@@ -1059,7 +1062,7 @@ duration-300
                   <div className="flex items-center justify-between text-[13px]">
 
                     <span className="text-neutral-500">
-                      Delivery
+                      Cash on Delivery
                     </span>
 
                     <span
@@ -1308,11 +1311,14 @@ animate-[slideUp_.28s_cubic-bezier(.22,1,.36,1)]
                       </h3>
 
                       <p className="mt-2 text-sm text-neutral-500">
-                        A convenience charge of
+                        COD orders include
                         <span className="font-semibold text-black">
-                          {" "}₹79
+                          {" "}₹79 shipping
                         </span>
-                        {" "}will be added to your order.
+                        {" "}and a
+                        <span className="font-semibold text-black">
+                          {" "}₹79 COD convenience charge
+                        </span>.
                       </p>
 
                       <div className="mt-6 rounded-2xl border border-neutral-200 bg-neutral-50 px-5 py-4">

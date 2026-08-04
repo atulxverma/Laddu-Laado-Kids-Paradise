@@ -206,7 +206,7 @@ export default async function OrdersPage() {
 
                   <div className="flex justify-between">
 
-                    <span>Delivery</span>
+                    <span>Shipping</span>
 
                     <span>
 
@@ -220,7 +220,7 @@ export default async function OrdersPage() {
 
                   <div className="flex justify-between">
 
-                    <span>COD Charge</span>
+                    <span>Cash on Delivery</span>
 
                     <span>
 

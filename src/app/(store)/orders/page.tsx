@@ -155,7 +155,7 @@ export default async function MyOrdersPage() {
 
             </div>
 
-            
+
 
           </div>
 
@@ -531,21 +531,25 @@ export default async function MyOrdersPage() {
 
                           <div className="flex justify-between text-sm">
                             <span className="text-neutral-500">
-                              Delivery Charges
+                              Shipping Charges
                             </span>
 
                             <span className="font-semibold">
-                              ₹{order.deliveryCharge.toLocaleString("en-IN")}
+                              {order.deliveryCharge === 0
+                                ? "FREE"
+                                : `₹${order.deliveryCharge.toLocaleString("en-IN")}`}
                             </span>
                           </div>
 
                           <div className="flex justify-between text-sm">
                             <span className="text-neutral-500">
-                              COD Charges
+                              Cash on Delivery
                             </span>
 
                             <span className="font-semibold">
-                              ₹{order.codCharge.toLocaleString("en-IN")}
+                              {order.codCharge === 0
+                                ? "—"
+                                : `₹${order.codCharge.toLocaleString("en-IN")}`}
                             </span>
                           </div>
 
@@ -611,10 +615,10 @@ export default async function MyOrdersPage() {
                             Buy Again
                           </Link>
 
-                        ) : order.isShipmentCreated ? (
+                        ) : order.isShipmentCreated && order.trackingUrl ? (
 
                           <a
-                            href={order.trackingUrl!}
+                            href={order.trackingUrl}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex h-10 w-full items-center justify-center whitespace-nowrap rounded-full border border-sky-200 bg-sky-50 px-2 text-[11px] font-semibold text-sky-700 transition hover:bg-sky-100"
@@ -687,10 +691,10 @@ export default async function MyOrdersPage() {
                             Buy Again
                           </Link>
 
-                        ) : order.isShipmentCreated ? (
+                        ) : order.isShipmentCreated && order.trackingUrl ? (
 
                           <a
-                            href={order.trackingUrl!}
+                            href={order.trackingUrl}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex h-11 items-center justify-center rounded-full border border-sky-200 bg-sky-50 px-7 whitespace-nowrap text-sm font-bold text-sky-700 transition hover:bg-sky-100"
