@@ -3,8 +3,8 @@
 import { useState } from "react"
 import { createCategory, updateCategory } from "@/lib/actions"
 import { Plus, X, Pencil } from "lucide-react"
-import { CldUploadWidget } from "next-cloudinary"
 import { ImagePlus } from "lucide-react"
+import ImageKitUpload from "@/components/ImageKitUpload"
 
 interface Category {
   id: string
@@ -109,33 +109,39 @@ export default function CategoryForm({
                   Category Thumbnail
                 </label>
 
-                <div className="flex gap-3 items-center">
+                <input
+                  type="url"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  placeholder="Paste image URL or upload below"
+                  className="w-full border rounded-xl px-4 py-3 text-sm outline-none focus:border-black"
+                />
 
+                <div className="flex gap-3 items-center">
                   {imageUrl && (
                     <img
                       src={imageUrl}
                       className="h-20 w-20 rounded-2xl object-cover border"
-                      alt=""
+                      alt="Category preview"
                     />
                   )}
 
-                  <CldUploadWidget
-                    uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
-                    onSuccess={(result: any) =>
-                      setImageUrl(result.info.secure_url)
-                    }
-                  >
-                    {({ open }) => (
-                      <button
-                        type="button"
-                        onClick={() => open()}
-                        className="flex h-20 w-20 items-center justify-center rounded-2xl border-2 border-dashed border-neutral-200 transition hover:border-black"
-                      >
-                        <ImagePlus />
-                      </button>
-                    )}
-                  </CldUploadWidget>
-
+                  <ImageKitUpload
+                    folder="/categories"
+                    buttonText={imageUrl ? "Replace" : "Upload"}
+                    onUpload={(url) => {
+                      setImageUrl(url)
+                    }}
+                    className="
+        flex h-20 w-20
+        items-center justify-center
+        rounded-2xl
+        border-2 border-dashed border-neutral-200
+        text-[9px] font-bold
+        transition hover:border-black
+        disabled:opacity-50
+      "
+                  />
                 </div>
               </div>
 

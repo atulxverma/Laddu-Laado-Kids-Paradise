@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { CldUploadWidget } from "next-cloudinary"
-import { ImagePlus, Trash2, CheckCircle2 } from "lucide-react"
+import ImageKitUpload from "@/components/ImageKitUpload"
+import { CheckCircle2 } from "lucide-react"
 import { upsertBanner, deleteBanner } from "@/lib/actions"
 
 export default function BannerForm({ type, initialData }: { type: string, initialData?: any }) {
@@ -57,16 +57,13 @@ export default function BannerForm({ type, initialData }: { type: string, initia
         )}
         
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-2">
-          <CldUploadWidget 
-            uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET} 
-            onSuccess={(res: any) => setImageUrl(res.info.secure_url)}
-          >
-            {({ open }) => (
-              <button onClick={() => open()} className="bg-white text-black px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:scale-105 transition-all">
-                <ImagePlus size={14} /> {imageUrl ? "Replace" : "Upload"}
-              </button>
-            )}
-          </CldUploadWidget>
+          <ImageKitUpload
+  folder="/banners"
+  buttonText={imageUrl ? "Replace" : "Upload"}
+  onUpload={(url) => {
+    setImageUrl(url)
+  }}
+/>
         </div>
       </div>
 

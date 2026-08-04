@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { CldUploadWidget } from "next-cloudinary"
+import ImageKitUpload from "@/components/ImageKitUpload"
 import { ImagePlus, Trash2, X, Package, Pencil } from "lucide-react"
 import { createProduct, updateProduct } from "@/lib/actions"
 import { createPortal } from "react-dom"
@@ -168,30 +168,30 @@ export default function ProductForm({
             </div>
           ))}
 
-          <CldUploadWidget
-            uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
-            onSuccess={(result: any) => {
-              const imageUrl = result?.info?.secure_url
-
-              if (!imageUrl) return
-
-              setImages((currentImages) => [
-                ...currentImages,
-                {
-                  id: crypto.randomUUID(),
-                  url: imageUrl,
-                  order: currentImages.length,
-                },
-              ])
+          <ImageKitUpload
+            folder="/products"
+            buttonText="Add Image"
+            onUpload={(url) => {
+              setImages((prev) => [...prev, url])
             }}
-          >
-            {({ open: openUpload }) => (
-              <button type="button" onClick={() => openUpload()} className="flex h-24 w-20 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-100 text-gray-300 transition-all hover:border-black hover:text-black">
-                <ImagePlus size={20} />
-                <span className="mt-1 text-[9px] font-bold">ADD</span>
-              </button>
-            )}
-          </CldUploadWidget>
+            className="
+    flex h-28 w-24
+    shrink-0
+    flex-col
+    items-center
+    justify-center
+    gap-2
+    rounded-2xl
+    border-2 border-dashed border-neutral-200
+    bg-neutral-50
+    text-[9px] font-black
+    uppercase tracking-wider
+    transition
+    hover:border-black
+    hover:bg-white
+    disabled:opacity-50
+  "
+          />
         </div>
       </div>
 
