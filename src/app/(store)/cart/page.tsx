@@ -189,7 +189,6 @@ export default function CartPage() {
                             </div>
                           )}
                         </Link>
-
                         <div className="flex flex-1 flex-col justify-between">
 
                           <div>
