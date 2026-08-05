@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import ImageKitUpload from "@/components/ImageKitUpload"
-import { ImagePlus, Trash2, X, Package, Pencil } from "lucide-react"
+import { Trash2, X, Pencil } from "lucide-react"
 import { createProduct, updateProduct } from "@/lib/actions"
 import { createPortal } from "react-dom"
 import { Sparkles, Flame, Crown } from "lucide-react";
@@ -122,18 +122,18 @@ export default function ProductForm({
         variants,
         description: form.description,
         specifications,
-        images: images
+        images: [...images]
           .sort((a, b) => a.order - b.order)
-          .map((i) => i.url),
+          .map((image) => image.url),
       })
       : await createProduct({
         ...form,
         variants,
         description: form.description,
         specifications,
-        images: images
+        images: [...images]
           .sort((a, b) => a.order - b.order)
-          .map((i) => i.url),
+          .map((image) => image.url),
       })
 
     if (response.success) {
@@ -172,7 +172,14 @@ export default function ProductForm({
             folder="/products"
             buttonText="Add Image"
             onUpload={(url) => {
-              setImages((prev) => [...prev, url])
+              setImages((prev) => [
+                ...prev,
+                {
+                  id: crypto.randomUUID(),
+                  url,
+                  order: prev.length,
+                },
+              ])
             }}
             className="
     flex h-28 w-24
