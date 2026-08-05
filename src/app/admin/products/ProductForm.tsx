@@ -82,26 +82,6 @@ export default function ProductForm({
     setMounted(true)
   }, [])
 
-  // useEffect(() => {
-  //   if (!open) return
-
-  //   const previousOverflow = document.body.style.overflow
-  //   document.body.style.overflow = "hidden"
-
-  //   const handleEscape = (event: KeyboardEvent) => {
-  //     if (event.key === "Escape" && !loading) {
-  //       setOpen(false)
-  //     }
-  //   }
-
-  //   window.addEventListener("keydown", handleEscape)
-
-  //   return () => {
-  //     document.body.style.overflow = previousOverflow
-  //     window.removeEventListener("keydown", handleEscape)
-  //   }
-  // }, [open, loading])
-
   const inputStyle = "w-full rounded-xl border border-gray-100 bg-gray-50/30 px-4 py-3 text-sm font-medium outline-none transition-all focus:border-black"
 
   const addDetail = () => setCustomDetails((details: { key: string; value: string }[]) => [...details, { key: "", value: "" }])
