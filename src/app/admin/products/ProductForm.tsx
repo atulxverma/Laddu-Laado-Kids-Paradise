@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import ImageKitUpload from "@/components/ImageKitUpload"
-import { Trash2, X, Pencil } from "lucide-react"
+import { ImagePlus, Trash2, X, Pencil } from "lucide-react"
 import { createProduct, updateProduct } from "@/lib/actions"
 import { createPortal } from "react-dom"
 import { Sparkles, Flame, Crown } from "lucide-react";
@@ -82,6 +82,26 @@ export default function ProductForm({
     setMounted(true)
   }, [])
 
+  // useEffect(() => {
+  //   if (!open) return
+
+  //   const previousOverflow = document.body.style.overflow
+  //   document.body.style.overflow = "hidden"
+
+  //   const handleEscape = (event: KeyboardEvent) => {
+  //     if (event.key === "Escape" && !loading) {
+  //       setOpen(false)
+  //     }
+  //   }
+
+  //   window.addEventListener("keydown", handleEscape)
+
+  //   return () => {
+  //     document.body.style.overflow = previousOverflow
+  //     window.removeEventListener("keydown", handleEscape)
+  //   }
+  // }, [open, loading])
+
   const inputStyle = "w-full rounded-xl border border-gray-100 bg-gray-50/30 px-4 py-3 text-sm font-medium outline-none transition-all focus:border-black"
 
   const addDetail = () => setCustomDetails((details: { key: string; value: string }[]) => [...details, { key: "", value: "" }])
@@ -101,6 +121,7 @@ export default function ProductForm({
   const resetCreateForm = () => {
     setImages([])
     setForm(createEmptyForm())
+    setVariants([])
     setCustomDetails([{ key: "", value: "" }])
   }
 
@@ -143,6 +164,8 @@ export default function ProductForm({
         setOpen(false)
       } else {
         resetCreateForm()
+        setVariants([])
+        setOpen(false)
       }
 
       router.refresh()
@@ -466,7 +489,7 @@ export default function ProductForm({
         type="button"
         onClick={() => setOpen(true)}
         aria-label={`Edit ${product.name}`}
-        className="relative z-50 flex h-7 w-7 items-center justify-center rounded-full bg-white text-neutral-800 shadow-md transition hover:bg-gray-100 sm:h-8 sm:w-8"
+        className="relative z-10 flex h-7 w-7 items-center justify-center rounded-full bg-white text-neutral-800 shadow-md transition hover:bg-gray-100 sm:h-8 sm:w-8"
       >
         <Pencil size={14} />
       </button>
@@ -477,7 +500,7 @@ export default function ProductForm({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/70 p-4 backdrop-blur-md"
       onMouseDown={closeModal}
     >
       <div
@@ -490,7 +513,9 @@ export default function ProductForm({
         <button
           type="button"
           onClick={closeModal}
-          className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200"
+          disabled={loading}
+          aria-label="Close edit product"
+          className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 transition hover:bg-gray-200 disabled:opacity-50"
         >
           <X size={18} />
         </button>

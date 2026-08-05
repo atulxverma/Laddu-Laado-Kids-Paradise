@@ -182,9 +182,9 @@ export default function ProductsClient({ products, categories }: ProductsClientP
                     </div>
                   )}
 
-                  <div className="absolute left-2 top-2 z-20 flex flex-col items-start gap-1.5 sm:left-3 sm:top-3">
+                  <div className="absolute left-2 top-2 flex flex-col items-start gap-1.5 sm:left-3 sm:top-3">
                     <span
-  className={`
+                      className={`
 inline-flex
 items-center
 w-fit
@@ -199,9 +199,9 @@ uppercase
 tracking-wide
 ${getStockBadge(stock)}
 `}
->
-  {getStockLabel(stock)}
-</span>
+                    >
+                      {getStockLabel(stock)}
+                    </span>
                     {product.isNewArrival && <span className="max-w-full truncate rounded-full bg-black px-2 py-1 text-[8px] font-bold uppercase tracking-wider text-white sm:px-2.5 sm:py-1.5 sm:text-[9px]">New</span>}
                   </div>
                   {stock === 0 && (
@@ -209,7 +209,7 @@ ${getStockBadge(stock)}
                   )}
                   {product.category && <span className="absolute bottom-2 left-2 max-w-[72%] truncate rounded-full bg-white px-2 py-1 text-[8px] font-bold uppercase tracking-wider text-neutral-700 shadow-sm sm:bottom-3 sm:left-3 sm:px-2.5 sm:py-1.5 sm:text-[9px]">{product.category.name}</span>}
 
-                  <div className="absolute right-2 top-2 z-20 flex items-center gap-1.5 opacity-100 transition-all duration-200 md:translate-y-1 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100 sm:right-3 sm:top-3 sm:gap-2">
+                  <div className="absolute right-2 top-2 flex items-center gap-1.5 opacity-100 transition-all duration-200 md:translate-y-1 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100 sm:right-3 sm:top-3 sm:gap-2">
                     <ProductForm categories={categories} product={product} />
                     <DeleteProductButton productId={product.id} />
                   </div>
