@@ -14,6 +14,12 @@ type ProductImage = {
   url: string
 }
 
+type ProductVariant = {
+  id?: string
+  size: string
+  stock: number
+}
+
 type Product = {
   id: string
   name: string
@@ -26,11 +32,23 @@ type Product = {
   createdAt: Date | string
   category?: Category | null
   images: ProductImage[]
+  variants?: ProductVariant[]
 }
 
 type ProductsClientProps = {
   products: Product[]
   categories: Category[]
+}
+
+const getTotalStock = (product: Product) => {
+  if (product.variants && product.variants.length > 0) {
+    return product.variants.reduce(
+      (total, variant) => total + Number(variant.stock ?? 0),
+      0
+    )
+  }
+
+  return Number(product.stock ?? 0)
 }
 
 export default function ProductsClient({ products, categories }: ProductsClientProps) {
@@ -48,7 +66,7 @@ export default function ProductsClient({ products, categories }: ProductsClientP
     const query = search.trim().toLowerCase()
 
     const filtered = products.filter((product) => {
-      const stock = Number(product.stock ?? 0)
+      const stock = getTotalStock(product)
       const searchableValues = [product.name, product.category?.name, product.color, product.size].filter(Boolean).join(" ").toLowerCase()
       const matchesSearch = !query || searchableValues.includes(query)
       const matchesCategory = !categoryId || product.category?.id === categoryId
@@ -168,7 +186,7 @@ export default function ProductsClient({ products, categories }: ProductsClientP
       ) : (
         <div className="grid auto-rows-fr grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-3 2xl:grid-cols-4">
           {filteredProducts.map((product) => {
-            const stock = Number(product.stock ?? 0)
+            const stock = getTotalStock(product)
 
             return (
               <article key={product.id} className="group flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-neutral-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:rounded-3xl">
