@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import Link from "next/link"
+import Link from "next/link";
 import {
   Search,
   ShoppingBag,
@@ -9,27 +9,16 @@ import {
   Heart,
   LayoutDashboard,
   Package,
-} from "lucide-react"
-import { useCart } from "@/hooks/use-cart"
-import { useWishlist } from "@/hooks/use-wishlist"
-import { useEffect, useRef, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import {
-  SignInButton,
-  UserButton,
-  useUser,
-} from "@clerk/nextjs"
-import SearchModal from "@/components/SearchModal"
-import {
-  syncCartWithDb,
-  getDbCart,
-} from "@/lib/actions"
+} from "lucide-react";
+import { useCart } from "@/hooks/use-cart";
+import { useWishlist } from "@/hooks/use-wishlist";
+import { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
+import SearchModal from "@/components/SearchModal";
+import { syncCartWithDb, getDbCart } from "@/lib/actions";
 
-import {
-  Baby,
-  Shirt,
-  Sparkles,
-} from "lucide-react"
+import { Baby, Shirt, Sparkles } from "lucide-react";
 
 const genderFilters = [
   {
@@ -47,7 +36,7 @@ const genderFilters = [
     href: "/shop?gender=Girl",
     icon: Sparkles,
   },
-]
+];
 
 const navLinks = [
   {
@@ -58,175 +47,164 @@ const navLinks = [
     label: "FAQs",
     href: "/faqs",
   },
-]
+];
 
 type NavbarProps = {
   isAdmin: boolean;
 };
 
-export default function Navbar({
-  isAdmin,
-}: NavbarProps) {
-  const {
-    user,
-    isSignedIn,
-    isLoaded,
-  } = useUser()
+export default function Navbar({ isAdmin }: NavbarProps) {
+  const { user, isSignedIn, isLoaded } = useUser();
 
-  const cart = useCart()
-  const wishlist = useWishlist()
+  const cart = useCart();
+  const wishlist = useWishlist();
 
-  const cartHydrated = useRef(false)
-  const previousUserId = useRef<string | null>(null)
+  const cartHydrated = useRef(false);
+  const previousUserId = useRef<string | null>(null);
 
-  const [mounted, setMounted] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [searchOpen, setSearchOpen] = useState(false)
+  const [mounted, setMounted] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
-  const cartCount = cart.items.length
+  const cartCount = cart.items.length;
 
   useEffect(() => {
-    if (!isLoaded) return
+    if (!isLoaded) return;
 
     const initializeCart = async () => {
       if (!isSignedIn || !user?.id) {
-        cartHydrated.current = false
-        previousUserId.current = null
+        cartHydrated.current = false;
+        previousUserId.current = null;
 
-        cart.clearCart()
-        wishlist.clearWishlist()
+        const storedUserId = localStorage.getItem("laddu-laado-auth-session");
 
-        localStorage.removeItem(
-          "laddu-laado-auth-session"
-        )
+        // Clear a signed-in user's cart on logout.
+        // New items added after logout remain as guest-cart items.
+        if (storedUserId) {
+          cart.clearCart();
+          cart.clearBuyNowItem();
+          wishlist.clearWishlist();
 
-        return
+          localStorage.removeItem("laddu-laado-auth-session");
+        }
+
+        return;
       }
 
-      const storedUserId =
-        localStorage.getItem(
-          "laddu-laado-auth-session"
-        )
+      const storedUserId = localStorage.getItem("laddu-laado-auth-session");
 
-      if (
-        storedUserId &&
-        storedUserId !== user.id
-      ) {
-        cart.clearCart()
-        wishlist.clearWishlist()
+      // No saved user means the current persisted cart belongs to a guest.
+      const guestItems = storedUserId ? [] : cart.items;
+
+      if (storedUserId && storedUserId !== user.id) {
+        cart.clearCart();
+        cart.clearBuyNowItem();
+        wishlist.clearWishlist();
       }
 
-      cartHydrated.current = false
+      cartHydrated.current = false;
 
       try {
-        const dbCart = await getDbCart()
+        const dbCart = await getDbCart();
 
-        const formatted = dbCart.map(
-          (item: any) => ({
-            id: item.product.id,
-            name: item.product.name,
-            price: item.product.price,
+        const formatted = dbCart.map((item: any) => ({
+          id: item.product.id,
+          name: item.product.name,
+          price: item.product.price,
+          image: item.product.images?.[0]?.url || "",
+          size: item.size,
+          quantity: item.quantity,
+          color: item.product.color || "Standard",
+          category: item.product.category?.name || "",
+          stock: item.product.stock,
+        }));
 
-            image:
-              item.product.images?.[0]?.url ||
-              "",
+        const mergedItems = [...formatted];
 
-            size: item.size,
-            quantity: item.quantity,
+        for (const guestItem of guestItems) {
+          const existingIndex = mergedItems.findIndex(
+            (item) => item.id === guestItem.id && item.size === guestItem.size,
+          );
 
-            color:
-              item.product.color ||
-              "Standard",
+          if (existingIndex === -1) {
+            mergedItems.push(guestItem);
+            continue;
+          }
 
-            category:
-              item.product.category?.name ||
-              "",
+          const existingItem = mergedItems[existingIndex];
+          const stock = existingItem.stock ?? guestItem.stock;
+          const quantity = existingItem.quantity + guestItem.quantity;
 
-            stock: item.product.stock,
-          })
-        )
+          mergedItems[existingIndex] = {
+            ...existingItem,
+            quantity:
+              typeof stock === "number" ? Math.min(quantity, stock) : quantity,
+          };
+        }
 
-        cart.setItems(formatted)
+        cart.setItems(mergedItems);
 
-        previousUserId.current = user.id
+        // Store merged guest cart in the user's database cart.
+        if (guestItems.length > 0) {
+          await syncCartWithDb(
+            mergedItems.map((item) => ({
+              id: item.id,
+              size: item.size,
+              quantity: item.quantity,
+            })),
+          );
+        }
 
-        localStorage.setItem(
-          "laddu-laado-auth-session",
-          user.id
-        )
+        previousUserId.current = user.id;
+
+        localStorage.setItem("laddu-laado-auth-session", user.id);
       } catch (error) {
-        console.error(
-          "Cart initialization error:",
-          error
-        )
+        console.error("Cart initialization error:", error);
       } finally {
         setTimeout(() => {
-          cartHydrated.current = true
-        }, 100)
+          cartHydrated.current = true;
+        }, 100);
       }
-    }
+    };
 
-    initializeCart()
-  }, [
-    isLoaded,
-    isSignedIn,
-    user?.id,
-  ])
+    initializeCart();
+  }, [isLoaded, isSignedIn, user?.id]);
 
   useEffect(() => {
-    if (
-      !isLoaded ||
-      !isSignedIn ||
-      !user?.id ||
-      !cartHydrated.current
-    ) {
-      return
+    if (!isLoaded || !isSignedIn || !user?.id || !cartHydrated.current) {
+      return;
     }
 
-    if (
-      previousUserId.current !== user.id
-    ) {
-      return
+    if (previousUserId.current !== user.id) {
+      return;
     }
 
     const timer = setTimeout(async () => {
       try {
-        const result =
-          await syncCartWithDb(
-            cart.items.map((item) => ({
-              id: item.id,
-              size: item.size,
-              quantity: item.quantity,
-            }))
-          )
+        const result = await syncCartWithDb(
+          cart.items.map((item) => ({
+            id: item.id,
+            size: item.size,
+            quantity: item.quantity,
+          })),
+        );
 
         if (result?.error) {
-          console.error(
-            "Cart sync error:",
-            result.error
-          )
+          console.error("Cart sync error:", result.error);
         }
       } catch (error) {
-        console.error(
-          "Cart sync failed:",
-          error
-        )
+        console.error("Cart sync failed:", error);
       }
-    }, 800)
+    }, 800);
 
     return () => {
-      clearTimeout(timer)
-    }
-  }, [
-    cart.items,
-    isLoaded,
-    isSignedIn,
-    user?.id,
-  ])
+      clearTimeout(timer);
+    };
+  }, [cart.items, isLoaded, isSignedIn, user?.id]);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -235,51 +213,36 @@ export default function Navbar({
   }, [isLoaded]);
 
   useEffect(() => {
-    const down = (
-      event: KeyboardEvent
-    ) => {
-      if (
-        event.key.toLowerCase() === "k" &&
-        (event.metaKey || event.ctrlKey)
-      ) {
-        event.preventDefault()
+    const down = (event: KeyboardEvent) => {
+      if (event.key.toLowerCase() === "k" && (event.metaKey || event.ctrlKey)) {
+        event.preventDefault();
 
-        setSearchOpen(
-          (current) => !current
-        )
+        setSearchOpen((current) => !current);
       }
-    }
+    };
 
-    document.addEventListener(
-      "keydown",
-      down
-    )
+    document.addEventListener("keydown", down);
 
     return () => {
-      document.removeEventListener(
-        "keydown",
-        down
-      )
-    }
-  }, [])
+      document.removeEventListener("keydown", down);
+    };
+  }, []);
 
   useEffect(() => {
     if (menuOpen) {
-      document.body.style.overflow =
-        "hidden"
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = ""
+      document.body.style.overflow = "";
     }
 
     return () => {
-      document.body.style.overflow = ""
-    }
-  }, [menuOpen])
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
 
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-white">
-
         <motion.div
           animate={{
             y: 0,
@@ -304,15 +267,12 @@ export default function Navbar({
               justify-between
             "
           >
-
             {/* MOBILE LEFT */}
 
             <div className="flex md:hidden items-center shrink-0">
               <button
                 type="button"
-                onClick={() =>
-                  setMenuOpen(true)
-                }
+                onClick={() => setMenuOpen(true)}
                 aria-label="Open menu"
                 className="
                   h-8
@@ -332,7 +292,6 @@ export default function Navbar({
 
             {/* LOGO */}
 
-
             <Link
               href="/"
               className="
@@ -346,7 +305,6 @@ export default function Navbar({
     md:translate-x-0
   "
             >
-
               {/* <div
                 className="
                   h-8
@@ -451,9 +409,7 @@ export default function Navbar({
             <div className="flex md:hidden items-center gap-2 shrink-0">
               <button
                 type="button"
-                onClick={() =>
-                  setSearchOpen(true)
-                }
+                onClick={() => setSearchOpen(true)}
                 aria-label="Search"
                 className="
 h-8
@@ -462,7 +418,8 @@ flex
 items-center
 justify-center
 rounded-full
-">
+"
+              >
                 <Search size={18} />
               </button>
 
@@ -515,13 +472,13 @@ flex
 items-center
 justify-center
 rounded-full
-">
+"
+              >
                 <ShoppingBag size={18} />
 
-                {mounted &&
-                  cartCount > 0 && (
-                    <span
-                      className="
+                {mounted && cartCount > 0 && (
+                  <span
+                    className="
 absolute
 -top-1
 -right-1
@@ -536,15 +493,11 @@ rounded-full
 flex
 items-center
 justify-center
-border
-border-white
 "
-                    >
-                      {cartCount > 99
-                        ? "99+"
-                        : cartCount}
-                    </span>
-                  )}
+                  >
+                    {cartCount}
+                  </span>
+                )}
               </Link>
             </div>
 
@@ -553,9 +506,7 @@ border-white
             <div className="hidden md:flex items-center gap-1.5 shrink-0">
               <button
                 type="button"
-                onClick={() =>
-                  setSearchOpen(true)
-                }
+                onClick={() => setSearchOpen(true)}
                 className="
                   p-2
                   text-gray-600
@@ -580,11 +531,9 @@ border-white
               >
                 <Heart size={18} />
 
-                {mounted &&
-                  wishlist.items.length >
-                  0 && (
-                    <span
-                      className="
+                {mounted && wishlist.items.length > 0 && (
+                  <span
+                    className="
                         absolute
                         top-1
                         right-1
@@ -602,51 +551,49 @@ border-white
                         border
                         border-white
                       "
-                    >
-                      {wishlist.items.length}
-                    </span>
-                  )}
+                  >
+                    {wishlist.items.length}
+                  </span>
+                )}
               </Link>
 
               <Link
                 href="/cart"
                 className="
-relative
-h-8
-w-8
-flex
-items-center
-justify-center
-rounded-full
+  relative
+  p-2
+  text-gray-600
+  hover:bg-gray-100
+  rounded-full
+  transition-all
 "
               >
                 <ShoppingBag size={18} />
 
-                {mounted &&
-                  cartCount > 0 && (
-                    <span
-                      className="
-absolute
--top-1
--right-1
-min-w-[16px]
-h-4
-px-1
-bg-black
-text-white
-text-[8px]
-font-black
-rounded-full
-flex
-items-center
-justify-center
-border
-border-white
-"
-                    >
-                      {cartCount}
-                    </span>
-                  )}
+                {mounted && cartCount > 0 && (
+                  <span
+                    className="
+                        absolute
+                        top-1
+                        right-1
+                        min-w-[14px]
+                        h-3.5
+                        px-0.5
+                        bg-black
+                        text-white
+                        text-[8px]
+                        font-black
+                        rounded-full
+                        flex
+                        items-center
+                        justify-center
+                        border
+                        border-white
+                      "
+                  >
+                    {cartCount}
+                  </span>
+                )}
               </Link>
 
               <div
@@ -686,10 +633,7 @@ border-white
                               transition-all
                             "
                           >
-                            <LayoutDashboard
-                              size={11}
-                            />
-
+                            <LayoutDashboard size={11} />
                             Panel
                           </Link>
                         )}
@@ -698,21 +642,13 @@ border-white
                           <UserButton.MenuItems>
                             <UserButton.Link
                               label="My Orders"
-                              labelIcon={
-                                <Package
-                                  size={14}
-                                />
-                              }
+                              labelIcon={<Package size={14} />}
                               href="/orders"
                             />
 
                             <UserButton.Link
                               label="Wishlist"
-                              labelIcon={
-                                <Heart
-                                  size={14}
-                                />
-                              }
+                              labelIcon={<Heart size={14} />}
                               href="/wishlist"
                             />
                           </UserButton.MenuItems>
@@ -764,12 +700,11 @@ border-white
     "
           >
             <div className="flex items-center gap-8 mx-auto">
-              {genderFilters.map(
-                (filter) => (
-                  <Link
-                    key={filter.label}
-                    href={filter.href}
-                    className="
+              {genderFilters.map((filter) => (
+                <Link
+                  key={filter.label}
+                  href={filter.href}
+                  className="
                       text-[10px]
                       font-black
                       uppercase
@@ -780,11 +715,11 @@ border-white
                       relative
                       group
                     "
-                  >
-                    {filter.label}
+                >
+                  {filter.label}
 
-                    <span
-                      className="
+                  <span
+                    className="
                         absolute
                         -bottom-1
                         left-0
@@ -794,23 +729,18 @@ border-white
                         transition-all
                         group-hover:w-full
                       "
-                    />
-                  </Link>
-                )
-              )}
+                  />
+                </Link>
+              ))}
             </div>
 
             <div className="flex-1 flex justify-center px-6">
               <button
                 type="button"
-                onClick={() =>
-                  setSearchOpen(true)
-                }
-                className="flex items-center gap-3 w-full max-w-md rounded-xl px-4 py-1.5 border bg-gray-50 border-gray-200 hover:border-gray-300 hover:bg-gray-100 transition-all">
-                <Search
-                  size={13}
-                  className="text-gray-400 shrink-0"
-                />
+                onClick={() => setSearchOpen(true)}
+                className="flex items-center gap-3 w-full max-w-md rounded-xl px-4 py-1.5 border bg-gray-50 border-gray-200 hover:border-gray-300 hover:bg-gray-100 transition-all"
+              >
+                <Search size={13} className="text-gray-400 shrink-0" />
 
                 <span
                   className="
@@ -847,13 +777,10 @@ border-white
           </div>
         </div>
 
-        <div
-          className="md:hidden bg-white border-b border-gray-200 overflow-x-auto no-scrollbar"
-        >
+        <div className="md:hidden bg-white border-b border-gray-200 overflow-x-auto no-scrollbar">
           <div className="flex items-center justify-around min-w-full px-3 py-2">
-
             {genderFilters.map((item) => {
-              const Icon = item.icon
+              const Icon = item.icon;
 
               return (
                 <Link
@@ -867,36 +794,30 @@ border-white
                     className="text-gray-700 mx-auto"
                   />
 
-                  <span className="
+                  <span
+                    className="
 mt-1
 text-[9px]
 font-medium
 text-gray-700
 leading-none
 whitespace-nowrap
-">
+"
+                  >
                     {item.label}
                   </span>
                 </Link>
-              )
+              );
             })}
-
           </div>
         </div>
 
         {/* MOBILE SCROLLED NAVBAR */}
-
-
-      </header >
+      </header>
 
       <div className="h-[119px] md:h-28" />
 
-      <SearchModal
-        open={searchOpen}
-        onClose={() =>
-          setSearchOpen(false)
-        }
-      />
+      <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
 
       {/* MOBILE DRAWER */}
 
@@ -917,10 +838,7 @@ whitespace-nowrap
                 duration: 0.18,
               }}
 
-
-              onClick={() =>
-                setMenuOpen(false)
-              }
+              onClick={() => setMenuOpen(false)}
               className="
                 fixed
                 inset-0
@@ -1016,16 +934,14 @@ whitespace-nowrap
                 <button
                   type="button"
                   onClick={() => {
-                    setMenuOpen(false)
-                    setSearchOpen(true)
+                    setMenuOpen(false);
+                    setSearchOpen(true);
                   }}
                   className="w-full h-11 flex items-center gap-2.5 rounded-xl border border-gray-200 bg-gray-50 px-3 text-gray-500 text-sm hover:bg-white transition-all"
                 >
                   <Search size={18} />
 
-                  <span className="text-sm font-medium">
-                    Search items...
-                  </span>
+                  <span className="text-sm font-medium">Search items...</span>
                 </button>
 
                 <div className="space-y-2">
@@ -1045,9 +961,7 @@ whitespace-nowrap
                     <>
                       <Link
                         href="/orders"
-                        onClick={() =>
-                          setMenuOpen(false)
-                        }
+                        onClick={() => setMenuOpen(false)}
                         className="
                           flex
                           items-center
@@ -1060,19 +974,13 @@ whitespace-nowrap
                           rounded-xl
                         "
                       >
-                        <Package
-                          size={18}
-                          className="text-gray-400"
-                        />
-
+                        <Package size={18} className="text-gray-400" />
                         My Orders
                       </Link>
 
                       <Link
                         href="/wishlist"
-                        onClick={() =>
-                          setMenuOpen(false)
-                        }
+                        onClick={() => setMenuOpen(false)}
                         className="
                           flex
                           items-center
@@ -1086,19 +994,13 @@ rounded-xl
                         "
                       >
                         <div className="flex items-center gap-3">
-                          <Heart
-                            size={18}
-                            className="text-gray-400"
-                          />
-
+                          <Heart size={18} className="text-gray-400" />
                           Wishlist
                         </div>
 
-                        {mounted &&
-                          wishlist.items
-                            .length > 0 && (
-                            <span
-                              className="
+                        {mounted && wishlist.items.length > 0 && (
+                          <span
+                            className="
                                 min-w-[20px]
                                 h-5
                                 px-1.5
@@ -1111,21 +1013,16 @@ rounded-xl
                                 items-center
                                 justify-center
                               "
-                            >
-                              {
-                                wishlist.items
-                                  .length
-                              }
-                            </span>
-                          )}
+                          >
+                            {wishlist.items.length}
+                          </span>
+                        )}
                       </Link>
                     </>
                   ) : (
                     <SignInButton mode="modal">
                       <button
-                        onClick={() =>
-                          setMenuOpen(false)
-                        }
+                        onClick={() => setMenuOpen(false)}
                         className="
                           w-full
                           bg-black
@@ -1158,15 +1055,12 @@ rounded-xl
                     Shop
                   </p>
 
-                  {genderFilters.map(
-                    (filter) => (
-                      <Link
-                        key={filter.label}
-                        href={filter.href}
-                        onClick={() =>
-                          setMenuOpen(false)
-                        }
-                        className="
+                  {genderFilters.map((filter) => (
+                    <Link
+                      key={filter.label}
+                      href={filter.href}
+                      onClick={() => setMenuOpen(false)}
+                      className="
 flex
 items-center
 justify-between
@@ -1176,26 +1070,18 @@ rounded-xl
 hover:bg-gray-50
 transition-all
 "
-                      >
-                        <div className="flex items-center gap-3">
+                    >
+                      <div className="flex items-center gap-3">
+                        <filter.icon size={17} className="text-gray-500" />
 
-                          <filter.icon
-                            size={17}
-                            className="text-gray-500"
-                          />
-
-                          <span className="text-sm font-semibold">
-                            {filter.label}
-                          </span>
-
-                        </div>
-
-                        <span className="text-gray-300">
-                          →
+                        <span className="text-sm font-semibold">
+                          {filter.label}
                         </span>
-                      </Link>
-                    )
-                  )}
+                      </div>
+
+                      <span className="text-gray-300">→</span>
+                    </Link>
+                  ))}
                 </div>
 
                 <div
@@ -1207,9 +1093,7 @@ transition-all
                     <Link
                       key={link.href}
                       href={link.href}
-                      onClick={() =>
-                        setMenuOpen(false)
-                      }
+                      onClick={() => setMenuOpen(false)}
                       className="
                         block
                         text-sm
@@ -1233,15 +1117,11 @@ transition-all
                   space-y-3
                 "
               >
-                {mounted &&
-                  isLoaded &&
-                  isAdmin && (
-                    <Link
-                      href="/admin/dashboard"
-                      onClick={() =>
-                        setMenuOpen(false)
-                      }
-                      className="
+                {mounted && isLoaded && isAdmin && (
+                  <Link
+                    href="/admin/dashboard"
+                    onClick={() => setMenuOpen(false)}
+                    className="
                         flex
                         items-center
                         justify-center
@@ -1256,21 +1136,15 @@ rounded-xl
                         uppercase
                         tracking-widest
                       "
-                    >
-                      <LayoutDashboard
-                        size={14}
-                      />
+                  >
+                    <LayoutDashboard size={14} />
+                    Admin Dashboard
+                  </Link>
+                )}
 
-                      Admin Dashboard
-                    </Link>
-                  )}
-
-                {mounted &&
-                  isLoaded &&
-                  isSignedIn &&
-                  user && (
-                    <div
-                      className="
+                {mounted && isLoaded && isSignedIn && user && (
+                  <div
+                    className="
                         flex
                         items-center
                         gap-3
@@ -1281,51 +1155,46 @@ border
 border-gray-200
 shadow-sm
                       "
-                    >
-                      <UserButton afterSignOutUrl="/" />
+                  >
+                    <UserButton afterSignOutUrl="/" />
 
-                      <div
-                        className="
+                    <div
+                      className="
                           flex
                           flex-col
                           overflow-hidden
                           min-w-0
                         "
-                      >
-                        <span
-                          className="
+                    >
+                      <span
+                        className="
                             text-xs
                             font-black
                             truncate
                             text-black
                           "
-                        >
-                          {user.fullName ||
-                            "User"}
-                        </span>
+                      >
+                        {user.fullName || "User"}
+                      </span>
 
-                        <span
-                          className="
+                      <span
+                        className="
                             text-[10px]
                             font-bold
                             text-emerald-500
                             uppercase
                           "
-                        >
-                          Active
-                        </span>
-                      </div>
+                      >
+                        Active
+                      </span>
                     </div>
-                  )}
+                  </div>
+                )}
               </div>
             </motion.aside>
           </>
         )}
       </AnimatePresence>
-
-
     </>
-
-
-  )
+  );
 }

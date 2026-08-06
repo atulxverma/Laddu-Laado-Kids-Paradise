@@ -115,38 +115,31 @@ export default function AddToCartButton({ product }: { product: ProductType }) {
   };
 
   const buyNow = (size: string) => {
-    const variant = variants.find((v: any) => v.size === size);
+  const variant = variants.find((v: any) => v.size === size);
 
-    if (!variant) return;
+  if (!variant) return;
 
-    const stock = variant.stock;
+  const stock = variant.stock;
 
-    const alreadyItem = cart.items.find(
-      (item: any) =>
-        item.id === product.id &&
-        item.size === size
-    );
+  if (stock <= 0) {
+    alert(`Only ${stock} item(s) available.`);
+    return;
+  }
 
-    if (alreadyItem && alreadyItem.quantity >= stock) {
-      alert(`Only ${stock} item(s) available.`);
-      return;
-    }
+  cart.setBuyNowItem({
+    id: product.id,
+    name: product.name,
+    price: product.price,
+    image: product.images?.[0]?.url || "",
+    size,
+    color: product.color || "",
+    category: product.category?.name || "",
+    stock,
+    quantity: 1,
+  });
 
-    if (!alreadyItem) {
-      cart.addItem({
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        image: product.images?.[0]?.url || "",
-        size,
-        color: product.color || "",
-        category: product.category?.name || "",
-        stock,
-      });
-    }
-
-    router.push("/checkout");
-  };
+  router.push("/checkout");
+};
 
   const handleAdd = () => {
     if (added) return;

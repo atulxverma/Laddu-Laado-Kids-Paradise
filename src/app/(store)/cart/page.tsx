@@ -12,6 +12,7 @@ export default function CartPage() {
   const increaseQuantity = useCart((state) => state.increaseQuantity)
   const decreaseQuantity = useCart((state) => state.decreaseQuantity)
   const clearCart = useCart((state) => state.clearCart)
+  const clearBuyNowItem = useCart((state) => state.clearBuyNowItem)
 
   const [mounted, setMounted] = useState(false)
   const buttonRef = useRef<HTMLAnchorElement>(null)
@@ -408,6 +409,7 @@ export default function CartPage() {
               <Link
                 ref={buttonRef}
                 href="/checkout"
+                onClick={clearBuyNowItem}
                 className={`
 hidden lg:flex
 items-center

@@ -22,11 +22,17 @@ export default function CheckoutPage() {
   const router = useRouter()
   const items = useCart((state) => state.items)
   const clearCart = useCart((state) => state.clearCart)
-  const [addressDrawerOpen, setAddressDrawerOpen] = useState(false);
-  const paymentMethodRef = useRef<HTMLDivElement>(null);
-  const validItems = items.filter(
+  const buyNowItem = useCart((state) => state.buyNowItem)
+  const clearBuyNowItem = useCart((state) => state.clearBuyNowItem)
+
+  const validCartItems = items.filter(
     (item) => item && item.id && item.name
   )
+
+  const validItems = buyNowItem ? [buyNowItem] : validCartItems
+  const isBuyNowCheckout = buyNowItem !== null
+  const [addressDrawerOpen, setAddressDrawerOpen] = useState(false);
+  const paymentMethodRef = useRef<HTMLDivElement>(null);
 
   const subtotal = validItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -365,7 +371,12 @@ export default function CheckoutPage() {
 
           setSuccessfulPaymentMethod("COD");
           setIsSuccess(true);
-          clearCart();
+
+          if (isBuyNowCheckout) {
+            clearBuyNowItem();
+          } else {
+            clearCart();
+          }
 
           setTimeout(() => router.push("/"), 4000);
         } else {
@@ -429,7 +440,12 @@ export default function CheckoutPage() {
             });
             setSuccessfulPaymentMethod("ONLINE");
             setIsSuccess(true);
-            clearCart();
+
+            if (isBuyNowCheckout) {
+              clearBuyNowItem();
+            } else {
+              clearCart();
+            }
 
             setTimeout(() => router.push("/"), 4000);
           } else {
