@@ -1149,11 +1149,11 @@ rounded-xl
                         items-center
                         gap-3
                        bg-white
-p-3
-rounded-2xl
-border
-border-gray-200
-shadow-sm
+                       p-3
+                       rounded-2xl
+                       border
+                       border-gray-200
+                       shadow-sm
                       "
                   >
                     <UserButton afterSignOutUrl="/" />
